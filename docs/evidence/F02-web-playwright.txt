@@ -1,0 +1,34 @@
+# Site React — E2E Playwright 1.64.1 (Chrome 156 do sistema) contra Keycloak 26.8.1 + API :8081 + Vite :4200 — 2026-11-14T21:46:44-03:00
+# comando: ENGENHEIRO_SENHA_LOCAL=*** npx playwright test
+  ✓   1 [setup] › e2e/auth.setup.ts:4:1 › login do patrão (Keycloak + TOTP + PKCE)
+  ✓   2 [desktop-1440] › e2e/layout.spec.ts:8:3 › sem rolagem horizontal em /overview
+  ✓   3 [desktop-1440] › e2e/layout.spec.ts:8:3 › sem rolagem horizontal em /sales/customers
+  ✓   4 [desktop-1440] › e2e/layout.spec.ts:8:3 › sem rolagem horizontal em /team/people
+  ✓   5 [desktop-1440] › e2e/layout.spec.ts:8:3 › sem rolagem horizontal em /team/access
+  ✓   6 [desktop-1440] › e2e/layout.spec.ts:8:3 › sem rolagem horizontal em /team/access?user=0193a000-0000-7000-8000-000000000a02
+  ✓   7 [desktop-1440] › e2e/layout.spec.ts:8:3 › sem rolagem horizontal em /team/audit
+  ✓   8 [desktop-1440] › e2e/layout.spec.ts:20:1 › abas acessíveis em qualquer largura (rolagem própria da barra)
+  ✓   9 [desktop-1440] › e2e/layout.spec.ts:28:1 › ações por pessoa ficam visíveis sem rolagem lateral
+  ✓  10 [desktop-1440] › e2e/site.spec.ts:5:3 › site do patrão — pilha real › abas horizontais na ordem e indicadores financeiros sem números inventados
+  ✓  11 [desktop-1440] › e2e/site.spec.ts:18:3 › site do patrão — pilha real › cadastra cliente e o encontra na busca
+  ✓  12 [desktop-1440] › e2e/site.spec.ts:33:3 › site do patrão — pilha real › mapa de acessos: altera, mostra resumo, salva com motivo, aparece no histórico e restaura o modelo
+  ✓  13 [desktop-1440] › e2e/site.spec.ts:57:3 › site do patrão — pilha real › teclado: primeiro Tab leva ao atalho 'Pular para o conteúdo'
+  ✓  14 [desktop-1440] › e2e/site.spec.ts:64:3 › site do patrão — pilha real › contador não entra no site do patrão
+  ✓  15 [desktop-1440] › e2e/site.spec.ts:77:3 › site do patrão — pilha real › sair encerra a sessão no servidor e no provedor
+  ✓  16 [tablet-768] › e2e/layout.spec.ts:8:3 › sem rolagem horizontal em /overview
+  ✓  17 [tablet-768] › e2e/layout.spec.ts:8:3 › sem rolagem horizontal em /sales/customers
+  ✓  18 [tablet-768] › e2e/layout.spec.ts:8:3 › sem rolagem horizontal em /team/people
+  ✓  19 [tablet-768] › e2e/layout.spec.ts:8:3 › sem rolagem horizontal em /team/access
+  ✓  20 [tablet-768] › e2e/layout.spec.ts:8:3 › sem rolagem horizontal em /team/access?user=0193a000-0000-7000-8000-000000000a02
+  ✓  21 [tablet-768] › e2e/layout.spec.ts:8:3 › sem rolagem horizontal em /team/audit
+  ✓  22 [tablet-768] › e2e/layout.spec.ts:20:1 › abas acessíveis em qualquer largura (rolagem própria da barra)
+  ✓  23 [tablet-768] › e2e/layout.spec.ts:28:1 › ações por pessoa ficam visíveis sem rolagem lateral
+  ✓  24 [celular-360] › e2e/layout.spec.ts:8:3 › sem rolagem horizontal em /overview
+  ✓  25 [celular-360] › e2e/layout.spec.ts:8:3 › sem rolagem horizontal em /sales/customers
+  ✓  26 [celular-360] › e2e/layout.spec.ts:8:3 › sem rolagem horizontal em /team/people
+  ✓  27 [celular-360] › e2e/layout.spec.ts:8:3 › sem rolagem horizontal em /team/access
+  ✓  28 [celular-360] › e2e/layout.spec.ts:8:3 › sem rolagem horizontal em /team/access?user=0193a000-0000-7000-8000-000000000a02
+  ✓  29 [celular-360] › e2e/layout.spec.ts:8:3 › sem rolagem horizontal em /team/audit
+  ✓  30 [celular-360] › e2e/layout.spec.ts:20:1 › abas acessíveis em qualquer largura (rolagem própria da barra)
+  ✓  31 [celular-360] › e2e/layout.spec.ts:28:1 › ações por pessoa ficam visíveis sem rolagem lateral
+  31 passed

@@ -20,6 +20,7 @@
       "implicitFlowEnabled": false,
       "serviceAccountsEnabled": false,
       "redirectUris": [
+        "http://localhost:4200/login/oauth2/code/engenheiro",
         "http://localhost:8080/login/oauth2/code/engenheiro",
         "http://localhost:8081/login/oauth2/code/engenheiro"
       ],

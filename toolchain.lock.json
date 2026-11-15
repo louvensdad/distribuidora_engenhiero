@@ -14,12 +14,26 @@
     "oidc": "quay.io/keycloak/keycloak:26.8.1"
   },
   "web": {
-    "node": "22.22.1 (instalado)",
-    "angular": "22.2.6 (registro npm; ainda não instalado — F02)"
+    "node": "22.22.1 (sistema)",
+    "npm": "11.21.1 via npx (o npm 9.2.0 do sistema falha com Vite 8; ver checkpoint)",
+    "react": "19.3.1",
+    "react_router": "8.5.1",
+    "vite": "8.3.5",
+    "plugin_react": "6.1.2",
+    "typescript": "7.0.2",
+    "vitest": "5.0.5",
+    "jsdom": "29.1.1 (30.x exige Node >=22.22.2)",
+    "testing_library_react": "16.3.3",
+    "playwright": "1.64.1 (usa o Chrome 156 do sistema)",
+    "fontes": "@fontsource/manrope 5.3.0, @fontsource/dm-sans 5.3.0 (OFL-1.1, locais)",
+    "lockfile": "apps/web-admin/package-lock.json",
+    "decisao": "ADR-015 (React em vez de Angular)"
   },
   "mobile": {
-    "flutter": "3.50.0 stable (commit ab2912035e160d9cad6306df307576da6128ebdb)",
+    "flutter": "3.50.0 stable (commit ab2912035e160d9cad6306df307576da6128ebdb), instalado em ~/development/flutter, SHA-256 verificado",
     "dart": "3.14.0",
-    "estado": "BLOCKED: Flutter/Android SDK/Xcode não instalados nesta máquina"
+    "android_sdk": "~/Android/Sdk — cmdline-tools 23.0, platform-tools 37.0.1, platforms;android-36, build-tools;36.1.0",
+    "estado": "INSTALADO — APK debug de prova gerado (docs/evidence/F02-toolchain-mobile.txt)",
+    "pendente": "iOS exige macOS/Xcode (fora desta máquina); desktop Linux não instalado (exige sudo, não necessário)"
   }
 }

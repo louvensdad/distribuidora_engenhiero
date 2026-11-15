@@ -1,0 +1,4 @@
+# Site React — testes unitários/componentes — 2026-11-14T21:46:42-03:00
+# comando: cd apps/web-admin && npm test   (Vitest 5.0.5, jsdom 29.1.1)
+ Test Files  4 passed (4)
+      Tests  19 passed (19)

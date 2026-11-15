@@ -1,0 +1,16 @@
+# Toolchain móvel — 2026-11-14T21:47:20-03:00
+Flutter 3.50.0 • channel stable • https://github.com/flutter/flutter.git
+Framework • revision ab2912035e (5 days ago) • 2026-11-09 08:50:21 -0800
+Engine • hash bf601093ad255aaf5c6d0fc5c4f9acfa60943b2a (revision 371f77202a) (5 days ago) • 2026-11-09 15:57:36.000Z
+Tools • Dart 3.14.0 • DevTools 2.61.0
+
+Doctor summary (to see all details, run flutter doctor -v):
+[!] Flutter (Channel stable, 3.50.0, on Ubuntu 26.04.1 LTS 7.0.0-43-generic, locale pt_BR.UTF-8)
+    ! The flutter binary is not on your path. Consider adding /home/louvens/development/flutter/bin to your path.
+    ! The dart binary is not on your path. Consider adding /home/louvens/development/flutter/bin to your path.
+Linux desktop: não instalado (exige sudo; não necessário para APK)
+
+# APK de prova (projeto descartável em scratchpad):
+-rw-rw-r-- 1 louvens louvens 157928640 Nov 14 21:28 build/app/outputs/flutter-apk/app-debug.apk
+
+Instalação: ~/development/flutter (tarball 3.50.0 verificado por SHA-256), ~/Android/Sdk (cmdline-tools 23.0 SHA-1 verificado; platform-tools 37.0.1; platforms;android-36; build-tools;36.1.0)

@@ -1,10 +1,10 @@
 # Checkpoint
 
-Data/hora e fuso: 14/11/2026 21:20 America/Sao_Paulo
+Data/hora e fuso: 14/11/2026 21:50 America/Sao_Paulo
 Agente e repositório: Claude Code (Opus 5.5) — `/home/louvens/distribuidora-engenheiro`
 Branch e commit atual: `main` — ver `git log -1`
-Fase: F01 concluída; próxima F02
-Gate: F00 **PASS** · F01 **PASS** (com limites abaixo) · F03 **IN_PROGRESS** (fatia clientes)
+Fase: F02 em andamento (web feita; apps pendentes)
+Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **IN_PROGRESS** · F03 **IN_PROGRESS** (fatia clientes)
 
 ## Entregue e comprovado
 
@@ -24,6 +24,20 @@ Gate: F00 **PASS** · F01 **PASS** (com limites abaixo) · F03 **IN_PROGRESS** (
 **F03 (fatia)** — clientes: `POST/GET /api/v1/customers`, `GET /api/v1/customers/{id}`; escopo por unidade; contato/endereço/documento
 mascarados conforme política de campo e recusados na gravação por quem não os vê; auditoria sem dado pessoal.
 
+**F02 (web)** — `apps/web-admin` em React 19 + Vite 8 + TypeScript 7 (ADR-015, pedido do responsável):
+- Entrada segura (W01) via BFF; estados NÃO CONFIGURADO, sessão expirada, conta sem acesso ao site.
+- Abas horizontais Visão geral/Vendas/Operação/Financeiro/Relatórios/Inteligência/Equipe e subabas montadas por
+  `/me/capabilities`; rota sem capacidade não chama a API. Módulos de fases futuras aparecem como "em implementação — Fxx",
+  sem números de exemplo.
+- Telas reais: Visão geral (equipe e últimos movimentos; KPIs financeiros pendentes F06/F09), Clientes (busca, paginação,
+  cadastro, campos ocultos), Pessoas (bloquear/reativar com motivo e If-Match), Mapa de acessos W15 (modelos, áreas
+  recolhíveis, escopo, alçada, campos, apps, resumo antes de salvar, conflito 412), Histórico W16 (filtro por pessoa, cursor).
+- Tokens/ícones/marca do pacote; fontes locais; tema escuro; 360/768/1440 px; skip link e foco visível.
+- Nenhum token no navegador (cookie HttpOnly); CSRF automático nas mutações.
+
+**Toolchain móvel** — Flutter 3.50.0 + Android SDK 36 instalados em `~/development/flutter` e `~/Android/Sdk`
+(sem sudo, downloads verificados por hash); APK debug de prova gerado. Licenças do Android SDK aceitas via `sdkmanager --licenses`.
+
 ## Validação
 
 - `./mvnw verify` → **75 testes, 0 falhas** (`docs/evidence/F01-mvnw-verify.txt`).
@@ -32,6 +46,14 @@ mascarados conforme política de campo e recusados na gravação por quem não o
 - Ponta a ponta com Keycloak 26.8.1 real: formulário de login, cadastro de TOTP do patrão, PKCE, sessão, `/me` 200, mutação sem CSRF 403 /
   com CSRF 200, logout → 401, contador no site do patrão → 403 auditado (`F01-e2e-login-web-keycloak.txt`).
 - Smoke de infraestrutura (`F01-smoke-local.txt`).
+- Backend `./mvnw verify` → **77 testes** (inclui `LocalSeedIntegrationTest`).
+- Site: Vitest **19 testes** (`F02-web-vitest.txt`); Playwright **31 testes** no Chrome real contra Keycloak+API
+  (`F02-web-playwright.txt`), capturas em `docs/evidence/telas-web/`.
+- Toolchain móvel: `F02-toolchain-mobile.txt`.
+
+Problemas encontrados e corrigidos nesta etapa: seed local como `V1000` impedia novas migrations (agora `R__` idempotente,
+com teste); tabela estourava a largura no celular por texto `visually-hidden` absoluto; matriz de acessos longa demais
+(agora agrupada por área).
 
 ## Limites do gate F01 (explícitos)
 
@@ -44,7 +66,9 @@ mascarados conforme política de campo e recusados na gravação por quem não o
 
 ## Bloqueios e decisões
 
-- Flutter 3.50.0 / Android SDK / Xcode ausentes. Para destravar: instalar o SDK fixado em `toolchain.lock.json`.
+- iOS exige macOS + Xcode (não há nesta máquina). Android OK.
+- `PATH` do Flutter não foi gravado no `~/.bashrc` (ação bloqueada pela política de permissões); usar caminho completo ou adicionar manualmente.
+- npm 9.2.0 do sistema falha com Vite 8 (`edgesOut`); usar `npx -y npm@11.21.1`.
 - Porta 8080 ocupada nesta máquina; local usa `PORT=8081` (redirect 8081 incluído no realm).
 - D01–D15 em `docs/F00_INVENTARIO.md` §4.
 
@@ -62,8 +86,8 @@ ENGENHEIRO_SENHA_LOCAL=... python3 -I ../../infra/local/e2e_login_web.py
 
 ## Próxima ação
 
-**F02 — design system e shells.** Criar `apps/web-admin` (Angular 22.2.6, lockfile commitado) com tokens de
-`docs/especificacao/design/tokens.css`, ícones de `assets/`, abas horizontais Visão geral/Vendas/Operação/Financeiro/Relatórios/
-Inteligência/Equipe montadas a partir de `/api/v1/me/capabilities`, estados loading/vazio/erro/sem permissão/conflito/offline,
-proxy de desenvolvimento para `/api`, `/bff`, `/oauth2`, `/login` (mesma origem) e primeira tela real: mapa de acessos
-(`/api/v1/users/{id}/access-policy`). Testes: unitários + Playwright em 360/768/1440 px e teclado. Mobile segue BLOCKED.
+1. **F02 (apps)**: criar `packages/mobile-core|mobile-design|mobile-api|mobile-auth` (Dart) e os 4 projetos Flutter com
+   applicationId próprio (`br.com.engenheiro.gestao|retirada|entregas|contabil`), ícones do pacote, login OIDC+PKCE pelo
+   navegador do sistema e armazenamento seguro, shell com até 5 destinos por capacidade. Gate: 4 APKs gerados e abertos em
+   emulador (instalar system image + AVD) — screenshot não basta.
+2. **F03**: produtos/medidas/conversões, fornecedores, recebimentos e estoque com concorrência (B01, B10, B11).

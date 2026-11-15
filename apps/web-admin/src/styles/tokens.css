@@ -1,0 +1,16 @@
+:root {
+  --eng-background: #09131C;
+  --eng-surface: #11232F;
+  --eng-surfaceRaised: #1A3040;
+  --eng-border: #2A4354;
+  --eng-text: #EDF5F7;
+  --eng-muted: #A3BAC8;
+  --eng-green: #B3F18A;
+  --eng-cyan: #67D7E8;
+  --eng-violet: #A9B4FA;
+  --eng-warning: #E8BE75;
+  --eng-error: #FA9A9A;
+  --eng-radius: 16px;
+  --eng-space: 8px;
+}
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
