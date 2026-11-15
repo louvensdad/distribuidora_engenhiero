@@ -1,9 +1,9 @@
 # Checkpoint
 
-Data/hora e fuso: 14/11/2026 21:50 America/Sao_Paulo
+Data/hora e fuso: 15/11/2026 09:45 America/Sao_Paulo
 Agente e repositório: Claude Code (Opus 5.5) — `/home/louvens/distribuidora-engenheiro`
 Branch e commit atual: `main` — ver `git log -1`
-Fase: F02 em andamento (web feita; apps pendentes)
+Fase: F02 em andamento (web feita; 4 apps gerados e abertos no emulador; login móvel ponta a ponta pendente)
 Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **IN_PROGRESS** · F03 **IN_PROGRESS** (fatia clientes)
 
 ## Entregue e comprovado
@@ -35,6 +35,12 @@ mascarados conforme política de campo e recusados na gravação por quem não o
 - Tokens/ícones/marca do pacote; fontes locais; tema escuro; 360/768/1440 px; skip link e foco visível.
 - Nenhum token no navegador (cookie HttpOnly); CSRF automático nas mutações.
 
+**F02 (apps)** — workspace Dart (`pubspec.yaml` raiz) com `packages/mobile-design|mobile-api|mobile-auth|mobile-core` e os
+4 apps `apps/mobile-owner|counter|delivery|accountant` (`br.com.engenheiro.gestao|retirada|entregas|contabil`), cada um com
+client OIDC público próprio (PKCE S256, redirect `<applicationId>:/oauth2redirect`), tokens em armazenamento seguro, shell com até
+5 destinos por capacidade. Endereços via `--dart-define` (`ENGENHEIRO_API`, `ENGENHEIRO_ISSUER`); release recusa HTTP.
+API: `/audit-events?client_id=` (atividades por app de origem, para a Central do App Patrão), com teste e contrato.
+
 **Toolchain móvel** — Flutter 3.50.0 + Android SDK 36 instalados em `~/development/flutter` e `~/Android/Sdk`
 (sem sudo, downloads verificados por hash); APK debug de prova gerado. Licenças do Android SDK aceitas via `sdkmanager --licenses`.
 
@@ -50,6 +56,11 @@ mascarados conforme política de campo e recusados na gravação por quem não o
 - Site: Vitest **19 testes** (`F02-web-vitest.txt`); Playwright **31 testes** no Chrome real contra Keycloak+API
   (`F02-web-playwright.txt`), capturas em `docs/evidence/telas-web/`.
 - Toolchain móvel: `F02-toolchain-mobile.txt`.
+- Apps: `flutter analyze` limpo, **29 testes Dart**; 4 APKs debug gerados, instalados e abertos no emulador API 36 (processo vivo,
+  MainActivity em primeiro plano) — `F02-mobile-apks-emulador.txt`, capturas em `docs/evidence/telas-mobile/`.
+- Login móvel: sem rota ao IdP mostra erro de conexão (sem sessão falsa); com `adb reverse` abre Custom Tab no login do Keycloak.
+  Troca do código → `/me` → shell **não exercitada** (falta `ENGENHEIRO_SENHA_LOCAL` na sessão).
+- Backend com filtro `client_id`: `./mvnw verify` → **78 testes, 0 falhas**.
 
 Problemas encontrados e corrigidos nesta etapa: seed local como `V1000` impedia novas migrations (agora `R__` idempotente,
 com teste); tabela estourava a largura no celular por texto `visually-hidden` absoluto; matriz de acessos longa demais
@@ -57,7 +68,7 @@ com teste); tabela estourava a largura no celular por texto `visually-hidden` ab
 
 ## Limites do gate F01 (explícitos)
 
-- Login nos 4 apps móveis não exercitado: Flutter ausente (**BLOCKED** por ambiente). A API já aceita/nega por client (`azp`).
+- Login nos 4 apps móveis: fluxo vai até o formulário do Keycloak; conclusão pendente da senha local. A API já aceita/nega por client (`azp`).
 - Critério "pedido/anexo de outra unidade por ID" provado com **clientes**; reverificar em pedidos (F04) e documentos (F07)
   usando o mesmo `requireRecord`/`ScopeSql`.
 - Canais SSE/websocket ainda não existem; revogação nesses canais será testada quando forem criados.
@@ -86,8 +97,7 @@ ENGENHEIRO_SENHA_LOCAL=... python3 -I ../../infra/local/e2e_login_web.py
 
 ## Próxima ação
 
-1. **F02 (apps)**: criar `packages/mobile-core|mobile-design|mobile-api|mobile-auth` (Dart) e os 4 projetos Flutter com
-   applicationId próprio (`br.com.engenheiro.gestao|retirada|entregas|contabil`), ícones do pacote, login OIDC+PKCE pelo
-   navegador do sistema e armazenamento seguro, shell com até 5 destinos por capacidade. Gate: 4 APKs gerados e abertos em
-   emulador (instalar system image + AVD) — screenshot não basta.
+1. **F02 (apps) — fechar o gate**: com `ENGENHEIRO_SENHA_LOCAL`, `adb reverse tcp:8180 tcp:8180` e `tcp:8081`, entrar em cada app
+   com o usuário certo (patrao/balcao/motorista.a/contador), comprovar `/me` 200 e destinos por capacidade; entrar com usuário
+   de outro app → recusa; logout. Automatizar com `integration_test` ou script adb.
 2. **F03**: produtos/medidas/conversões, fornecedores, recebimentos e estoque com concorrência (B01, B10, B11).

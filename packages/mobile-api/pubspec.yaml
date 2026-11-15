@@ -1,0 +1,11 @@
+name: engenheiro_api
+description: Cliente da API da Distribuidora de Cana Engenheiro Ltda (contrato packages/contracts/openapi.json).
+publish_to: none
+version: 0.1.0
+resolution: workspace
+environment:
+  sdk: ">=3.13.0 <4.0.0"
+dependencies:
+  http: 1.6.0
+dev_dependencies:
+  test: any

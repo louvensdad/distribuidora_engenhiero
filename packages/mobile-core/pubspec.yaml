@@ -1,0 +1,22 @@
+name: engenheiro_core
+description: Sessão, navegação por capacidades e telas compartilhadas dos quatro apps independentes.
+publish_to: none
+version: 0.1.0
+resolution: workspace
+environment:
+  sdk: ">=3.13.0 <4.0.0"
+  flutter: ">=3.47.0"
+dependencies:
+  flutter:
+    sdk: flutter
+  material_ui: 1.9.0
+  engenheiro_design:
+    path: ../mobile-design
+  engenheiro_api:
+    path: ../mobile-api
+  engenheiro_auth:
+    path: ../mobile-auth
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  http: 1.6.0

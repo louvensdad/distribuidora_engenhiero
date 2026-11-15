@@ -277,6 +277,18 @@ class AuthorizationIntegrationTest {
         assertThat(api.get("/api/v1/audit-events?limit=101", patrao.token()).status()).isEqualTo(422);
     }
 
+    /** Central do App Patrão: atividades por app de origem. */
+    @Test
+    void historicoFiltraPorAplicativoDeOrigem() {
+        api.get("/api/v1/audit-events", balcao.token()); // negado, registrado com client engenheiro-retirada
+        api.get("/api/v1/audit-events", contador.token()); // negado, registrado com client engenheiro-contabil
+        JsonNode retirada = api.get("/api/v1/audit-events?client_id=engenheiro-retirada", patrao.token()).json()
+                .path("items");
+        assertThat(retirada.size()).isPositive();
+        retirada.forEach(i -> assertThat(i.path("client_id").asString()).isEqualTo("engenheiro-retirada"));
+        assertThat(api.get("/api/v1/audit-events?client_id=app-pirata", patrao.token()).status()).isEqualTo(422);
+    }
+
     /** PROD-05: sem limite fixo de oito funcionários. */
     @Test
     void suportaMaisDeOitoFuncionarios() {

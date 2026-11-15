@@ -1,0 +1,38 @@
+# F02 apps móveis — build, testes e abertura no emulador
+Data: 15/11/2026 09:42 -03
+
+## Toolchain
+Flutter 3.50.0 • channel stable • https://github.com/flutter/flutter.git
+Emulador: AVD engenheiro_api36 (Android 16, API 36)
+
+## flutter analyze (workspace)
+No issues found!
+
+## flutter test
+mobile-api 5 · mobile-auth 6 · mobile-core 7 · owner 3 · counter 2 · delivery 3 · accountant 3 = 29 testes, 0 falhas
+
+## APKs debug (flutter build apk --debug)
+owner  168936798 bytes  sha256 5e9901cd69f7e78d…
+counter  168933754 bytes  sha256 17c064e761ed7ed7…
+delivery  168931786 bytes  sha256 08f7656dfe9d2a7a…
+accountant  168932986 bytes  sha256 56f574d236bd1987…
+
+## Instalação e abertura (adb install + launcher; processo vivo e MainActivity em primeiro plano)
+br.com.engenheiro.gestao  instalado=1  versão=versionName=0.1.0
+br.com.engenheiro.retirada  instalado=1  versão=versionName=0.1.0
+br.com.engenheiro.entregas  instalado=1  versão=versionName=0.1.0
+br.com.engenheiro.contabil  instalado=1  versão=versionName=0.1.0
+owner pid=3097 topResumed=br.com.engenheiro.gestao/.MainActivity
+counter pid=4070 topResumed=br.com.engenheiro.retirada/.MainActivity
+delivery pid=4453 topResumed=br.com.engenheiro.entregas/.MainActivity
+accountant pid=4587 topResumed=br.com.engenheiro.contabil/.MainActivity
+Capturas: docs/evidence/telas-mobile/{owner,counter,delivery,accountant}-abertura.png
+
+## Login OIDC (app Retirada)
+1) Sem rota até o IdP (localhost do emulador): mensagem 'Não foi possível entrar. Verifique a conexão e tente de novo.' — sem crash, sem sessão falsa (counter-entrar-sem-idp.png).
+2) Com 'adb reverse tcp:8180 tcp:8180' e 'tcp:8081': o app abre Chrome Custom Tab em localhost:8180, tela de login do realm engenheiro (counter-login-keycloak.png).
+   topResumed=com.android.chrome/.customtabs.CustomTabActivity
+3) Troca do código, /me e shell por capacidade: NÃO EXERCITADO — falta a senha local (ENGENHEIRO_SENHA_LOCAL) nesta sessão.
+
+## Backend após filtro client_id em /audit-events
+./mvnw verify → EXIT=0, 78 testes (surefire+failsafe), 0 falhas

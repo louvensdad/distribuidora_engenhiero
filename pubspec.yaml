@@ -1,0 +1,16 @@
+# Workspace Dart/Flutter dos aplicativos móveis: uma resolução e um pubspec.lock para todos.
+name: engenheiro_mobile_workspace
+publish_to: none
+environment:
+  sdk: ">=3.13.0 <4.0.0"
+workspace:
+  - packages/mobile-design
+  - packages/mobile-api
+  - packages/mobile-auth
+  - packages/mobile-core
+  - apps/mobile-owner
+  - apps/mobile-counter
+  - apps/mobile-delivery
+  - apps/mobile-accountant
+dev_dependencies:
+  flutter_lints: 6.0.0

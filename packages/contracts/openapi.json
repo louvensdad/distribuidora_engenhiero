@@ -859,6 +859,20 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "client_id",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "engenheiro-web",
+                "engenheiro-gestao",
+                "engenheiro-retirada",
+                "engenheiro-entregas",
+                "engenheiro-contabil"
+              ]
+            },
+            "description": "Aplicativo de origem (Central do App Patrão)"
           }
         ]
       }

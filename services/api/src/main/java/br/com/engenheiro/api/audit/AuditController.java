@@ -38,8 +38,12 @@ public class AuditController {
     @GetMapping
     public Page list(Actor actor, @RequestParam(required = false) String cursor,
                      @RequestParam(required = false, defaultValue = "25") int limit,
-                     @RequestParam(required = false) UUID actor_user_id) {
+                     @RequestParam(required = false) UUID actor_user_id,
+                     @RequestParam(required = false) String client_id) {
         authz.require(actor, "audit", "view");
+        if (client_id != null && !br.com.engenheiro.api.identityaccess.domain.AppClients.ALL.contains(client_id)) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "client_id desconhecido.");
+        }
         if (limit < 1 || limit > 100) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "limit deve estar entre 1 e 100.");
         }
@@ -61,11 +65,12 @@ public class AuditController {
                           LEFT JOIN app_users u ON u.id = a.actor_user_id
                          WHERE a.organization_id = :org
                            AND (CAST(:aid AS uuid) IS NULL OR a.actor_user_id = :aid)
+                           AND (CAST(:client AS text) IS NULL OR a.client_id = CAST(:client AS text))
                            AND (CAST(:cat AS timestamptz) IS NULL OR (a.occurred_at, a.id) < (:cat, :cid))
                          ORDER BY a.occurred_at DESC, a.id DESC
                          LIMIT :lim
                         """)
-                .param("org", actor.organizationId()).param("aid", actor_user_id)
+                .param("org", actor.organizationId()).param("aid", actor_user_id).param("client", client_id)
                 .param("cat", cAt).param("cid", cId).param("lim", limit + 1)
                 .query(AuditView.class).list();
         String next = null;
