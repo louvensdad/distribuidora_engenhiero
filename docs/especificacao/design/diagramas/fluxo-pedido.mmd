@@ -1,0 +1,11 @@
+stateDiagram-v2
+  [*] --> Rascunho
+  Rascunho --> Confirmado: reservar estoque
+  Confirmado --> Separacao
+  Separacao --> Pronto
+  Pronto --> CumprimentoParcial
+  Pronto --> Cumprido
+  CumprimentoParcial --> Cumprido
+  Confirmado --> Cancelado: liberar reserva
+  Cumprido --> Devolucao: reversão vinculada
+  Cumprido --> [*]

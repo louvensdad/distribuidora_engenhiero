@@ -1,0 +1,178 @@
+{
+  "version": "1.0",
+  "default": "deny",
+  "server_authoritative": true,
+  "resources": {
+    "orders.pickup": [
+      "view",
+      "create",
+      "edit_draft",
+      "confirm",
+      "cancel",
+      "export",
+      "reverse"
+    ],
+    "orders.delivery": [
+      "view",
+      "create",
+      "edit_draft",
+      "confirm",
+      "cancel",
+      "export",
+      "reverse"
+    ],
+    "inventory.receipts": [
+      "view",
+      "create",
+      "confirm",
+      "reverse"
+    ],
+    "inventory.stock": [
+      "view"
+    ],
+    "inventory.losses": [
+      "view",
+      "create",
+      "approve"
+    ],
+    "trips": [
+      "view",
+      "create",
+      "assign",
+      "confirm",
+      "close"
+    ],
+    "vehicles": [
+      "view",
+      "create",
+      "edit_draft"
+    ],
+    "fuel": [
+      "view",
+      "create",
+      "approve"
+    ],
+    "payments": [
+      "view",
+      "create",
+      "confirm",
+      "reverse"
+    ],
+    "own_cash": [
+      "view",
+      "create",
+      "close"
+    ],
+    "company_cash": [
+      "view",
+      "export"
+    ],
+    "expenses": [
+      "view",
+      "create",
+      "approve",
+      "confirm",
+      "reverse",
+      "export"
+    ],
+    "taxes": [
+      "view",
+      "create",
+      "request",
+      "approve",
+      "confirm",
+      "reverse",
+      "export"
+    ],
+    "payroll": [
+      "view",
+      "create",
+      "request",
+      "approve",
+      "confirm",
+      "export"
+    ],
+    "invoices": [
+      "view",
+      "create",
+      "request",
+      "confirm",
+      "cancel",
+      "export"
+    ],
+    "documents": [
+      "view",
+      "create",
+      "attach",
+      "export"
+    ],
+    "reports": [
+      "view",
+      "export",
+      "print",
+      "close_period",
+      "reopen_period"
+    ],
+    "dashboard": [
+      "view"
+    ],
+    "goals": [
+      "view",
+      "create",
+      "edit_draft"
+    ],
+    "audit": [
+      "view",
+      "export"
+    ],
+    "ai": [
+      "view"
+    ],
+    "users": [
+      "view",
+      "create",
+      "edit_draft"
+    ],
+    "permissions": [
+      "view",
+      "edit_draft"
+    ],
+    "identity": [
+      "view"
+    ],
+    "catalog": [
+      "view",
+      "create",
+      "edit_draft"
+    ],
+    "customers": [
+      "view",
+      "create",
+      "edit_draft",
+      "export"
+    ],
+    "suppliers": [
+      "view",
+      "create",
+      "edit_draft"
+    ]
+  },
+  "scopes": [
+    "own",
+    "assigned",
+    "sector",
+    "branch",
+    "organization"
+  ],
+  "field_classes": [
+    "operational_contact",
+    "delivery_address",
+    "personal_document",
+    "employee_salary",
+    "bank_data",
+    "purchase_cost",
+    "margin"
+  ],
+  "conflict_rule": "explicit_deny_wins",
+  "owner_actions_use_owner_identity": true
+}

@@ -1,0 +1,25 @@
+# Smoke test local F01 — 2026-11-14T21:01:06-03:00
+## readiness
+{"status":"UP"}
+## liveness
+{"status":"UP"}
+## GET /api/v1/me/capabilities sem token
+{"type":"https://engenheiro.invalid/erros/unauthenticated","title":"Autenticação necessária","status":401,"code":"UNAUTHENTICATED","request_id":"01a1dc81-f231-7ae5-b313-31dc2bb758fa","detail":"Credencial ausente ou inválida."}
+HTTP 401
+## token falso
+HTTP 401
+## log de seed
+6
+## migrations aplicadas
+1 identity access true
+2 audit outbox true
+1000 seed local ficticio true
+## concessões do seed por modelo
+ADMIN 0
+BALCAO 7
+CONTADOR 12
+COORDENADOR_ENTREGAS 9
+MOTORISTA 10
+RECEBIMENTO 5
+## tentativa de alterar auditoria
+ERROR:  audit_events é somente inclusão (operação DELETE negada)

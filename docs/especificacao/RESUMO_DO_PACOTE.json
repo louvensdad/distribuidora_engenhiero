@@ -1,0 +1,14 @@
+{
+  "package": "Engenheiro: cérebro e prompts de implementação",
+  "version": "1.0",
+  "date": "2026-11-14",
+  "requirements": 99,
+  "phases": 18,
+  "screen_designs": 58,
+  "interface_icons": 45,
+  "app_icons": 4,
+  "logical_entities": 47,
+  "api_operations": 73,
+  "status": "SPECIFICATION_PACKAGE_NOT_PRODUCTION_SOFTWARE",
+  "validation": "Arquivos estruturados, SVGs, referências de contratos, vínculos de telas e somas financeiras conferidos. Não executa nem certifica o sistema a implementar."
+}

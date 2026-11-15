@@ -1,0 +1,9 @@
+# ./mvnw verify — 2026-11-14T21:01:34-03:00 — Java 21.0.13, Spring Boot 4.1.2, PostgreSQL 18.6 (Testcontainers)
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.323 s -- in br.com.engenheiro.api.identityaccess.ConcurrencyIntegrationTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.014 s -- in br.com.engenheiro.api.identityaccess.AccessPolicyTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 s -- in br.com.engenheiro.api.identityaccess.ContractConsistencyTest
+[INFO] Tests run: 20, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.864 s -- in br.com.engenheiro.api.identityaccess.AuthorizationIntegrationTest
+[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.189 s -- in br.com.engenheiro.api.identityaccess.AuthenticationIntegrationTest
+[INFO] Tests run: 52, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+[INFO] Total time:  10.775 s

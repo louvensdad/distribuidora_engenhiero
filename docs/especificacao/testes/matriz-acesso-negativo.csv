@@ -1,0 +1,16 @@
+﻿perfil;capacidade;escopo;resultado_esperado;motivo
+accountant;dashboard.view;organization;DENY;Sem dashboard por ser contador
+counter;reports.view;organization;DENY;Sem total vendido global
+counter;orders.pickup.create;own;ALLOW_IF_GRANTED;Cadastro operacional
+counter;inventory.receipts.view;branch;ALLOW_IF_GRANTED;Quantidade sem custo quando campo negado
+driver;trips.view;other_driver;DENY;ID conhecido não amplia escopo
+driver;trips.view;assigned;ALLOW_IF_GRANTED;Entrega atribuída
+driver;fuel.create;assigned_vehicle;ALLOW_IF_GRANTED;Gasto do veículo autorizado
+accountant;payroll.view;individual_salary;DENY_UNLESS_FIELD_GRANTED;Dados pessoais separados
+accountant;taxes.create;organization;ALLOW_IF_GRANTED;Guia autorizada
+accountant;taxes.approve;organization;DENY_DEFAULT;Aprovação do dono
+counter;permissions.edit_draft;self;DENY;Não promove a própria conta
+admin;audit.view;organization;ALLOW;Histórico completo com ator real
+admin;integration.secret.read;organization;DENY;Acesso integral não revela segredo bruto
+counter;documents.download;other_branch;DENY;Anexo obedece ao registro
+counter;ai.view;organization;DENY_DEFAULT;Sem dados gerenciais via modelo

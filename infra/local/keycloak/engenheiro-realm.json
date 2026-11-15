@@ -1,0 +1,220 @@
+{
+  "realm": "engenheiro",
+  "displayName": "Distribuidora de Cana Engenheiro Ltda",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "resetPasswordAllowed": true,
+  "bruteForceProtected": true,
+  "failureFactor": 5,
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "passwordPolicy": "length(12) and notUsername",
+  "clientScopes": [
+    {
+      "name": "engenheiro-api-audience",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "audiencia-engenheiro-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "engenheiro-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "engenheiro-web",
+      "name": "Site do patrão (BFF)",
+      "publicClient": false,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:8080/login/oauth2/code/engenheiro"
+      ],
+      "webOrigins": [],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:4200/"
+      },
+      "defaultClientScopes": [
+        "basic",
+        "profile",
+        "engenheiro-api-audience"
+      ]
+    },
+    {
+      "clientId": "engenheiro-gestao",
+      "name": "Engenheiro Patrão",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "br.com.engenheiro.gestao:/oauth2redirect"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "br.com.engenheiro.gestao:/logout"
+      },
+      "defaultClientScopes": [
+        "basic",
+        "profile",
+        "engenheiro-api-audience"
+      ],
+      "optionalClientScopes": []
+    },
+    {
+      "clientId": "engenheiro-retirada",
+      "name": "Engenheiro Retirada",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "br.com.engenheiro.retirada:/oauth2redirect"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "br.com.engenheiro.retirada:/logout"
+      },
+      "defaultClientScopes": [
+        "basic",
+        "profile",
+        "engenheiro-api-audience"
+      ],
+      "optionalClientScopes": []
+    },
+    {
+      "clientId": "engenheiro-entregas",
+      "name": "Engenheiro Entregas",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "br.com.engenheiro.entregas:/oauth2redirect"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "br.com.engenheiro.entregas:/logout"
+      },
+      "defaultClientScopes": [
+        "basic",
+        "profile",
+        "engenheiro-api-audience"
+      ],
+      "optionalClientScopes": []
+    },
+    {
+      "clientId": "engenheiro-contabil",
+      "name": "Engenheiro Contábil",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "br.com.engenheiro.contabil:/oauth2redirect"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "br.com.engenheiro.contabil:/logout"
+      },
+      "defaultClientScopes": [
+        "basic",
+        "profile",
+        "engenheiro-api-audience"
+      ],
+      "optionalClientScopes": []
+    }
+  ],
+  "users": [
+    {
+      "id": "00000000-0000-4000-8000-000000000a01",
+      "username": "patrao",
+      "enabled": true,
+      "firstName": "Patrão (fictício)",
+      "lastName": "",
+      "email": "patrao@exemplo.invalid",
+      "emailVerified": true,
+      "requiredActions": [
+        "CONFIGURE_TOTP"
+      ]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000a02",
+      "username": "balcao",
+      "enabled": true,
+      "firstName": "Balcão Exemplo",
+      "lastName": "",
+      "email": "balcao@exemplo.invalid",
+      "emailVerified": true,
+      "requiredActions": []
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000a03",
+      "username": "recebimento",
+      "enabled": true,
+      "firstName": "Recebimento Exemplo",
+      "lastName": "",
+      "email": "recebimento@exemplo.invalid",
+      "emailVerified": true,
+      "requiredActions": []
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000a04",
+      "username": "coordenador",
+      "enabled": true,
+      "firstName": "Coordenação Entregas Exemplo",
+      "lastName": "",
+      "email": "coordenador@exemplo.invalid",
+      "emailVerified": true,
+      "requiredActions": []
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000a05",
+      "username": "motorista.a",
+      "enabled": true,
+      "firstName": "Motorista A Exemplo",
+      "lastName": "",
+      "email": "motorista.a@exemplo.invalid",
+      "emailVerified": true,
+      "requiredActions": []
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000a06",
+      "username": "motorista.b",
+      "enabled": true,
+      "firstName": "Motorista B Exemplo",
+      "lastName": "",
+      "email": "motorista.b@exemplo.invalid",
+      "emailVerified": true,
+      "requiredActions": []
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000a07",
+      "username": "contador",
+      "enabled": true,
+      "firstName": "Contador Exemplo",
+      "lastName": "",
+      "email": "contador@exemplo.invalid",
+      "emailVerified": true,
+      "requiredActions": []
+    }
+  ]
+}

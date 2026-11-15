@@ -1,0 +1,335 @@
+[
+  {
+    "id": "F00",
+    "name": "Inventário, escopo e decisões",
+    "dependencies": [],
+    "status": "NOT_STARTED",
+    "prompt": "prompts/fases/F00_INVENTARIO_E_DECISOES.md",
+    "requirements": [
+      "PROD-01",
+      "PROD-02",
+      "PROD-03",
+      "PROD-04",
+      "PROD-05",
+      "PROD-06"
+    ],
+    "gate": "F00-GATE"
+  },
+  {
+    "id": "F01",
+    "name": "Fundação, identidade e autorização",
+    "dependencies": [
+      "F00"
+    ],
+    "status": "NOT_STARTED",
+    "prompt": "prompts/fases/F01_FUNDACAO_IDENTIDADE_E_ACESSO.md",
+    "requirements": [
+      "SEC-01",
+      "SEC-02",
+      "SEC-03",
+      "SEC-04",
+      "SEC-05",
+      "SEC-06",
+      "SEC-07",
+      "SEC-08",
+      "SEC-09"
+    ],
+    "gate": "F01-GATE"
+  },
+  {
+    "id": "F02",
+    "name": "Design system e navegação",
+    "dependencies": [
+      "F01"
+    ],
+    "status": "NOT_STARTED",
+    "prompt": "prompts/fases/F02_DESIGN_SYSTEM_E_SHELLS.md",
+    "requirements": [
+      "UX-01",
+      "UX-02",
+      "UX-03",
+      "UX-04",
+      "UX-05"
+    ],
+    "gate": "F02-GATE"
+  },
+  {
+    "id": "F03",
+    "name": "Cadastros, fornecedores e estoque",
+    "dependencies": [
+      "F01",
+      "F02"
+    ],
+    "status": "NOT_STARTED",
+    "prompt": "prompts/fases/F03_CADASTROS_FORNECEDORES_ESTOQUE.md",
+    "requirements": [
+      "INV-01",
+      "INV-02",
+      "INV-03",
+      "INV-04",
+      "INV-05",
+      "INV-06"
+    ],
+    "gate": "F03-GATE"
+  },
+  {
+    "id": "F04",
+    "name": "Pedidos, retirada, recebimentos e caixa",
+    "dependencies": [
+      "F03"
+    ],
+    "status": "NOT_STARTED",
+    "prompt": "prompts/fases/F04_PEDIDOS_RETIRADA_PAGAMENTOS_CAIXA.md",
+    "requirements": [
+      "ORD-01",
+      "ORD-02",
+      "ORD-03",
+      "ORD-04",
+      "ORD-05",
+      "ORD-06",
+      "ORD-07",
+      "ORD-08",
+      "ORD-09",
+      "ORD-10"
+    ],
+    "gate": "F04-GATE"
+  },
+  {
+    "id": "F05",
+    "name": "Despacho, entregas, frota e viagens",
+    "dependencies": [
+      "F04"
+    ],
+    "status": "NOT_STARTED",
+    "prompt": "prompts/fases/F05_ENTREGAS_VEICULOS_E_VIAGENS.md",
+    "requirements": [
+      "LOG-01",
+      "LOG-02",
+      "LOG-03",
+      "LOG-04",
+      "LOG-05",
+      "LOG-06",
+      "LOG-07",
+      "LOG-08"
+    ],
+    "gate": "F05-GATE"
+  },
+  {
+    "id": "F06",
+    "name": "Financeiro, competência e reconciliação",
+    "dependencies": [
+      "F04",
+      "F05"
+    ],
+    "status": "NOT_STARTED",
+    "prompt": "prompts/fases/F06_FINANCEIRO_E_RECONCILIACAO.md",
+    "requirements": [
+      "FIN-01",
+      "FIN-02",
+      "FIN-03",
+      "FIN-04",
+      "FIN-05",
+      "FIN-06",
+      "FIN-07",
+      "FIN-08"
+    ],
+    "gate": "F06-GATE"
+  },
+  {
+    "id": "F07",
+    "name": "Contabilidade, folha e documentos privados",
+    "dependencies": [
+      "F06"
+    ],
+    "status": "NOT_STARTED",
+    "prompt": "prompts/fases/F07_CONTABILIDADE_FOLHA_E_DOCUMENTOS.md",
+    "requirements": [
+      "CONT-01",
+      "CONT-02",
+      "CONT-03",
+      "CONT-04",
+      "CONT-05"
+    ],
+    "gate": "F07-GATE"
+  },
+  {
+    "id": "F08",
+    "name": "Integrações fiscais e de pagamentos",
+    "dependencies": [
+      "F07"
+    ],
+    "status": "NOT_STARTED",
+    "prompt": "prompts/fases/F08_INTEGRACOES_FISCAIS_E_PAGAMENTOS.md",
+    "requirements": [
+      "INT-01",
+      "INT-02",
+      "INT-03",
+      "INT-04",
+      "INT-05"
+    ],
+    "gate": "F08-GATE"
+  },
+  {
+    "id": "F09",
+    "name": "Relatórios completos, metas e gráficos 3D",
+    "dependencies": [
+      "F06",
+      "F07"
+    ],
+    "status": "NOT_STARTED",
+    "prompt": "prompts/fases/F09_RELATORIOS_METAS_E_GRAFICOS_3D.md",
+    "requirements": [
+      "REP-01",
+      "REP-02",
+      "REP-03",
+      "REP-04",
+      "REP-05",
+      "REP-06",
+      "REP-07",
+      "REP-08"
+    ],
+    "gate": "F09-GATE"
+  },
+  {
+    "id": "F10",
+    "name": "Site integral do patrão",
+    "dependencies": [
+      "F02",
+      "F03",
+      "F04",
+      "F05",
+      "F07",
+      "F09"
+    ],
+    "status": "NOT_STARTED",
+    "prompt": "prompts/fases/F10_WEB_COMPLETA_DO_PATRAO.md",
+    "requirements": [
+      "WEB-01",
+      "WEB-02",
+      "WEB-03"
+    ],
+    "gate": "F10-GATE"
+  },
+  {
+    "id": "F11",
+    "name": "Aplicativo de retirada, balcão e fornecedores",
+    "dependencies": [
+      "F03",
+      "F04",
+      "F10"
+    ],
+    "status": "NOT_STARTED",
+    "prompt": "prompts/fases/F11_APP_RETIRADA_FORNECEDORES.md",
+    "requirements": [
+      "APP-R-01",
+      "APP-R-02",
+      "APP-R-03"
+    ],
+    "gate": "F11-GATE"
+  },
+  {
+    "id": "F12",
+    "name": "Aplicativo de entregas, motoristas e carros",
+    "dependencies": [
+      "F05",
+      "F10"
+    ],
+    "status": "NOT_STARTED",
+    "prompt": "prompts/fases/F12_APP_ENTREGAS_VEICULOS.md",
+    "requirements": [
+      "APP-E-01",
+      "APP-E-02",
+      "APP-E-03"
+    ],
+    "gate": "F12-GATE"
+  },
+  {
+    "id": "F13",
+    "name": "Aplicativo independente do contador",
+    "dependencies": [
+      "F07",
+      "F08",
+      "F10"
+    ],
+    "status": "NOT_STARTED",
+    "prompt": "prompts/fases/F13_APP_CONTADOR.md",
+    "requirements": [
+      "APP-C-01",
+      "APP-C-02"
+    ],
+    "gate": "F13-GATE"
+  },
+  {
+    "id": "F14",
+    "name": "Aplicativo do patrão com paridade integral",
+    "dependencies": [
+      "F09",
+      "F10",
+      "F11",
+      "F12",
+      "F13"
+    ],
+    "status": "NOT_STARTED",
+    "prompt": "prompts/fases/F14_APP_PATRAO_CENTRAL_COMPLETA.md",
+    "requirements": [
+      "APP-P-01",
+      "APP-P-02",
+      "APP-P-03",
+      "APP-P-04"
+    ],
+    "gate": "F14-GATE"
+  },
+  {
+    "id": "F15",
+    "name": "IA real integrada ao site e App Patrão",
+    "dependencies": [
+      "F09",
+      "F14"
+    ],
+    "status": "NOT_STARTED",
+    "prompt": "prompts/fases/F15_IA_REAL_DE_GESTAO.md",
+    "requirements": [
+      "AI-01",
+      "AI-02",
+      "AI-03",
+      "AI-04",
+      "AI-05",
+      "AI-06"
+    ],
+    "gate": "F15-GATE"
+  },
+  {
+    "id": "F16",
+    "name": "Segurança, desempenho e implantação",
+    "dependencies": [
+      "F08",
+      "F14",
+      "F15"
+    ],
+    "status": "NOT_STARTED",
+    "prompt": "prompts/fases/F16_ENDURECIMENTO_IMPLANTACAO.md",
+    "requirements": [
+      "OPS-01",
+      "OPS-02",
+      "OPS-03",
+      "OPS-04",
+      "OPS-05"
+    ],
+    "gate": "F16-GATE"
+  },
+  {
+    "id": "F17",
+    "name": "Aceite, piloto e operação assistida",
+    "dependencies": [
+      "F16"
+    ],
+    "status": "NOT_STARTED",
+    "prompt": "prompts/fases/F17_ACEITE_PILOTO_E_ENTREGA.md",
+    "requirements": [
+      "UAT-01",
+      "UAT-02",
+      "UAT-03"
+    ],
+    "gate": "F17-GATE"
+  }
+]

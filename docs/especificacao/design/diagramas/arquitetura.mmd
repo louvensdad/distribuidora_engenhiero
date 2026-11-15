@@ -1,0 +1,24 @@
+flowchart TB
+  subgraph Clientes
+    W["Site do patrão"]
+    P["App Patrão"]
+    R["App Retirada"]
+    E["App Entregas"]
+    C["App Contador"]
+  end
+  A["API e autorização"]
+  D["PostgreSQL"]
+  O["Documentos privados"]
+  J["Jobs e outbox"]
+  I["OIDC"]
+  X["Adaptadores fiscal, pagamentos e IA"]
+  W --> A
+  P --> A
+  R --> A
+  E --> A
+  C --> A
+  I --> A
+  A --> D
+  A --> O
+  A --> J
+  J --> X

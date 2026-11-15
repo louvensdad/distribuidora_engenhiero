@@ -1,0 +1,596 @@
+[
+  {
+    "id": "PROD-01",
+    "phase": "F00",
+    "text": "Nome completo da distribuidora em todas as superfícies e documentos.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "PROD-02",
+    "phase": "F00",
+    "text": "Um site e quatro aplicativos móveis independentes, sem quinto app de motorista.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "PROD-03",
+    "phase": "F00",
+    "text": "App Patrão com paridade integral da web e central dos outros três setores.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "PROD-04",
+    "phase": "F00",
+    "text": "Fornecedor é módulo interno de recebimento junto ao balcão, sem portal externo implícito.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "PROD-05",
+    "phase": "F00",
+    "text": "Pelo menos oito funcionários suportados sem limite fixo de oito.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "PROD-06",
+    "phase": "F00",
+    "text": "Estado atual inventariado, sem confundir demonstração com sistema pronto.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "SEC-01",
+    "phase": "F01",
+    "text": "Contas individuais e autenticação OIDC/PKCE apropriada a web/mobile.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "SEC-02",
+    "phase": "F01",
+    "text": "Permissões por recurso, ação, campo, registro, unidade e condição no servidor.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "SEC-03",
+    "phase": "F01",
+    "text": "Dashboard, totais, lucro, dados pessoais e exportação global bloqueados por padrão.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "SEC-04",
+    "phase": "F01",
+    "text": "Modelos editáveis e mapa completo de acessos por funcionário.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "SEC-05",
+    "phase": "F01",
+    "text": "Revogação de acesso e bloqueio de conta impedem novas operações.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "SEC-06",
+    "phase": "F01",
+    "text": "Nenhum token web persistente em localStorage nem segredo em aplicativo.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "SEC-07",
+    "phase": "F01",
+    "text": "Escopo atribuído limita o motorista às suas viagens.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "SEC-08",
+    "phase": "F01",
+    "text": "Downloads, relatórios, eventos, busca e IA respeitam autorização.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "SEC-09",
+    "phase": "F01",
+    "text": "Dono administra setores com identidade própria, sem impersonação.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "UX-01",
+    "phase": "F02",
+    "text": "Web com abas futuristas horizontais, ícones e subabas contextuais.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "UX-02",
+    "phase": "F02",
+    "text": "Layouts próprios para computador, tablet e celular.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "UX-03",
+    "phase": "F02",
+    "text": "Quatro ícones, nomes e identificadores móveis distintos.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "UX-04",
+    "phase": "F02",
+    "text": "Telas com loading, vazio, erro, sem permissão, conflito e offline.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "UX-05",
+    "phase": "F02",
+    "text": "Teclado, leitor de tela, foco, contraste e alvos de toque acessíveis.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "INV-01",
+    "phase": "F03",
+    "text": "Produtos, medidas e conversões por produto com unidade comercial confirmada.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "INV-02",
+    "phase": "F03",
+    "text": "Fornecedor, lote, quantidade recebida, conferência, documento, custo e frete.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "INV-03",
+    "phase": "F03",
+    "text": "Estoque físico, reservado e disponível com transações concorrentes.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "INV-04",
+    "phase": "F03",
+    "text": "Custo médio móvel e CMV histórico sem lançar toda a compra como despesa.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "INV-05",
+    "phase": "F03",
+    "text": "Perdas por motivo com baixa, custo e autor.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "INV-06",
+    "phase": "F03",
+    "text": "Devoluções e ajustes vinculados ao movimento original.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "ORD-01",
+    "phase": "F04",
+    "text": "Pedido de retirada e entrega com itens, total de servidor e responsável.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "ORD-02",
+    "phase": "F04",
+    "text": "Reserva distinta de cumprimento e de reconhecimento da venda.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "ORD-03",
+    "phase": "F04",
+    "text": "Dinheiro no balcão com valor apresentado e troco correto.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "ORD-04",
+    "phase": "F04",
+    "text": "Pix, débito, crédito, dividido e a prazo autorizado.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "ORD-05",
+    "phase": "F04",
+    "text": "Situação de pagamento separada da situação do pedido.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "ORD-06",
+    "phase": "F04",
+    "text": "Desconto, cancelamento e estorno sujeitos à alçada.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "ORD-07",
+    "phase": "F04",
+    "text": "Entrega/retirada parcial e devolução sem duplicar CMV.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "ORD-08",
+    "phase": "F04",
+    "text": "Recebimento antecipado tratado como adiantamento.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "ORD-09",
+    "phase": "F04",
+    "text": "Caixa próprio com esperado, contado, diferença e conferente.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "ORD-10",
+    "phase": "F04",
+    "text": "Idempotência em confirmações e pagamentos.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "LOG-01",
+    "phase": "F05",
+    "text": "Pedidos de entrega com endereço, janela, contato e pagamento combinado.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "LOG-02",
+    "phase": "F05",
+    "text": "Várias entregas por viagem com placa, veículo, motorista e capacidade.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "LOG-03",
+    "phase": "F05",
+    "text": "Saída/retorno, odômetro, destinatário e evidência da entrega.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "LOG-04",
+    "phase": "F05",
+    "text": "Ocorrência, cliente ausente, recusa, reagendamento e devolução.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "LOG-05",
+    "phase": "F05",
+    "text": "Combustível, litros, quilômetros, posto, comprovante e responsável.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "LOG-06",
+    "phase": "F05",
+    "text": "Manutenção, pneus, seguro, documentos e avisos por veículo.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "LOG-07",
+    "phase": "F05",
+    "text": "Prestação de contas do motorista e dinheiro recebido.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "LOG-08",
+    "phase": "F05",
+    "text": "Rateio analítico de viagem sem repetir despesa financeira.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "FIN-01",
+    "phase": "F06",
+    "text": "Despesas e subcategorias com competência, situação e comprovante.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "FIN-02",
+    "phase": "F06",
+    "text": "Contas a pagar/receber e saldos por conta.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "FIN-03",
+    "phase": "F06",
+    "text": "Taxas/parcelas de cartão com bruto, líquido e reconciliação.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "FIN-04",
+    "phase": "F06",
+    "text": "Resultado gerencial separado de caixa disponível.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "FIN-05",
+    "phase": "F06",
+    "text": "Transferências internas não alteram saldo consolidado.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "FIN-06",
+    "phase": "F06",
+    "text": "Imposto/folha pagos não geram despesa duplicada.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "FIN-07",
+    "phase": "F06",
+    "text": "Fechamento e reabertura por aprovação com histórico.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "FIN-08",
+    "phase": "F06",
+    "text": "Correções por estorno/reversão, não exclusão destrutiva.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "CONT-01",
+    "phase": "F07",
+    "text": "Contador prepara guia com período, vencimento, valor e anexo.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "CONT-02",
+    "phase": "F07",
+    "text": "Preparar, aprovar e pagar são etapas independentes.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "CONT-03",
+    "phase": "F07",
+    "text": "Folha por rubricas e dados individuais liberados separadamente.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "CONT-04",
+    "phase": "F07",
+    "text": "Documentos reais privados, solicitações, versões e download autorizado.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "CONT-05",
+    "phase": "F07",
+    "text": "Patrão acompanha cada movimento feito pelo contador.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "INT-01",
+    "phase": "F08",
+    "text": "Tipo fiscal e provedor definidos com contador e dados da empresa.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "INT-02",
+    "phase": "F08",
+    "text": "Emissão autorizada/rejeitada com XML, protocolo e chave quando aplicável.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "INT-03",
+    "phase": "F08",
+    "text": "Cancelamento fiscal tem fluxo separado e resultado confirmado.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "INT-04",
+    "phase": "F08",
+    "text": "Webhooks assinados e reenvios idempotentes.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "INT-05",
+    "phase": "F08",
+    "text": "Indisponibilidade e resultado incerto não viram sucesso fictício.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "REP-01",
+    "phase": "F09",
+    "text": "Gastos primeiro por categoria/subcategoria e depois fechamento total.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "REP-02",
+    "phase": "F09",
+    "text": "Lucro/prejuízo, despesas totais, perdas totais, CMV e quantidade vendida.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "REP-03",
+    "phase": "F09",
+    "text": "Gráficos3D proporcionais com rótulos, unidades e tabela acessível.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "REP-04",
+    "phase": "F09",
+    "text": "Filtros por dia/semana/mês/período e fuso comercial.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "REP-05",
+    "phase": "F09",
+    "text": "Drilldown de indicador para os registros e comprovantes de origem.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "REP-06",
+    "phase": "F09",
+    "text": "PDF, XLSX e CSV respeitam dados/permissões e reconciliam com a tela.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "REP-07",
+    "phase": "F09",
+    "text": "Metas semanais/mensais com realizado, faltante e fórmula clara.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "REP-08",
+    "phase": "F09",
+    "text": "Melhor cliente/funcionário somente com critérios mensuráveis por função.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "WEB-01",
+    "phase": "F10",
+    "text": "Todos os módulos web integrados a serviços reais, sem botões falsos.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "WEB-02",
+    "phase": "F10",
+    "text": "Listas, detalhes, formulários, pesquisa, filtros e paginação completos.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "WEB-03",
+    "phase": "F10",
+    "text": "Navegação profunda e recuperação de sessão/erro.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "APP-R-01",
+    "phase": "F11",
+    "text": "Aplicativo Retirada com build/ícone/client próprios.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "APP-R-02",
+    "phase": "F11",
+    "text": "Balcão e recebimento de fornecedores no mesmo app com capacidades distintas.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "APP-R-03",
+    "phase": "F11",
+    "text": "Operação em tablet e celular, caixa e comprovantes autorizados.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "APP-E-01",
+    "phase": "F12",
+    "text": "Aplicativo Entregas reúne pedidos, despacho, motoristas e veículos.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "APP-E-02",
+    "phase": "F12",
+    "text": "Motorista só recebe dados necessários às entregas atribuídas.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "APP-E-03",
+    "phase": "F12",
+    "text": "Entrega, combustível e ocorrência chegam à central do patrão.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "APP-C-01",
+    "phase": "F13",
+    "text": "Aplicativo Contábil separado com agenda, guias, folha, notas e documentos.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "APP-C-02",
+    "phase": "F13",
+    "text": "Contador acompanha aprovação e rejeição sem saldo/dashboard geral.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "APP-P-01",
+    "phase": "F14",
+    "text": "Aplicativo Patrão contém todas as funções do site.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "APP-P-02",
+    "phase": "F14",
+    "text": "Central reúne Retirada, Entregas e Contabilidade com cada movimento.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "APP-P-03",
+    "phase": "F14",
+    "text": "Filtros por pessoa, cliente, pedido, fornecedor, placa e período.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "APP-P-04",
+    "phase": "F14",
+    "text": "Atualizações compartilhadas entre dispositivos com identidade real do ator.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "AI-01",
+    "phase": "F15",
+    "text": "IA real apenas no backend, chave protegida e orçamento configurado.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "AI-02",
+    "phase": "F15",
+    "text": "Ferramentas somente leitura com dados calculados e autorização.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "AI-03",
+    "phase": "F15",
+    "text": "Respostas com período, fontes e links rastreáveis.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "AI-04",
+    "phase": "F15",
+    "text": "Sem dados suficientes, resposta explicita a limitação.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "AI-05",
+    "phase": "F15",
+    "text": "Sem chave ou provedor, estado não configurado visível.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "AI-06",
+    "phase": "F15",
+    "text": "Prompt injection não altera acesso nem executa pagamentos.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "OPS-01",
+    "phase": "F16",
+    "text": "Builds e ambientes separados com segredos gerenciados.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "OPS-02",
+    "phase": "F16",
+    "text": "Backup e restauração exercitados para banco e documentos.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "OPS-03",
+    "phase": "F16",
+    "text": "Logs sanitizados e alertas de falha de serviço/integração.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "OPS-04",
+    "phase": "F16",
+    "text": "Migrations e rollback testados antes da produção.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "OPS-05",
+    "phase": "F16",
+    "text": "Sem seletor de perfil ou fixture no caminho de produção.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "UAT-01",
+    "phase": "F17",
+    "text": "Aceite com cinco superfícies e usuários/dispositivos distintos.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "UAT-02",
+    "phase": "F17",
+    "text": "Relatório do piloto reconciliado com estoque, vendas e caixa.",
+    "status": "NOT_STARTED"
+  },
+  {
+    "id": "UAT-03",
+    "phase": "F17",
+    "text": "Treinamento, runbooks, suporte e pendências entregues ao titular.",
+    "status": "NOT_STARTED"
+  }
+]

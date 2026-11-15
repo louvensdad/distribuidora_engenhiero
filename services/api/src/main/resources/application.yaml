@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: engenheiro-api
+  datasource:
+    url: ${ENGENHEIRO_DB_URL:jdbc:postgresql://localhost:5433/engenheiro}
+    username: ${ENGENHEIRO_DB_USER:engenheiro}
+    password: ${ENGENHEIRO_DB_PASSWORD:}
+  flyway:
+    locations: classpath:db/migration
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: never
+    include-stacktrace: never
+
+engenheiro:
+  empresa:
+    nome: Distribuidora de Cana Engenheiro Ltda
+  security:
+    oidc:
+      issuer: ${ENGENHEIRO_OIDC_ISSUER:http://localhost:8180/realms/engenheiro}
+      jwk-set-uri: ${ENGENHEIRO_OIDC_JWKS:http://localhost:8180/realms/engenheiro/protocol/openid-connect/certs}
+      audience: engenheiro-api
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    nome: Engenheiro API
+    empresa: Distribuidora de Cana Engenheiro Ltda

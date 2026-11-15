@@ -1,0 +1,48 @@
+﻿entidade;finalidade;campos_principais;restricoes
+organizations;Empresa e política base;"id; name; status";"id único; status ativo/inativo"
+branches;Unidade operacional;"organization_id; name; timezone";organização obrigatória
+app_users;Pessoa interna sem senha local;"id; external_subject; status";subject+issuer únicos
+memberships;Vínculo e escopo;"user_id; organization_id; branch_id; role_template";vínculo ativo necessário
+permission_grants;Permissão explícita;"membership_id; resource; action; scope; condition; expires_at";"recurso/ação válidos; negação explícita"
+field_policies;Campos sensíveis;"membership_id; field; allow";negar sem concessão
+products;Mercadoria;"sku; name; base_unit; status";sku por organização
+unit_conversions;Conversão por produto;"product_id; from_unit; factor; valid_from";"factor positivo; histórico"
+customers;Cliente;"name; contact; address; personal_document_ref";campos classificados
+suppliers;Fornecedor interno;"name; contact; status";não implica usuário externo
+inventory_receipts;Recebimento;"supplier_id; status; received_at; total_cost";confirmado não editável
+inventory_receipt_lines;Linha de entrada;"receipt_id; product_id; quantity; accepted; unit_cost; freight_share";quantidades não negativas
+inventory_balances;Saldo atual;"product_id; branch_id; physical; reserved; value; version";available>=0
+stock_movements;Movimento de estoque;"type; product_id; quantity; unit_cost; source; reversal_of";"origem única; histórico imutável"
+stock_reservations;Reserva;"order_line_id; quantity; state; expires_at";uma reserva ativa por operação idempotente
+orders;Pedido;"number; customer_id; type; state; creator_id; total; version";"estado transicional; número por unidade"
+order_lines;Itens do pedido;"product_id; quantity; unit_price; discount; cost_snapshot";preço de servidor
+fulfillments;Cumprimento parcial;"order_id; type; occurred_at; actor_id";quantidade cumprida não excede pedido
+fulfillment_lines;Quantidade cumprida;"fulfillment_id; order_line_id; quantity; unit_cost_snapshot";idempotência por origem
+payments;Recebimento;"method; state; gross; fee; net; provider_ref; confirmed_at";referência externa única quando existente
+payment_allocations;Alocação de valor;"payment_id; order_id; amount";soma não excede valor confirmado
+cash_sessions;Caixa por turno;"operator_id; opening; expected; counted; state";fechamento versionado
+cash_movements;Entrada e saída;"cash_session_id; source; direction; amount";source único por evento
+vehicles;Veículo;"plate; model; capacity; odometer; state";placa normalizada única
+trips;Viagem;"vehicle_id; driver_id; state; departure; return; odometers";capacidade e atribuição válidas
+trip_assignments;Pedido na viagem;"trip_id; order_id; state; sequence";sem atribuição ativa duplicada indevida
+delivery_events;Entrega e ocorrência;"assignment_id; kind; items; recipient; proof_ref";estado/ator autorizados
+vehicle_expenses;Despesa de veículo;"vehicle_id; trip_id; category; amount; liters; odometer; document_id";odômetro e litros válidos
+expense_categories;Categorias e filhos;"name; parent_id; kind; active";sem ciclo de categoria
+expenses;Despesa por competência;"category_id; amount; competence_date; due_date; status; payable_id";não duplicar fonte
+accounts;Caixa/banco/contas contábeis;"kind; currency; status";BRL inicial
+journal_entries;Lançamento financeiro;"source_kind; source_id; event_kind; date; reversal_of";source+evento único
+journal_lines;Partidas financeiras;"entry_id; account_id; debit; credit";débito=crédito por entry
+payables;Obrigação a pagar;"source; competence; amount; due; balance; state";liquidação não duplica despesa
+receivables;Recebível;"order_id; installment; gross; fees; net; due; balance";soma das parcelas reconciliada
+tax_obligations;Guias e tributos;"kind; competence; amount; due; state; payable_id; doc_id";não pagar antes da autorização aplicável
+payroll_runs;Folha de período;"competence; state; prepared_by; approved_by; total";versões e rubricas
+payroll_items;Rubrica individual;"run_id; employee_id; kind; amount";política de campo obrigatória
+fiscal_documents;Documento fiscal;"order_id; type; state; key; protocol; provider_ref; xml_document_id";correlação e consulta antes de reenvio
+documents;Metadados de anexo;"owner_entity; object_key; mime; size; checksum; scan_state; version";download autorizado
+approvals;Aprovação por entidade;"subject; requested_by; approved_by; state; reason";ator real e alçada
+period_closings;Fechamento;"period; policy_version; snapshot_ref; state";reabertura auditada
+goals;Meta por período;"metric; period; target; scope";target positivo
+audit_events;Trilha;"actor; action; entity; before_after_masked; correlation; at";imutável pela aplicação
+outbox_events;Publicação confiável;"aggregate; version; payload; state; attempts";event_id único
+webhook_receipts;Idempotência externa;"provider; event_id; signature_state; result";provider+event_id único
+ai_runs;Execução de IA;"actor; tools; source_refs; period; model; usage; status";sem segredo e sem documento pessoal bruto

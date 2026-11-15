@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Envelope de evento Engenheiro",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id",
+    "event_type",
+    "occurred_at",
+    "organization_id",
+    "aggregate_id",
+    "aggregate_version",
+    "actor",
+    "correlation_id",
+    "data"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "event_type": {
+      "enum": [
+        "order.created.v1",
+        "inventory.reserved.v1",
+        "order.fulfilled.v1",
+        "payment.confirmed.v1",
+        "inventory.received.v1",
+        "inventory.loss.recorded.v1",
+        "trip.assigned.v1",
+        "delivery.completed.v1",
+        "vehicle.expense.recorded.v1",
+        "tax.requested.v1",
+        "tax.approved.v1",
+        "tax.paid.v1",
+        "payroll.requested.v1",
+        "invoice.status.changed.v1",
+        "permission.changed.v1",
+        "period.closed.v1"
+      ]
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "organization_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "branch_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "aggregate_id": {
+      "type": "string"
+    },
+    "aggregate_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "actor": {
+      "type": "object",
+      "required": [
+        "kind",
+        "id"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "human",
+            "service"
+          ]
+        },
+        "id": {
+          "type": "string"
+        }
+      }
+    },
+    "correlation_id": {
+      "type": "string"
+    },
+    "data": {
+      "type": "object",
+      "description": "Payload versionado mínimo, sem dados pessoais/segredos; validar por tipo de evento."
+    }
+  }
+}

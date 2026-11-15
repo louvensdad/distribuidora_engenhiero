@@ -1,0 +1,5 @@
+Os ícones vetoriais de interface, desenhos de tela e propostas gráficas deste pacote foram criados para este projeto. O destinatário pode usar, modificar e redistribuir esses arquivos na implementação da Distribuidora de Cana Engenheiro Ltda, sem necessidade de atribuição ao assistente.
+
+O nome empresarial pertence ao seu titular. As propostas de logo e ícone ainda precisam de aprovação do titular e não garantem registro ou exclusividade de marca. Nenhum direito de marca de terceiros é concedido.
+
+Fontes sugeridas não foram empacotadas. Ao incorporá-las, obter os arquivos e preservar a licença correspondente. Não há fotografias ou ilustrações de terceiros neste pacote.

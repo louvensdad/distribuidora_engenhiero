@@ -1,0 +1,9 @@
+stateDiagram-v2
+  [*] --> Rascunho
+  Rascunho --> Enviada: contador prepara
+  Enviada --> Devolvida: patrão pede correção
+  Devolvida --> Rascunho
+  Enviada --> Aprovada: patrão aprova
+  Aprovada --> Paga: confirmar pagamento
+  Paga --> Conciliada: conferir liquidação
+  Conciliada --> [*]

@@ -1,0 +1,25 @@
+{
+  "registrado_em": "2026-11-14",
+  "fuso": "America/Sao_Paulo",
+  "observacao": "Versões verificadas no registro oficial/ambiente em 14/11/2026 (ver docs/evidence/F00-ambiente.txt). Sem tags 'latest'. Alterar somente via ADR.",
+  "backend": {
+    "java": "21 (OpenJDK 21.0.13 instalado)",
+    "spring_boot": "4.1.2",
+    "maven": "3.9.12 via Maven Wrapper 3.3.4",
+    "flyway": "gerenciado pelo Spring Boot 4.1.2 (BOM)",
+    "testcontainers": "gerenciado pelo Spring Boot 4.1.2 (BOM)"
+  },
+  "infra_local": {
+    "postgresql": "postgres:18.6-alpine",
+    "oidc": "quay.io/keycloak/keycloak:26.8.1"
+  },
+  "web": {
+    "node": "22.22.1 (instalado)",
+    "angular": "22.2.6 (registro npm; ainda não instalado — F02)"
+  },
+  "mobile": {
+    "flutter": "3.50.0 stable (commit ab2912035e160d9cad6306df307576da6128ebdb)",
+    "dart": "3.14.0",
+    "estado": "BLOCKED: Flutter/Android SDK/Xcode não instalados nesta máquina"
+  }
+}

@@ -1,0 +1,1635 @@
+[
+  {
+    "id": "W01",
+    "surface": "web",
+    "title": "Entrada segura",
+    "route": "/login",
+    "kind": "login",
+    "phase": "F01",
+    "permission": "session",
+    "rows": [
+      "Conta individual",
+      "Recuperação pelo provedor de identidade",
+      "Segundo fator quando exigido"
+    ],
+    "actions": [
+      "Entrar com segurança"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/W01.svg"
+  },
+  {
+    "id": "W02",
+    "surface": "web",
+    "title": "Visão geral da distribuidora",
+    "route": "/overview",
+    "kind": "dashboard",
+    "phase": "F10",
+    "permission": "dashboard.view",
+    "rows": [
+      "Vendas: R$ 40.000",
+      "CMV: R$ 15.000",
+      "Despesas: R$ 15.000",
+      "Perdas: R$ 500",
+      "Lucro: R$ 9.500"
+    ],
+    "actions": [
+      "Abrir relatório",
+      "Perguntar à IA"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/W02.svg"
+  },
+  {
+    "id": "W03",
+    "surface": "web",
+    "title": "Pedidos de retirada e entrega",
+    "route": "/orders",
+    "kind": "list",
+    "phase": "F04",
+    "permission": "orders.*.view",
+    "rows": [
+      "#1048 Mercado Central | Entrega | R$ 480",
+      "#1047 Ana Santos | Retirada | R$ 80",
+      "#1046 Feira do Bairro | Entrega | R$ 320"
+    ],
+    "actions": [
+      "Novo pedido",
+      "Filtrar setor"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/W03.svg"
+  },
+  {
+    "id": "W04",
+    "surface": "web",
+    "title": "Pedido: cada etapa e responsável",
+    "route": "/orders/:id",
+    "kind": "detail",
+    "phase": "F04",
+    "permission": "orders.*.view",
+    "rows": [
+      "24 dúzias | R$ 480",
+      "Pagamento: Pix confirmado",
+      "Status: em entrega",
+      "Cadastrado por Marcos",
+      "Motorista: Carlos | ABC1D23",
+      "Histórico do pedido vinculado"
+    ],
+    "actions": [
+      "Ver histórico",
+      "Registrar ocorrência"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/W04.svg"
+  },
+  {
+    "id": "W05",
+    "surface": "web",
+    "title": "Estoque, reservas e fornecedores",
+    "route": "/inventory",
+    "kind": "dashboard",
+    "phase": "F03",
+    "permission": "inventory.stock.view",
+    "rows": [
+      "Físico: 450 dúzias",
+      "Reservado: 80 dúzias",
+      "Disponível: 370 dúzias",
+      "Perdas: 50 dúzias"
+    ],
+    "actions": [
+      "Receber mercadoria",
+      "Registrar perda"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/W05.svg"
+  },
+  {
+    "id": "W06",
+    "surface": "web",
+    "title": "Conferir recebimento de fornecedor",
+    "route": "/inventory/receipts/new",
+    "kind": "form",
+    "phase": "F03",
+    "permission": "inventory.receipts.create",
+    "rows": [
+      "Fornecedor",
+      "Produto e medida",
+      "Quantidade prevista / recebida",
+      "Custo e frete autorizado",
+      "Documento e conferente"
+    ],
+    "actions": [
+      "Salvar rascunho",
+      "Confirmar entrada"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/W06.svg"
+  },
+  {
+    "id": "W07",
+    "surface": "web",
+    "title": "Frota e entregas por viagem",
+    "route": "/fleet",
+    "kind": "list",
+    "phase": "F05",
+    "permission": "vehicles.view",
+    "rows": [
+      "Fiorino | ABC1D23 | Carlos",
+      "Strada | DEF4G56 | Roberto",
+      "Abastecimentos e manutenção por placa",
+      "Viagem V082: 4 pedidos atribuídos"
+    ],
+    "actions": [
+      "Criar viagem",
+      "Ver gastos"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/W07.svg"
+  },
+  {
+    "id": "W08",
+    "surface": "web",
+    "title": "Financeiro por conta e categoria",
+    "route": "/finance",
+    "kind": "dashboard",
+    "phase": "F06",
+    "permission": "company_cash.view",
+    "rows": [
+      "Saldo inicial: R$ 5.000",
+      "Recebido: R$ 36.000",
+      "Saídas: R$ 30.000",
+      "Saldo: R$ 11.000",
+      "A receber: R$ 4.000"
+    ],
+    "actions": [
+      "Cadastrar despesa",
+      "Conferir caixa"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/W08.svg"
+  },
+  {
+    "id": "W09",
+    "surface": "web",
+    "title": "Guias, vencimentos e aprovações",
+    "route": "/accounting/taxes",
+    "kind": "list",
+    "phase": "F07",
+    "permission": "taxes.view",
+    "rows": [
+      "Guia de exemplo | R$ 850 | aguardando aprovação",
+      "Imposto anterior | R$ 650 | pago",
+      "Competência e comprovantes separados"
+    ],
+    "actions": [
+      "Preparar guia",
+      "Conferir pendências"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/W09.svg"
+  },
+  {
+    "id": "W10",
+    "surface": "web",
+    "title": "Folha de pagamento e encargos",
+    "route": "/accounting/payroll",
+    "kind": "detail",
+    "phase": "F07",
+    "permission": "payroll.view",
+    "rows": [
+      "Salários: R$ 6.000",
+      "Benefícios: R$ 800",
+      "Encargos: R$ 1.200",
+      "Total: R$ 8.000",
+      "Estado: aguardando aprovação"
+    ],
+    "actions": [
+      "Conferir rubricas",
+      "Aprovar folha"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/W10.svg"
+  },
+  {
+    "id": "W11",
+    "surface": "web",
+    "title": "Notas fiscais e documentos",
+    "route": "/accounting/invoices",
+    "kind": "list",
+    "phase": "F08",
+    "permission": "invoices.view",
+    "rows": [
+      "Nota 042 | Mercado Central | em conferência",
+      "Nota 041 | Feira do Bairro | autorizada em sandbox",
+      "XML, protocolo e rejeições"
+    ],
+    "actions": [
+      "Preparar nota",
+      "Consultar provedor"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/W11.svg"
+  },
+  {
+    "id": "W12",
+    "surface": "web",
+    "title": "Relatório completo com gráficos 3D",
+    "route": "/reports",
+    "kind": "report",
+    "phase": "F09",
+    "permission": "reports.view",
+    "rows": [
+      "Vendas: R$ 40.000",
+      "CMV: R$ 15.000",
+      "Despesas: R$ 15.000",
+      "Perdas: R$ 500",
+      "Lucro: R$ 9.500"
+    ],
+    "actions": [
+      "PDF / planilha",
+      "Analisar com a IA"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/W12.svg"
+  },
+  {
+    "id": "W13",
+    "surface": "web",
+    "title": "Gastos primeiro por categoria",
+    "route": "/reports/categories",
+    "kind": "categories",
+    "phase": "F09",
+    "permission": "reports.view",
+    "rows": [
+      "Funcionários: R$ 8.000",
+      "Veículos: R$ 3.000",
+      "Estrutura: R$ 2.000",
+      "Impostos e taxas: R$ 2.000",
+      "Despesas totais: R$ 15.000"
+    ],
+    "actions": [
+      "Abrir lançamentos",
+      "Ver fechamento"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/W13.svg"
+  },
+  {
+    "id": "W14",
+    "surface": "web",
+    "title": "IA da gestão com fontes",
+    "route": "/intelligence",
+    "kind": "chat",
+    "phase": "F15",
+    "permission": "ai.view",
+    "rows": [
+      "Quanto sobrou neste mês?",
+      "Lucro gerencial: R$ 9.500",
+      "Receita 40.000 - CMV15.000 - despesas15.000 - perdas500",
+      "Fontes: relatório e lançamentos do período"
+    ],
+    "actions": [
+      "Enviar pergunta",
+      "Abrir fontes"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/W14.svg"
+  },
+  {
+    "id": "W15",
+    "surface": "web",
+    "title": "Mapa individual de permissões",
+    "route": "/team/access",
+    "kind": "permissions",
+    "phase": "F01",
+    "permission": "permissions.edit_draft",
+    "rows": [
+      "Paula | Balcão | próprios registros",
+      "Ver pedidos: permitido",
+      "Confirmar recebimento: permitido",
+      "Dashboard/lucro: bloqueado",
+      "Custos e dados pessoais: bloqueados"
+    ],
+    "actions": [
+      "Visualizar acesso",
+      "Salvar permissões"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/W15.svg"
+  },
+  {
+    "id": "W16",
+    "surface": "web",
+    "title": "Histórico completo de movimentos",
+    "route": "/audit",
+    "kind": "timeline",
+    "phase": "F10",
+    "permission": "audit.view",
+    "rows": [
+      "10h42 Fernanda preparou guia de R$ 850",
+      "10h35 Paula confirmou pedido #1047",
+      "10h20 Marcos atribuiu viagem V082",
+      "09h10 Carlos registrou saída"
+    ],
+    "actions": [
+      "Filtrar funcionário",
+      "Abrir origem"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/W16.svg"
+  },
+  {
+    "id": "W17",
+    "surface": "web",
+    "title": "Central de documentos privados",
+    "route": "/documents",
+    "kind": "list",
+    "phase": "F07",
+    "permission": "documents.view",
+    "rows": [
+      "Guia tributária | disponível",
+      "Comprovante do caixa | solicitado",
+      "Folha do mês | acesso autorizado",
+      "XML fiscal | protocolo vinculado"
+    ],
+    "actions": [
+      "Adicionar documento",
+      "Solicitar arquivo"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/W17.svg"
+  },
+  {
+    "id": "P01",
+    "surface": "patrao",
+    "title": "Acesso do proprietário",
+    "route": "/owner/login",
+    "kind": "login",
+    "phase": "F14",
+    "permission": "session",
+    "rows": [
+      "Conta pessoal do patrão",
+      "Autenticação reforçada",
+      "Sem troca para conta de funcionário"
+    ],
+    "actions": [
+      "Entrar"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/P01.svg"
+  },
+  {
+    "id": "P02",
+    "surface": "patrao",
+    "title": "Seu negócio na mão",
+    "route": "/owner/home",
+    "kind": "dashboard",
+    "phase": "F14",
+    "permission": "dashboard.view",
+    "rows": [
+      "Vendas: R$ 40.000",
+      "Despesas: R$ 15.000",
+      "Perdas: R$ 500",
+      "Lucro: R$ 9.500",
+      "Meta: 80%"
+    ],
+    "actions": [
+      "Abrir central",
+      "Ver relatório"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/P02.svg"
+  },
+  {
+    "id": "P03",
+    "surface": "patrao",
+    "title": "Central dos três aplicativos",
+    "route": "/owner/central",
+    "kind": "central",
+    "phase": "F14",
+    "permission": "dashboard.view",
+    "rows": [
+      "Retirada, balcão e fornecedores",
+      "Entregas, motoristas e veículos",
+      "Contabilidade e documentos",
+      "Histórico e pendências por setor"
+    ],
+    "actions": [
+      "Entrar no setor",
+      "Filtrar pessoa"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/P03.svg"
+  },
+  {
+    "id": "P04",
+    "surface": "patrao",
+    "title": "Supervisão da retirada",
+    "route": "/owner/central/counter",
+    "kind": "timeline",
+    "phase": "F14",
+    "permission": "orders.pickup.view",
+    "rows": [
+      "Paula cadastrou pedido #1047",
+      "Recebimento em dinheiro confirmado",
+      "João conferiu 100 dúzias do fornecedor",
+      "Caixa aguardando conferência"
+    ],
+    "actions": [
+      "Abrir pedido",
+      "Ver recebimento"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/P04.svg"
+  },
+  {
+    "id": "P05",
+    "surface": "patrao",
+    "title": "Supervisão das entregas",
+    "route": "/owner/central/delivery",
+    "kind": "timeline",
+    "phase": "F14",
+    "permission": "orders.delivery.view",
+    "rows": [
+      "Marcos atribuiu pedido #1048",
+      "Carlos saiu com ABC1D23",
+      "Abastecimento registrado: R$ 120",
+      "Entrega confirmada pelo motorista"
+    ],
+    "actions": [
+      "Abrir viagem",
+      "Ver gastos"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/P05.svg"
+  },
+  {
+    "id": "P06",
+    "surface": "patrao",
+    "title": "Supervisão da contabilidade",
+    "route": "/owner/central/accounting",
+    "kind": "timeline",
+    "phase": "F14",
+    "permission": "taxes.view",
+    "rows": [
+      "Fernanda preparou guia de R$ 850",
+      "Folha enviada para conferência",
+      "Nota fiscal aguarda validação",
+      "Documento solicitado ao balcão"
+    ],
+    "actions": [
+      "Conferir guia",
+      "Ver documentos"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/P06.svg"
+  },
+  {
+    "id": "P07",
+    "surface": "patrao",
+    "title": "Aprovar sem confundir com pagar",
+    "route": "/owner/approvals/:id",
+    "kind": "approval",
+    "phase": "F14",
+    "permission": "taxes.approve",
+    "rows": [
+      "Guia: R$ 850",
+      "Competência: dezembro de 2026",
+      "Preparada por Fernanda",
+      "Estado: aguardando aprovação",
+      "Documento privado vinculado"
+    ],
+    "actions": [
+      "Devolver com motivo",
+      "Aprovar guia"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/P07.svg"
+  },
+  {
+    "id": "P08",
+    "surface": "patrao",
+    "title": "Relatório geral no celular",
+    "route": "/owner/reports",
+    "kind": "report",
+    "phase": "F14",
+    "permission": "reports.view",
+    "rows": [
+      "Vendas: R$ 40.000",
+      "Despesas: R$ 15.000",
+      "Perdas: R$ 500",
+      "CMV: R$ 15.000",
+      "Lucro: R$ 9.500"
+    ],
+    "actions": [
+      "Categorias",
+      "Exportar"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/P08.svg"
+  },
+  {
+    "id": "P09",
+    "surface": "patrao",
+    "title": "Converse com seus números",
+    "route": "/owner/ai",
+    "kind": "chat",
+    "phase": "F15",
+    "permission": "ai.view",
+    "rows": [
+      "Quais gastos pesaram mais?",
+      "Funcionários: R$ 8.000",
+      "Veículos: R$ 3.000",
+      "Período e fontes visíveis"
+    ],
+    "actions": [
+      "Perguntar",
+      "Abrir relatório"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/P09.svg"
+  },
+  {
+    "id": "P10",
+    "surface": "patrao",
+    "title": "Cada movimento, com autor",
+    "route": "/owner/history",
+    "kind": "timeline",
+    "phase": "F14",
+    "permission": "audit.view",
+    "rows": [
+      "Filtrar período, pessoa e entidade",
+      "Pedido -> reserva -> entrega -> recebimento",
+      "Antes/depois dos campos autorizados",
+      "Ações do dono mantêm ator do dono"
+    ],
+    "actions": [
+      "Buscar movimento",
+      "Ver detalhes"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/P10.svg"
+  },
+  {
+    "id": "P11",
+    "surface": "patrao",
+    "title": "Escolher acesso a dedo",
+    "route": "/owner/permissions",
+    "kind": "permissions",
+    "phase": "F14",
+    "permission": "permissions.edit_draft",
+    "rows": [
+      "Selecionar funcionário e escopo",
+      "Pedidos: ver/criar/confirmar",
+      "Exportação: bloqueada",
+      "Dados pessoais: bloqueados",
+      "Validade temporária opcional"
+    ],
+    "actions": [
+      "Revisar resumo",
+      "Salvar acessos"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/P11.svg"
+  },
+  {
+    "id": "P12",
+    "surface": "patrao",
+    "title": "Todos os módulos do site",
+    "route": "/owner/modules",
+    "kind": "central",
+    "phase": "F14",
+    "permission": "dashboard.view",
+    "rows": [
+      "Vendas e clientes",
+      "Estoque e fornecedores",
+      "Financeiro e frota",
+      "Contabilidade e documentos",
+      "Relatórios, IA e equipe"
+    ],
+    "actions": [
+      "Abrir módulo",
+      "Buscar registro"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/P12.svg"
+  },
+  {
+    "id": "R01",
+    "surface": "retirada",
+    "title": "Entrada do atendimento",
+    "route": "/counter/login",
+    "kind": "login",
+    "phase": "F11",
+    "permission": "session",
+    "rows": [
+      "Aplicativo Retirada",
+      "Conta individual de funcionário",
+      "Acesso liberado pelo patrão"
+    ],
+    "actions": [
+      "Entrar"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/R01.svg"
+  },
+  {
+    "id": "R02",
+    "surface": "retirada",
+    "title": "Atendimento de balcão",
+    "route": "/counter/home",
+    "kind": "list",
+    "phase": "F11",
+    "permission": "orders.pickup.view",
+    "rows": [
+      "#1047 Ana Santos | 4 dúzias | pronto",
+      "Somente pedidos próprios",
+      "Fornecedor e caixa por capacidade"
+    ],
+    "actions": [
+      "Novo pedido",
+      "Consultar pedidos"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/R02.svg"
+  },
+  {
+    "id": "R03",
+    "surface": "retirada",
+    "title": "Cadastrar retirada",
+    "route": "/counter/orders/new",
+    "kind": "form",
+    "phase": "F11",
+    "permission": "orders.pickup.create",
+    "rows": [
+      "Cliente",
+      "Produto e quantidade",
+      "Pagamento: dinheiro sugerido",
+      "Observação da retirada"
+    ],
+    "actions": [
+      "Calcular total",
+      "Cadastrar pedido"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/R03.svg"
+  },
+  {
+    "id": "R04",
+    "surface": "retirada",
+    "title": "Receber e calcular troco",
+    "route": "/counter/payments/new",
+    "kind": "payment",
+    "phase": "F11",
+    "permission": "payments.confirm",
+    "rows": [
+      "Pedido: R$ 75",
+      "Dinheiro apresentado: R$ 100",
+      "Troco: R$ 25",
+      "Caixa aumenta: R$ 75"
+    ],
+    "actions": [
+      "Conferir valores",
+      "Confirmar recebimento"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/R04.svg"
+  },
+  {
+    "id": "R05",
+    "surface": "retirada",
+    "title": "Separar e confirmar retirada",
+    "route": "/counter/orders/:id",
+    "kind": "detail",
+    "phase": "F11",
+    "permission": "orders.pickup.confirm",
+    "rows": [
+      "Pedido #1047 | Ana Santos",
+      "4 dúzias | R$ 80",
+      "Pagamento confirmado",
+      "Em separação -> pronto -> retirado"
+    ],
+    "actions": [
+      "Marcar pronto",
+      "Confirmar retirada"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/R05.svg"
+  },
+  {
+    "id": "R06",
+    "surface": "retirada",
+    "title": "Fornecedores e recebimentos",
+    "route": "/counter/receipts",
+    "kind": "list",
+    "phase": "F11",
+    "permission": "inventory.receipts.view",
+    "rows": [
+      "Sítio Boa Colheita | 100 dúzias",
+      "Conferência de quantidade",
+      "Custo oculto sem permissão"
+    ],
+    "actions": [
+      "Receber mercadoria",
+      "Ver documento"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/R06.svg"
+  },
+  {
+    "id": "R07",
+    "surface": "retirada",
+    "title": "Conferir cana recebida",
+    "route": "/counter/receipts/new",
+    "kind": "form",
+    "phase": "F11",
+    "permission": "inventory.receipts.create",
+    "rows": [
+      "Fornecedor",
+      "Quantidade prevista",
+      "Quantidade aceita / recusada",
+      "Lote e documento",
+      "Observação da conferência"
+    ],
+    "actions": [
+      "Salvar rascunho",
+      "Confirmar entrada"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/R07.svg"
+  },
+  {
+    "id": "R08",
+    "surface": "retirada",
+    "title": "Meu caixa do turno",
+    "route": "/counter/cash",
+    "kind": "detail",
+    "phase": "F11",
+    "permission": "own_cash.view",
+    "rows": [
+      "Fundo inicial: R$ 100",
+      "Recebimentos próprios: R$ 80",
+      "Esperado: R$ 180",
+      "Contado: informar",
+      "Sem saldo global da empresa"
+    ],
+    "actions": [
+      "Informar contagem",
+      "Enviar fechamento"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/R08.svg"
+  },
+  {
+    "id": "R09",
+    "surface": "retirada",
+    "title": "Meus pedidos e histórico",
+    "route": "/counter/orders",
+    "kind": "list",
+    "phase": "F11",
+    "permission": "orders.pickup.view",
+    "rows": [
+      "Pedidos próprios por data",
+      "Pagamento e retirada separados",
+      "Busca pelo número ou cliente"
+    ],
+    "actions": [
+      "Abrir pedido",
+      "Filtrar data"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/R09.svg"
+  },
+  {
+    "id": "E01",
+    "surface": "entregas",
+    "title": "Entrada de entregas",
+    "route": "/delivery/login",
+    "kind": "login",
+    "phase": "F12",
+    "permission": "session",
+    "rows": [
+      "Aplicativo Entregas",
+      "Conta de atendente, despacho ou motorista",
+      "Funções conforme permissão"
+    ],
+    "actions": [
+      "Entrar"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/E01.svg"
+  },
+  {
+    "id": "E02",
+    "surface": "entregas",
+    "title": "Pedidos para despacho",
+    "route": "/delivery/orders",
+    "kind": "list",
+    "phase": "F12",
+    "permission": "orders.delivery.view",
+    "rows": [
+      "#1048 Mercado Central | 24 dúzias",
+      "#1046 Feira do Bairro | 16 dúzias",
+      "Pagamento e endereço necessários"
+    ],
+    "actions": [
+      "Novo pedido",
+      "Organizar viagem"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/E02.svg"
+  },
+  {
+    "id": "E03",
+    "surface": "entregas",
+    "title": "Cadastrar pedido de entrega",
+    "route": "/delivery/orders/new",
+    "kind": "form",
+    "phase": "F12",
+    "permission": "orders.delivery.create",
+    "rows": [
+      "Cliente e contato",
+      "Endereço e referência",
+      "Produto e quantidade",
+      "Janela de entrega",
+      "Pix, débito, crédito ou dinheiro"
+    ],
+    "actions": [
+      "Calcular total",
+      "Cadastrar pedido"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/E03.svg"
+  },
+  {
+    "id": "E04",
+    "surface": "entregas",
+    "title": "Atribuir carro e motorista",
+    "route": "/delivery/dispatch",
+    "kind": "form",
+    "phase": "F12",
+    "permission": "trips.assign",
+    "rows": [
+      "Viagem V082",
+      "Pedidos selecionados",
+      "Motorista autorizado",
+      "Veículo e placa",
+      "Capacidade e horário"
+    ],
+    "actions": [
+      "Validar capacidade",
+      "Atribuir viagem"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/E04.svg"
+  },
+  {
+    "id": "E05",
+    "surface": "entregas",
+    "title": "Minha viagem e paradas",
+    "route": "/delivery/trips/:id",
+    "kind": "route",
+    "phase": "F12",
+    "permission": "trips.view",
+    "rows": [
+      "Fiorino | ABC1D23 | Carlos",
+      "Mercado Central: 24 dúzias, já pago",
+      "Feira do Bairro: 16 dúzias, já pago",
+      "Somente pedidos atribuídos"
+    ],
+    "actions": [
+      "Registrar saída",
+      "Abrir próxima entrega"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/E05.svg"
+  },
+  {
+    "id": "E06",
+    "surface": "entregas",
+    "title": "Confirmar entrega",
+    "route": "/delivery/stops/:id",
+    "kind": "delivery",
+    "phase": "F12",
+    "permission": "trips.confirm",
+    "rows": [
+      "Pedido #1048",
+      "24 dúzias",
+      "Endereço e destinatário",
+      "Pix confirmado: não cobrar novamente",
+      "Confirmar quantidade entregue"
+    ],
+    "actions": [
+      "Registrar ocorrência",
+      "Confirmar entrega"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/E06.svg"
+  },
+  {
+    "id": "E07",
+    "surface": "entregas",
+    "title": "Recebimento na entrega",
+    "route": "/delivery/payments",
+    "kind": "payment",
+    "phase": "F12",
+    "permission": "payments.confirm",
+    "rows": [
+      "Pedido: R$ 240",
+      "Forma combinada: débito",
+      "Confirmação autorizada",
+      "Saldo pendente permanece visível"
+    ],
+    "actions": [
+      "Conferir transação",
+      "Registrar recebimento"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/E07.svg"
+  },
+  {
+    "id": "E08",
+    "surface": "entregas",
+    "title": "Abastecimento por placa",
+    "route": "/delivery/fuel/new",
+    "kind": "form",
+    "phase": "F12",
+    "permission": "fuel.create",
+    "rows": [
+      "ABC1D23",
+      "Quilometragem atual",
+      "Litros",
+      "Valor pago",
+      "Posto e comprovante"
+    ],
+    "actions": [
+      "Conferir dados",
+      "Registrar gasto"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/E08.svg"
+  },
+  {
+    "id": "E09",
+    "surface": "entregas",
+    "title": "Ocorrência da entrega",
+    "route": "/delivery/incidents/new",
+    "kind": "form",
+    "phase": "F12",
+    "permission": "trips.confirm",
+    "rows": [
+      "Pedido vinculado",
+      "Motivo: cliente ausente / recusa",
+      "Descrição",
+      "Evidência quando autorizada",
+      "Não marcar como entregue"
+    ],
+    "actions": [
+      "Salvar ocorrência",
+      "Solicitar reagendamento"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/E09.svg"
+  },
+  {
+    "id": "E10",
+    "surface": "entregas",
+    "title": "Retorno e prestação de contas",
+    "route": "/delivery/return",
+    "kind": "detail",
+    "phase": "F12",
+    "permission": "trips.close",
+    "rows": [
+      "Odômetro final",
+      "Pedidos entregues / pendentes",
+      "Dinheiro recebido",
+      "Mercadoria devolvida",
+      "Despesas e comprovantes"
+    ],
+    "actions": [
+      "Conferir retorno",
+      "Enviar prestação"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/E10.svg"
+  },
+  {
+    "id": "E11",
+    "surface": "entregas",
+    "title": "Veículo e manutenção",
+    "route": "/delivery/vehicles/:id",
+    "kind": "detail",
+    "phase": "F12",
+    "permission": "vehicles.view",
+    "rows": [
+      "Fiorino | ABC1D23",
+      "Odômetro: 45.200 km",
+      "Revisão: 45.500 km",
+      "Gastos somente conforme acesso"
+    ],
+    "actions": [
+      "Ver revisão",
+      "Registrar ocorrência"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/E11.svg"
+  },
+  {
+    "id": "C01",
+    "surface": "contador",
+    "title": "Entrada da contabilidade",
+    "route": "/accountant/login",
+    "kind": "login",
+    "phase": "F13",
+    "permission": "session",
+    "rows": [
+      "Aplicativo Contábil",
+      "Conta individual",
+      "Dados liberados pelo proprietário"
+    ],
+    "actions": [
+      "Entrar"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/C01.svg"
+  },
+  {
+    "id": "C02",
+    "surface": "contador",
+    "title": "Agenda de obrigações",
+    "route": "/accountant/home",
+    "kind": "list",
+    "phase": "F13",
+    "permission": "taxes.view",
+    "rows": [
+      "Guia de R$ 850 aguardando decisão",
+      "Folha em preparação",
+      "Nota em conferência",
+      "Documento solicitado ao balcão"
+    ],
+    "actions": [
+      "Preparar guia",
+      "Consultar agenda"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/C02.svg"
+  },
+  {
+    "id": "C03",
+    "surface": "contador",
+    "title": "Preparar guia de imposto",
+    "route": "/accountant/taxes/new",
+    "kind": "form",
+    "phase": "F13",
+    "permission": "taxes.create",
+    "rows": [
+      "Tipo e descrição",
+      "Competência",
+      "Vencimento",
+      "Valor",
+      "Documento e observação"
+    ],
+    "actions": [
+      "Salvar rascunho",
+      "Enviar para aprovação"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/C03.svg"
+  },
+  {
+    "id": "C04",
+    "surface": "contador",
+    "title": "Acompanhar guia",
+    "route": "/accountant/taxes/:id",
+    "kind": "approval",
+    "phase": "F13",
+    "permission": "taxes.view",
+    "rows": [
+      "Guia de R$ 850",
+      "Aprovada pelo administrador",
+      "Pagamento ainda pendente",
+      "Histórico da decisão",
+      "Sem acesso à conta bancária"
+    ],
+    "actions": [
+      "Ver documento",
+      "Consultar histórico"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/C04.svg"
+  },
+  {
+    "id": "C05",
+    "surface": "contador",
+    "title": "Preparar folha",
+    "route": "/accountant/payroll",
+    "kind": "detail",
+    "phase": "F13",
+    "permission": "payroll.view",
+    "rows": [
+      "Salários agregados: R$ 6.000",
+      "Benefícios: R$ 800",
+      "Encargos: R$ 1.200",
+      "Total: R$ 8.000",
+      "Dados individuais por permissão"
+    ],
+    "actions": [
+      "Conferir arquivo",
+      "Enviar ao patrão"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/C05.svg"
+  },
+  {
+    "id": "C06",
+    "surface": "contador",
+    "title": "Notas e rejeições",
+    "route": "/accountant/invoices",
+    "kind": "list",
+    "phase": "F13",
+    "permission": "invoices.view",
+    "rows": [
+      "Nota042: em conferência",
+      "Nota041: autorizada em sandbox",
+      "Rejeição mostra motivo do provedor"
+    ],
+    "actions": [
+      "Abrir nota",
+      "Preparar rascunho"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/C06.svg"
+  },
+  {
+    "id": "C07",
+    "surface": "contador",
+    "title": "Conferência fiscal",
+    "route": "/accountant/invoices/:id",
+    "kind": "detail",
+    "phase": "F13",
+    "permission": "invoices.confirm",
+    "rows": [
+      "Pedido #1048",
+      "Cliente e itens fiscais autorizados",
+      "Valor e documento aplicável",
+      "Ambiente de homologação",
+      "Sem sucesso inventado"
+    ],
+    "actions": [
+      "Validar dados",
+      "Transmitir autorizado"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/C07.svg"
+  },
+  {
+    "id": "C08",
+    "surface": "contador",
+    "title": "Documentos e solicitações",
+    "route": "/accountant/documents",
+    "kind": "list",
+    "phase": "F13",
+    "permission": "documents.view",
+    "rows": [
+      "Guias e comprovantes",
+      "Folha do período",
+      "XML e protocolo",
+      "Documento faltante solicitado"
+    ],
+    "actions": [
+      "Anexar documento",
+      "Solicitar arquivo"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/C08.svg"
+  },
+  {
+    "id": "C09",
+    "surface": "contador",
+    "title": "Anexar e revisar documento",
+    "route": "/accountant/documents/new",
+    "kind": "form",
+    "phase": "F13",
+    "permission": "documents.attach",
+    "rows": [
+      "Tipo de documento",
+      "Entidade de origem",
+      "Arquivo privado",
+      "Versão e observação",
+      "Upload validado pelo servidor"
+    ],
+    "actions": [
+      "Selecionar arquivo",
+      "Confirmar envio"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "success",
+      "validation_error",
+      "forbidden",
+      "network_error"
+    ],
+    "asset": "design/telas/C09.svg"
+  }
+]

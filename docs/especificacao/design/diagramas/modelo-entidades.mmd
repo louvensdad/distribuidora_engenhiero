@@ -1,0 +1,14 @@
+erDiagram
+  ORGANIZATION ||--o{ BRANCH : contains
+  BRANCH ||--o{ ORDER : receives
+  ORDER ||--|{ ORDER_LINE : contains
+  ORDER_LINE ||--o{ RESERVATION : reserves
+  ORDER_LINE ||--o{ FULFILLMENT_LINE : fulfills
+  ORDER ||--o{ PAYMENT_ALLOCATION : receives
+  PAYMENT ||--o{ PAYMENT_ALLOCATION : allocates
+  TRIP ||--o{ TRIP_ASSIGNMENT : groups
+  ORDER ||--o{ TRIP_ASSIGNMENT : assigned
+  VEHICLE ||--o{ TRIP : transports
+  VEHICLE ||--o{ VEHICLE_EXPENSE : incurs
+  TAX_OBLIGATION ||--o{ APPROVAL : requests
+  DOCUMENT ||--o{ TAX_OBLIGATION : supports

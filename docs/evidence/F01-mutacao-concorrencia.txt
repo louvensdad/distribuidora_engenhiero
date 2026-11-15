@@ -1,0 +1,6 @@
+# Teste de mutação — trava de administradores (14/11/2026)
+Mutação: chamadas repo.lockAdminMemberships(...) comentadas em AccessAdministrationService.
+Comando: ./mvnw verify -Dtest=ConcurrencyIntegrationTest
+Resultado com mutação: Tests run: 5, Failures: 5 (organização ficou com 0 administradores ativos)
+Resultado com o código real: Tests run: 5, Failures: 0
+Conclusão: o teste detecta a condição de corrida e a correção a elimina.

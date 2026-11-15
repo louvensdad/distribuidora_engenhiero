@@ -1,0 +1,89 @@
+{
+  "purpose": "Fixtures fictícias, não dados reais da distribuidora",
+  "currency": "BRL",
+  "decimal_format": "string",
+  "timezone": "America/Sao_Paulo",
+  "cases": [
+    {
+      "id": "FECHAMENTO-01",
+      "revenue": "40000.00",
+      "cogs": "15000.00",
+      "expense_categories": {
+        "Funcionários": "8000.00",
+        "Veículos": "3000.00",
+        "Estrutura": "2000.00",
+        "Impostos e taxas": "2000.00"
+      },
+      "inventory_losses": "500.00",
+      "expected": {
+        "expenses_total": "15000.00",
+        "costs_expenses_losses_total": "30500.00",
+        "profit": "9500.00",
+        "margin_percent": "23.75",
+        "sold_quantity": "2000.000000"
+      }
+    },
+    {
+      "id": "CAIXA-01",
+      "opening": "5000.00",
+      "received": "36000.00",
+      "paid_out": "30000.00",
+      "expected_closing": "11000.00",
+      "note": "O saldo não é o lucro9500."
+    },
+    {
+      "id": "TROCO-01",
+      "order": "75.00",
+      "presented": "100.00",
+      "expected_change": "25.00",
+      "expected_cash_increase": "75.00"
+    },
+    {
+      "id": "CARTAO-01",
+      "gross": "100.00",
+      "fee": "3.00",
+      "expected_net_receivable": "97.00",
+      "expected_revenue": "100.00",
+      "expected_expense": "3.00"
+    },
+    {
+      "id": "CMV-01",
+      "receipt_quantity": "100.000000",
+      "receipt_cost": "1000.00",
+      "fulfilled_quantity": "20.000000",
+      "expected_cogs": "200.00",
+      "expected_remaining_stock_value": "800.00"
+    },
+    {
+      "id": "RATEIO-01",
+      "expense": "100.00",
+      "weights": [
+        "1",
+        "1",
+        "1"
+      ],
+      "expected_shares": [
+        "33.33",
+        "33.33",
+        "33.34"
+      ],
+      "expected_expense_total": "100.00"
+    },
+    {
+      "id": "OBRIGACAO-01",
+      "recognized": "850.00",
+      "payment": "850.00",
+      "expected_total_expense": "850.00",
+      "expected_payable_balance": "0.00"
+    },
+    {
+      "id": "NOVO-FLUXO-01",
+      "fulfilled_sale": "60.00",
+      "cogs": "22.50",
+      "fuel_expense": "120.00",
+      "base_profit": "9500.00",
+      "expected_profit": "9417.50",
+      "note": "Requer cumprimento real da venda. Pedido apenas reservado não altera receita."
+    }
+  ]
+}
