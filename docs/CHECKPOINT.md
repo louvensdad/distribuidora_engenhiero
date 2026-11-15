@@ -1,10 +1,10 @@
 # Checkpoint
 
-Data/hora e fuso: 15/11/2026 09:45 America/Sao_Paulo
+Data/hora e fuso: 15/11/2026 10:00 America/Sao_Paulo
 Agente e repositório: Claude Code (Opus 5.5) — `/home/louvens/distribuidora-engenheiro`
 Branch e commit atual: `main` — ver `git log -1`
-Fase: F02 em andamento (web feita; 4 apps gerados e abertos no emulador; login móvel ponta a ponta pendente)
-Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **IN_PROGRESS** · F03 **IN_PROGRESS** (fatia clientes)
+Fase: F02 concluída (web + 4 apps com login ponta a ponta no emulador)
+Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **IN_PROGRESS** (fatia clientes)
 
 ## Entregue e comprovado
 
@@ -58,8 +58,11 @@ API: `/audit-events?client_id=` (atividades por app de origem, para a Central do
 - Toolchain móvel: `F02-toolchain-mobile.txt`.
 - Apps: `flutter analyze` limpo, **29 testes Dart**; 4 APKs debug gerados, instalados e abertos no emulador API 36 (processo vivo,
   MainActivity em primeiro plano) — `F02-mobile-apks-emulador.txt`, capturas em `docs/evidence/telas-mobile/`.
-- Login móvel: sem rota ao IdP mostra erro de conexão (sem sessão falsa); com `adb reverse` abre Custom Tab no login do Keycloak.
-  Troca do código → `/me` → shell **não exercitada** (falta `ENGENHEIRO_SENHA_LOCAL` na sessão).
+- Login móvel ponta a ponta com Keycloak real nos 4 apps (balcao, motorista.a, contador, patrao com cadastro de TOTP): shell por
+  capacidade, campos ocultos pela política, sessão persistente, Sair; balcao no app Contábil → "Sem permissão" com código igual
+  ao `request_id` auditado; Central do Patrão filtra por app (`client_id`). Corrigido: `taskAffinity=""` nos manifests quebrava o
+  retorno do login (AppAuth "No stored state").
+  Sem rota ao IdP: erro de conexão, sem sessão falsa.
 - Backend com filtro `client_id`: `./mvnw verify` → **78 testes, 0 falhas**.
 
 Problemas encontrados e corrigidos nesta etapa: seed local como `V1000` impedia novas migrations (agora `R__` idempotente,
@@ -68,7 +71,7 @@ com teste); tabela estourava a largura no celular por texto `visually-hidden` ab
 
 ## Limites do gate F01 (explícitos)
 
-- Login nos 4 apps móveis: fluxo vai até o formulário do Keycloak; conclusão pendente da senha local. A API já aceita/nega por client (`azp`).
+- Login móvel testado por script adb (`infra/local/e2e_login_mobile.sh`), não por `integration_test`; só Android.
 - Critério "pedido/anexo de outra unidade por ID" provado com **clientes**; reverificar em pedidos (F04) e documentos (F07)
   usando o mesmo `requireRecord`/`ScopeSql`.
 - Canais SSE/websocket ainda não existem; revogação nesses canais será testada quando forem criados.
@@ -97,7 +100,4 @@ ENGENHEIRO_SENHA_LOCAL=... python3 -I ../../infra/local/e2e_login_web.py
 
 ## Próxima ação
 
-1. **F02 (apps) — fechar o gate**: com `ENGENHEIRO_SENHA_LOCAL`, `adb reverse tcp:8180 tcp:8180` e `tcp:8081`, entrar em cada app
-   com o usuário certo (patrao/balcao/motorista.a/contador), comprovar `/me` 200 e destinos por capacidade; entrar com usuário
-   de outro app → recusa; logout. Automatizar com `integration_test` ou script adb.
-2. **F03**: produtos/medidas/conversões, fornecedores, recebimentos e estoque com concorrência (B01, B10, B11).
+1. **F03**: produtos/medidas/conversões, fornecedores, recebimentos e estoque com concorrência (B01, B10, B11).

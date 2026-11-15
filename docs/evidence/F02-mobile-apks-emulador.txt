@@ -32,7 +32,22 @@ Capturas: docs/evidence/telas-mobile/{owner,counter,delivery,accountant}-abertur
 1) Sem rota até o IdP (localhost do emulador): mensagem 'Não foi possível entrar. Verifique a conexão e tente de novo.' — sem crash, sem sessão falsa (counter-entrar-sem-idp.png).
 2) Com 'adb reverse tcp:8180 tcp:8180' e 'tcp:8081': o app abre Chrome Custom Tab em localhost:8180, tela de login do realm engenheiro (counter-login-keycloak.png).
    topResumed=com.android.chrome/.customtabs.CustomTabActivity
-3) Troca do código, /me e shell por capacidade: NÃO EXERCITADO — falta a senha local (ENGENHEIRO_SENHA_LOCAL) nesta sessão.
+3) Primeira tentativa com senha válida (15/11/2026 09:48): Keycloak criou a sessão e redirecionou, mas o app ficou na Custom Tab.
+   logcat: 'W AppAuth : No stored state - unable to handle response'. Causa: android:taskAffinity="" na MainActivity
+   (padrão do template Flutter) fazia o redirect abrir em outra tarefa, sem o estado do pedido. Correção: removido nos 4 manifests.
+4) Após a correção, login ponta a ponta (senhas locais redefinidas; senha fora do repositório):
+   retirada / balcao      → MainActivity; shell Atendimento + Pedidos; clientes reais da API; contato visível,
+                            endereço e CPF/CNPJ 'oculto' pela política de campo (counter-pos-login.png)
+   entregas / motorista.a → shell Viagens + Veículos, 'em implementação — F05', sem dados de exemplo (delivery-pos-login.png)
+   contabil / contador    → shell Agenda, Guias, Folha, Notas, Documentos (F07) (accountant-pos-login.png);
+                            sessão persiste ao reabrir; Minha conta: 12 permissões; Sair volta à entrada (accountant-minha-conta.png, accountant-apos-sair.png)
+   contabil / balcao      → 'Sem permissão… Código: 01a1df45-206a-7005-883c-de0d61d66d3d' (accountant-balcao-negado.png)
+                            audit_events: action=access.denied result=DENIED client_id=engenheiro-contabil
+                            reason='aplicativo não liberado para o vínculo' request_id=01a1df45-206a-7005-883c-de0d61d66d3d
+   gestao / patrao        → cadastro de TOTP exigido (segredo lido via DevTools remoto, código calculado), depois Início com
+                            'Últimos movimentos' incluindo a negação acima (owner-pos-login.png); Central › Retirada vazia
+                            (só leituras), Central › Contabilidade mostra só a negação no app Contábil (filtro client_id) (owner-central*.png)
+   Scripts: infra/local/e2e_login_mobile.sh, infra/local/e2e_totp_mobile.py
 
 ## Backend após filtro client_id em /audit-events
 ./mvnw verify → EXIT=0, 78 testes (surefire+failsafe), 0 falhas
