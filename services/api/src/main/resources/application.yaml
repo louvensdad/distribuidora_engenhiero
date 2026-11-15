@@ -13,6 +13,14 @@ spring:
 
 server:
   port: ${PORT:8080}
+  servlet:
+    session:
+      timeout: 30m
+      cookie:
+        name: ENGENHEIRO_SESSION
+        http-only: true
+        secure: ${ENGENHEIRO_COOKIE_SECURE:true}
+        same-site: lax
   error:
     include-message: never
     include-stacktrace: never
@@ -25,6 +33,14 @@ engenheiro:
       issuer: ${ENGENHEIRO_OIDC_ISSUER:http://localhost:8180/realms/engenheiro}
       jwk-set-uri: ${ENGENHEIRO_OIDC_JWKS:http://localhost:8180/realms/engenheiro/protocol/openid-connect/certs}
       audience: engenheiro-api
+  # Login do site do patrão (BFF). Sem client-secret o login web fica NÃO CONFIGURADO (API bearer segue ativa).
+  web:
+    client-id: engenheiro-web
+    client-secret: ${ENGENHEIRO_WEB_CLIENT_SECRET:}
+    app-url: ${ENGENHEIRO_WEB_APP_URL:http://localhost:4200/}
+    authorization-uri: ${engenheiro.security.oidc.issuer}/protocol/openid-connect/auth
+    token-uri: ${ENGENHEIRO_OIDC_TOKEN_URI:${engenheiro.security.oidc.issuer}/protocol/openid-connect/token}
+    end-session-uri: ${engenheiro.security.oidc.issuer}/protocol/openid-connect/logout
 
 management:
   endpoints:

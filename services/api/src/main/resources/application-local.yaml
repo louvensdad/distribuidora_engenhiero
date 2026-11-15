@@ -4,6 +4,11 @@ spring:
     password: ${ENGENHEIRO_DB_PASSWORD:engenheiro-local}
   flyway:
     locations: classpath:db/migration,classpath:db/seed-local
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false  # http://localhost apenas
 engenheiro:
   seed-local:
     enabled: true

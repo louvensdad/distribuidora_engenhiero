@@ -10,13 +10,28 @@
   "accessTokenLifespan": 300,
   "ssoSessionIdleTimeout": 1800,
   "passwordPolicy": "length(12) and notUsername",
-  "clientScopes": [
+  "clients": [
     {
-      "name": "engenheiro-api-audience",
-      "protocol": "openid-connect",
+      "clientId": "engenheiro-web",
+      "name": "Site do patrão (BFF)",
+      "publicClient": false,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:8080/login/oauth2/code/engenheiro",
+        "http://localhost:8081/login/oauth2/code/engenheiro"
+      ],
+      "webOrigins": [],
       "attributes": {
-        "include.in.token.scope": "false"
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:4200/"
       },
+      "defaultClientScopes": [
+        "basic",
+        "profile"
+      ],
       "protocolMappers": [
         {
           "name": "audiencia-engenheiro-api",
@@ -28,30 +43,6 @@
             "id.token.claim": "false"
           }
         }
-      ]
-    }
-  ],
-  "clients": [
-    {
-      "clientId": "engenheiro-web",
-      "name": "Site do patrão (BFF)",
-      "publicClient": false,
-      "standardFlowEnabled": true,
-      "directAccessGrantsEnabled": false,
-      "implicitFlowEnabled": false,
-      "serviceAccountsEnabled": false,
-      "redirectUris": [
-        "http://localhost:8080/login/oauth2/code/engenheiro"
-      ],
-      "webOrigins": [],
-      "attributes": {
-        "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "http://localhost:4200/"
-      },
-      "defaultClientScopes": [
-        "basic",
-        "profile",
-        "engenheiro-api-audience"
       ]
     },
     {
@@ -71,10 +62,21 @@
       },
       "defaultClientScopes": [
         "basic",
-        "profile",
-        "engenheiro-api-audience"
+        "profile"
       ],
-      "optionalClientScopes": []
+      "optionalClientScopes": [],
+      "protocolMappers": [
+        {
+          "name": "audiencia-engenheiro-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "engenheiro-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
     },
     {
       "clientId": "engenheiro-retirada",
@@ -93,10 +95,21 @@
       },
       "defaultClientScopes": [
         "basic",
-        "profile",
-        "engenheiro-api-audience"
+        "profile"
       ],
-      "optionalClientScopes": []
+      "optionalClientScopes": [],
+      "protocolMappers": [
+        {
+          "name": "audiencia-engenheiro-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "engenheiro-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
     },
     {
       "clientId": "engenheiro-entregas",
@@ -115,10 +128,21 @@
       },
       "defaultClientScopes": [
         "basic",
-        "profile",
-        "engenheiro-api-audience"
+        "profile"
       ],
-      "optionalClientScopes": []
+      "optionalClientScopes": [],
+      "protocolMappers": [
+        {
+          "name": "audiencia-engenheiro-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "engenheiro-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
     },
     {
       "clientId": "engenheiro-contabil",
@@ -137,10 +161,21 @@
       },
       "defaultClientScopes": [
         "basic",
-        "profile",
-        "engenheiro-api-audience"
+        "profile"
       ],
-      "optionalClientScopes": []
+      "optionalClientScopes": [],
+      "protocolMappers": [
+        {
+          "name": "audiencia-engenheiro-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "engenheiro-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
     }
   ],
   "users": [
@@ -148,8 +183,8 @@
       "id": "00000000-0000-4000-8000-000000000a01",
       "username": "patrao",
       "enabled": true,
-      "firstName": "Patrão (fictício)",
-      "lastName": "",
+      "firstName": "Patrão",
+      "lastName": "Fictício",
       "email": "patrao@exemplo.invalid",
       "emailVerified": true,
       "requiredActions": [
@@ -160,8 +195,8 @@
       "id": "00000000-0000-4000-8000-000000000a02",
       "username": "balcao",
       "enabled": true,
-      "firstName": "Balcão Exemplo",
-      "lastName": "",
+      "firstName": "Balcão",
+      "lastName": "Exemplo",
       "email": "balcao@exemplo.invalid",
       "emailVerified": true,
       "requiredActions": []
@@ -170,8 +205,8 @@
       "id": "00000000-0000-4000-8000-000000000a03",
       "username": "recebimento",
       "enabled": true,
-      "firstName": "Recebimento Exemplo",
-      "lastName": "",
+      "firstName": "Recebimento",
+      "lastName": "Exemplo",
       "email": "recebimento@exemplo.invalid",
       "emailVerified": true,
       "requiredActions": []
@@ -180,8 +215,8 @@
       "id": "00000000-0000-4000-8000-000000000a04",
       "username": "coordenador",
       "enabled": true,
-      "firstName": "Coordenação Entregas Exemplo",
-      "lastName": "",
+      "firstName": "Coordenação Entregas",
+      "lastName": "Exemplo",
       "email": "coordenador@exemplo.invalid",
       "emailVerified": true,
       "requiredActions": []
@@ -190,8 +225,8 @@
       "id": "00000000-0000-4000-8000-000000000a05",
       "username": "motorista.a",
       "enabled": true,
-      "firstName": "Motorista A Exemplo",
-      "lastName": "",
+      "firstName": "Motorista A",
+      "lastName": "Exemplo",
       "email": "motorista.a@exemplo.invalid",
       "emailVerified": true,
       "requiredActions": []
@@ -200,8 +235,8 @@
       "id": "00000000-0000-4000-8000-000000000a06",
       "username": "motorista.b",
       "enabled": true,
-      "firstName": "Motorista B Exemplo",
-      "lastName": "",
+      "firstName": "Motorista B",
+      "lastName": "Exemplo",
       "email": "motorista.b@exemplo.invalid",
       "emailVerified": true,
       "requiredActions": []
@@ -210,8 +245,8 @@
       "id": "00000000-0000-4000-8000-000000000a07",
       "username": "contador",
       "enabled": true,
-      "firstName": "Contador Exemplo",
-      "lastName": "",
+      "firstName": "Contador",
+      "lastName": "Exemplo",
       "email": "contador@exemplo.invalid",
       "emailVerified": true,
       "requiredActions": []

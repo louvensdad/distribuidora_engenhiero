@@ -1,0 +1,15 @@
+# E2E login do site via BFF contra Keycloak 26.8.1 local — 2026-11-14T21:15:54-03:00
+# comando: ENGENHEIRO_SENHA_LOCAL=*** python3 -I infra/local/e2e_login_web.py  (API em :8081, perfil local)
+# fluxo real: formulário do Keycloak + cadastro de TOTP do patrão + Authorization Code com PKCE S256
+patrao: callback HTTP 302 -> http://localhost:4200/
+cookie de sessão: HttpOnly=True SameSite=Lax
+cookies da API: ENGENHEIRO_SESSION, XSRF-TOKEN | algum contém JWT: False
+GET /api/v1/me/capabilities: HTTP 200 client=engenheiro-web admin=True empresa='Distribuidora de Cana Engenheiro Ltda' capacidades=99
+GET /bff/session: HTTP 200 {"web_login":"CONFIGURADO","authenticated":true,"login_url":"/oauth2/authorization/engenheiro","display_name":"Patrão Fictício"}
+POST access-policy sem CSRF: HTTP 403 | com CSRF: HTTP 200
+POST /bff/logout: HTTP 200 logout_url aponta ao Keycloak=True
+após logout /api/v1/me/capabilities: HTTP 401
+contador no site do patrão: HTTP 403 FORBIDDEN
+# auditoria (últimos eventos)
+access.denied | DENIED | Contador Exemplo | engenheiro-web | aplicativo não liberado para o vínculo
+permissions.replace | SUCCESS | Patrão Fictício | engenheiro-web | e2e local: reaplicar modelo

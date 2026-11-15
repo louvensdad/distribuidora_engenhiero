@@ -4,7 +4,8 @@ Monorepo do site do patrão, dos quatro aplicativos móveis (Patrão, Retirada, 
 
 | Caminho | Conteúdo | Situação |
 |---|---|---|
-| `services/api` | Backend Java 21 / Spring Boot (monólito modular) | F01 em andamento |
+| `services/api` | Backend Java 21 / Spring Boot (monólito modular) | F01 concluída; clientes (F03) |
+| `packages/contracts` | OpenAPI dos endpoints implementados | Conferido por teste |
 | `infra/local` | PostgreSQL + Keycloak (OIDC) para desenvolvimento | F01 |
 | `apps/web-admin` | Site do patrão (Angular) | Não iniciado (F02/F10) |
 | `apps/mobile-*` | Quatro apps Flutter independentes | Não iniciado; Flutter ausente na máquina (BLOCKED) |

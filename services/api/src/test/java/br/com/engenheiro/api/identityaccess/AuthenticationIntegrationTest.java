@@ -131,6 +131,15 @@ class AuthenticationIntegrationTest {
     }
 
     @Test
+    void semSegredoDoClientWebOLoginDoSiteFicaNaoConfigurado() {
+        Api.Res r = api.get("/bff/session", null);
+        assertThat(r.status()).isEqualTo(200);
+        assertThat(r.json().path("web_login").asString()).isEqualTo("NAO_CONFIGURADO");
+        assertThat(r.json().path("authenticated").asBoolean()).isFalse();
+        assertThat(api.get("/oauth2/authorization/engenheiro", null).status()).isIn(401, 403);
+    }
+
+    @Test
     void rotaForaDaApiENegada() {
         assertThat(api.get("/qualquer-coisa", balcao.token()).status()).isIn(401, 403);
     }

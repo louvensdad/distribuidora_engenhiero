@@ -1,0 +1,1051 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Engenheiro API — implementado",
+    "version": "0.2.0-f01",
+    "description": "Contrato dos endpoints EXISTENTES em services/api (F01 + fatia F03). Gerado a partir do código; o blueprint completo continua em docs/especificacao/contratos/openapi.yaml."
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Apps móveis (OIDC + PKCE)"
+      },
+      "session": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "ENGENHEIRO_SESSION",
+        "description": "Site via BFF; mutações exigem X-XSRF-TOKEN = cookie XSRF-TOKEN"
+      }
+    },
+    "responses": {
+      "Problem": {
+        "description": "Erro padronizado",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "../../docs/especificacao/contratos/erro.schema.json"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Capability": {
+        "type": "object",
+        "properties": {
+          "capability": {
+            "type": "string"
+          },
+          "resource": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "OWN",
+                "ASSIGNED",
+                "SECTOR",
+                "BRANCH",
+                "ORGANIZATION"
+              ]
+            }
+          },
+          "max_amount": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9]+(\\.[0-9]{1,2})?$",
+            "description": "Decimal em texto (BRL)"
+          }
+        }
+      },
+      "Me": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "display_name": {
+                "type": "string"
+              }
+            }
+          },
+          "organization": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "branch": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "client_id": {
+            "type": "string"
+          },
+          "admin": {
+            "type": "boolean"
+          },
+          "role_template": {
+            "type": "string"
+          },
+          "sector": {
+            "type": "string"
+          },
+          "policy_version": {
+            "type": "integer"
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Capability"
+            }
+          },
+          "fields": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "boolean"
+            }
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ACTIVE",
+              "DISABLED"
+            ]
+          },
+          "sector": {
+            "type": "string"
+          },
+          "role_template": {
+            "type": "string"
+          },
+          "admin": {
+            "type": "boolean"
+          },
+          "branch": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        }
+      },
+      "UserPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/User"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "Grant": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "scope": {
+            "enum": [
+              "OWN",
+              "ASSIGNED",
+              "SECTOR",
+              "BRANCH",
+              "ORGANIZATION"
+            ]
+          },
+          "effect": {
+            "enum": [
+              "ALLOW",
+              "DENY"
+            ]
+          },
+          "max_amount": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9]+(\\.[0-9]{1,2})?$",
+            "description": "Decimal em texto (BRL)"
+          },
+          "expires_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "resource",
+          "action",
+          "scope",
+          "effect"
+        ]
+      },
+      "Field": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "enum": [
+              "operational_contact",
+              "delivery_address",
+              "personal_document",
+              "employee_salary",
+              "bank_data",
+              "purchase_cost",
+              "margin"
+            ]
+          },
+          "effect": {
+            "enum": [
+              "ALLOW",
+              "DENY"
+            ]
+          }
+        }
+      },
+      "Policy": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "clients": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "grants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Grant"
+            }
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Field"
+            }
+          }
+        }
+      },
+      "PolicyRequest": {
+        "type": "object",
+        "properties": {
+          "template": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              null,
+              "ADMIN",
+              "BALCAO",
+              "RECEBIMENTO",
+              "COORDENADOR_ENTREGAS",
+              "MOTORISTA",
+              "CONTADOR"
+            ]
+          },
+          "grants": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/Grant"
+            }
+          },
+          "fields": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/Field"
+            }
+          },
+          "clients": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "enum": [
+                "engenheiro-web",
+                "engenheiro-gestao",
+                "engenheiro-retirada",
+                "engenheiro-entregas",
+                "engenheiro-contabil"
+              ]
+            }
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "StatusRequest": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "enum": [
+              "ACTIVE",
+              "DISABLED"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "reason"
+        ]
+      },
+      "AuditEvent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actor_user_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "actor_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "actor_kind": {
+            "type": "string"
+          },
+          "client_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "action": {
+            "type": "string"
+          },
+          "entity_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "entity_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "result": {
+            "enum": [
+              "SUCCESS",
+              "DENIED",
+              "FAILURE"
+            ]
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "request_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "AuditPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditEvent"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "Customer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "branch": {
+            "type": "string"
+          },
+          "contact": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "address": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "personal_document": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "masked_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Campos ocultados pela política do usuário"
+          }
+        }
+      },
+      "CustomerPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Customer"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "CreateCustomer": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "contact": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "address": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "personal_document": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "CPF/CNPJ; exige campo personal_document liberado"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "description": "organization_id, branch_id e autor vêm da sessão; enviados no corpo são ignorados."
+      },
+      "BffSession": {
+        "type": "object",
+        "properties": {
+          "web_login": {
+            "enum": [
+              "CONFIGURADO",
+              "NAO_CONFIGURADO"
+            ]
+          },
+          "authenticated": {
+            "type": "boolean"
+          },
+          "login_url": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "bearer": []
+    },
+    {
+      "session": []
+    }
+  ],
+  "paths": {
+    "/api/v1/me/capabilities": {
+      "get": {
+        "summary": "Capacidades efetivas (conveniência; servidor recalcula a cada chamada)",
+        "x-capability": "autenticado",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Me"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/users": {
+      "get": {
+        "summary": "Pessoas da organização",
+        "x-capability": "users.view",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/users/{id}/access-policy": {
+      "get": {
+        "summary": "Política de acesso",
+        "x-capability": "permissions.view",
+        "responses": {
+          "200": {
+            "description": "OK (ETag = versão)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Policy"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      },
+      "post": {
+        "summary": "Substitui a política (atômico, versionado, auditado)",
+        "x-capability": "permissions.edit_draft",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Policy"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ETag (versão) lido"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PolicyRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{id}/status": {
+      "post": {
+        "summary": "Ativa/bloqueia pessoa",
+        "x-capability": "users.edit_draft",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ETag (versão) lido"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/role-templates": {
+      "get": {
+        "summary": "Modelos de perfil editáveis",
+        "x-capability": "permissions.view",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/audit-events": {
+      "get": {
+        "summary": "Histórico com ator real",
+        "x-capability": "audit.view",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 25
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "actor_user_id",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/customers": {
+      "get": {
+        "summary": "Clientes no escopo do usuário (filtro de linha no servidor)",
+        "x-capability": "customers.view",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 25
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "post": {
+        "summary": "Cadastra cliente na unidade do usuário",
+        "x-capability": "customers.create",
+        "responses": {
+          "201": {
+            "description": "Criado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Customer"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCustomer"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/customers/{id}": {
+      "get": {
+        "summary": "Cliente (404 fora do escopo, igual a inexistente)",
+        "x-capability": "customers.view",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Customer"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/bff/session": {
+      "get": {
+        "summary": "Estado da sessão do site; emite cookie XSRF-TOKEN; nunca devolve tokens",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BffSession"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/oauth2/authorization/engenheiro": {
+      "get": {
+        "summary": "Inicia login do site (Authorization Code + PKCE S256)",
+        "security": [],
+        "responses": {
+          "302": {
+            "description": "Redireciona ao IdP"
+          }
+        }
+      }
+    },
+    "/bff/logout": {
+      "post": {
+        "summary": "Encerra a sessão; devolve logout_url do IdP. Exige X-XSRF-TOKEN",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/actuator/health/readiness": {
+      "get": {
+        "summary": "Prontidão (pública, sem detalhes)",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "UP"
+          }
+        }
+      }
+    }
+  }
+}

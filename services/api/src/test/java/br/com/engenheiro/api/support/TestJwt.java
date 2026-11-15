@@ -42,6 +42,7 @@ public final class TestJwt {
         private List<String> audience = List.of(AUDIENCE, "account");
         private Instant expiresAt = Instant.now().plusSeconds(300);
         private KeyPair keys = KEYS;
+        private final java.util.Map<String, Object> extra = new java.util.LinkedHashMap<>();
 
         private Builder(String subject, String clientId) {
             this.subject = subject;
@@ -63,6 +64,11 @@ public final class TestJwt {
             return this;
         }
 
+        public Builder claim(String name, Object value) {
+            extra.put(name, value);
+            return this;
+        }
+
         public Builder signedWith(KeyPair keys) {
             this.keys = keys;
             return this;
@@ -74,6 +80,7 @@ public final class TestJwt {
                         .issuer(issuer).subject(subject).audience(audience).claim("azp", clientId)
                         .issueTime(Date.from(Instant.now().minusSeconds(5)))
                         .expirationTime(Date.from(expiresAt)).jwtID(UUID.randomUUID().toString());
+                extra.forEach(claims::claim);
                 SignedJWT jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).keyID("teste").build(),
                         claims.build());
                 jwt.sign(new RSASSASigner(keys.getPrivate()));

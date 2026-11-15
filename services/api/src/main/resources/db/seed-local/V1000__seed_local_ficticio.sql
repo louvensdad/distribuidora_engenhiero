@@ -9,7 +9,7 @@ INSERT INTO branches (id, organization_id, name, status) VALUES
     ('0193a000-0000-7000-8000-0000000000b2', '0193a000-0000-7000-8000-000000000001', 'Unidade Exemplo 2', 'ACTIVE');
 
 INSERT INTO app_users (id, issuer, external_subject, display_name, status) VALUES
-    ('0193a000-0000-7000-8000-000000000a01', 'http://localhost:8180/realms/engenheiro', '00000000-0000-4000-8000-000000000a01', 'Patrão (fictício)', 'ACTIVE'),
+    ('0193a000-0000-7000-8000-000000000a01', 'http://localhost:8180/realms/engenheiro', '00000000-0000-4000-8000-000000000a01', 'Patrão Fictício', 'ACTIVE'),
     ('0193a000-0000-7000-8000-000000000a02', 'http://localhost:8180/realms/engenheiro', '00000000-0000-4000-8000-000000000a02', 'Balcão Exemplo', 'ACTIVE'),
     ('0193a000-0000-7000-8000-000000000a03', 'http://localhost:8180/realms/engenheiro', '00000000-0000-4000-8000-000000000a03', 'Recebimento Exemplo', 'ACTIVE'),
     ('0193a000-0000-7000-8000-000000000a04', 'http://localhost:8180/realms/engenheiro', '00000000-0000-4000-8000-000000000a04', 'Coordenação Entregas Exemplo', 'ACTIVE'),
