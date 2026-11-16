@@ -174,6 +174,11 @@ Pendências que não dependem desta fase:
 
 ## Como reproduzir localmente
 
+Atalho (pilha já configurada nesta máquina): `infra/local/subir-tudo.sh` sobe Postgres + Keycloak, compila e inicia a
+API em :8081 (segredo do client web lido do Keycloak, só em memória) e o site em :4200; `--emulador` liga também o
+emulador `engenheiro_api36` com `adb reverse`; `--parar` desliga API, site e emulador. Logs em `~/.local/state/engenheiro/`.
+Primeira configuração ou Keycloak recriado: passos abaixo.
+
 ```bash
 export KC_ADMIN_PASSWORD=<aleatória>            # só para o container local
 docker compose -f infra/local/docker-compose.yml up -d
