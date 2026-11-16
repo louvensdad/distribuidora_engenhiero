@@ -5,11 +5,12 @@ import { AUDIT_ACTION_LABELS, CLIENT_LABELS } from "../../api/labels";
 import type { Order, OrderHistoryItem, Payment, PaymentMethod } from "../../api/types";
 import { useResource } from "../../api/useResource";
 import { formatDateTime, formatDecimal, formatMoney, unitLabel } from "../../app/format";
-import { Field, FormError, fieldError } from "../../components/Form";
+import { Field, FormError, Hidden, fieldError } from "../../components/Form";
 import { Icon } from "../../components/Icon";
 import { ConflictState, ErrorState, ForbiddenState, LoadingState } from "../../components/States";
 import { useSession } from "../../session/SessionContext";
 import { METHOD, ORDER_STATE, PAYMENT_STATE, PAY_STATE, TYPE } from "./orderLabels";
+import { STOP_STATE, TRIP_STATE } from "../operation/fleetLabels";
 
 const isOpen = (o: Order) => ["CONFIRMED", "READY", "PARTIALLY_FULFILLED"].includes(o.state);
 const positive = (v: string) => !v.startsWith("-") && Number(v) > 0; // só para exibir botões; o servidor valida
@@ -71,6 +72,22 @@ export function OrderDetailPage() {
         </table>
       </div>
       {o.cancel_reason && <p className="notice">Cancelamento: {o.cancel_reason}</p>}
+      {o.delivery && (
+        <section className="card" aria-labelledby="titulo-entrega">
+          <h2 id="titulo-entrega" className="h3">Entrega</h2>
+          <dl className="facts">
+            <div><dt>Endereço</dt><dd>{o.masked_fields.includes("delivery.address") ? <Hidden /> : `${o.delivery.address ?? "—"}${o.delivery.reference ? ` (${o.delivery.reference})` : ""}`}</dd></div>
+            <div><dt>Contato</dt><dd>{o.masked_fields.includes("delivery.contact") ? <Hidden /> : o.delivery.contact ?? "—"}</dd></div>
+            <div><dt>Janela</dt><dd>{o.delivery.window_start && o.delivery.window_end ? `${formatDateTime(o.delivery.window_start)} – ${formatDateTime(o.delivery.window_end)}` : "sem janela"}</dd></div>
+            <div><dt>Pagamento combinado</dt><dd>{o.delivery.agreed_payment ? METHOD[o.delivery.agreed_payment] : "—"}</dd></div>
+            <div><dt>Viagem</dt><dd>{o.dispatch ? (
+              <>{can("trips.view") ? <Link to={`/operation/trips/${o.dispatch.trip_id}`}>V{o.dispatch.trip_number}</Link> : `V${o.dispatch.trip_number}`}
+                {" · "}{TRIP_STATE[o.dispatch.trip_state]} · parada {STOP_STATE[o.dispatch.stop_state].toLowerCase()}
+                {o.dispatch.driver_name && <> · motorista {o.dispatch.driver_name}</>}{o.dispatch.plate && <> · {o.dispatch.plate}</>}</>
+            ) : "aguardando despacho"}</dd></div>
+          </dl>
+        </section>
+      )}
 
       {lastPaid && (
         <div className="notice" role="status" aria-label="Último pagamento">

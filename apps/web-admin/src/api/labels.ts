@@ -127,6 +127,23 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   "documents.download": "Baixou documento",
   "branches.create": "Criou unidade",
   "branches.status": "Alterou situação da unidade",
+  "vehicles.create": "Cadastrou veículo",
+  "vehicles.status": "Alterou situação do veículo",
+  "vehicles.odometer_correction": "Corrigiu odômetro",
+  "vehicles.fuel": "Registrou abastecimento",
+  "vehicles.expense": "Registrou gasto do veículo",
+  "vehicles.expense.approve": "Aprovou gasto do veículo",
+  "vehicles.expense.reject": "Recusou gasto do veículo",
+  "trips.create": "Criou viagem",
+  "trips.assign": "Atribuiu veículo, motorista e pedidos",
+  "trips.order_assigned": "Pedido entrou na viagem",
+  "trips.order_removed": "Pedido saiu da viagem",
+  "trips.depart": "Registrou saída da viagem",
+  "trips.deliver": "Confirmou entrega",
+  "trips.incident": "Registrou ocorrência",
+  "trips.return": "Registrou retorno e prestação",
+  "trips.reconcile": "Conferiu prestação de contas",
+  "trips.cancel": "Cancelou viagem",
 };
 
 export const label = (map: Record<string, string>, key: string) => map[key] ?? key;

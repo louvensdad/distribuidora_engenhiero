@@ -284,7 +284,13 @@ export interface Order {
   customer_id: string; customer_name: string; branch: string; gross_total: string; discount_total: string; total: string;
   effective_total: string; paid_amount: string; pending_amount: string; on_account: string; balance_due: string;
   notes: string | null; created_by_name: string; created_at: string; cancel_reason: string | null; version: number; lines: OrderLine[];
+  delivery: Delivery | null; dispatch: Dispatch | null; masked_fields: string[];
 }
+export interface Delivery {
+  address: string | null; reference: string | null; contact: string | null; window_start: string | null; window_end: string | null;
+  agreed_payment: PaymentMethod | null;
+}
+export interface Dispatch { trip_id: string; trip_number: number; trip_state: TripState; stop_state: StopState; driver_name: string | null; plate: string | null }
 export type PaymentMethod = "CASH" | "PIX" | "DEBIT" | "CREDIT" | "BANK_TRANSFER" | "ON_ACCOUNT";
 export interface Payment {
   id: string; order_id: string; method: PaymentMethod; state: "PENDING" | "CONFIRMED" | "REJECTED" | "REVERSED";
@@ -300,3 +306,54 @@ export interface CashSession {
   reviewed_at: string | null; review_note: string | null; version: number;
 }
 export interface OrderHistoryItem { occurred_at: string; action: string; actor_name: string | null; client_id: string | null; entity_type: string | null }
+
+// ---- F05: frota, viagens e entregas ----
+export type VehicleStatus = "ACTIVE" | "MAINTENANCE" | "INACTIVE";
+export interface Vehicle {
+  id: string; plate: string; model: string; capacity_quantity: string; capacity_unit: Unit; status: VehicleStatus;
+  odometer_km: string; next_service_km: string | null; registration_valid_until: string | null; insurance_valid_until: string | null;
+  notes: string | null; branch: string; current_trip_id: string | null; current_trip_number: number | null;
+  current_driver_name: string | null; version: number; created_at: string;
+  alerts: { code: string; message: string }[];
+  consumption: { state: "OK" | "INSUFFICIENT_DATA"; km_per_liter: string | null; km: string | null; liters: string | null; full_tank_fills: number; message: string | null };
+}
+export type ExpenseKind = "FUEL" | "MAINTENANCE" | "TIRES" | "INSURANCE" | "DOCUMENTS" | "TOLL" | "OTHER";
+export interface VehicleExpense {
+  id: string; vehicle_id: string; plate: string; trip_id: string | null; trip_number: number | null; kind: ExpenseKind;
+  occurred_on: string; amount: string; paid_with: "COMPANY" | "DRIVER_CASH"; odometer: string | null; liters: string | null;
+  fuel_type: string | null; full_tank: boolean | null; station: string | null; maintenance_type: string | null; workshop: string | null;
+  parts: string | null; next_service_km: string | null; description: string | null; state: "PENDING" | "APPROVED" | "REJECTED";
+  created_by_name: string; created_at: string; decided_by_name: string | null; decided_at: string | null; decided_note: string | null;
+  version: number;
+}
+export interface OdometerReading { reading: string; kind: string; reason: string | null; recorded_at: string; recorded_by_name: string }
+export interface EntityHistoryItem { occurred_at: string; action: string; actor_name: string | null; client_id: string | null; entity_type?: string | null; entity_id?: string | null }
+export type TripState = "DRAFT" | "ASSIGNED" | "DEPARTED" | "RETURNED" | "RECONCILED" | "CANCELLED";
+export type StopState = "PENDING" | "DELIVERED" | "PARTIAL" | "FAILED" | "REMOVED";
+export interface TripIncident { id: string; stop_id: string | null; kind: string; requested_action: string; description: string; created_by_name: string; created_at: string }
+export interface StopOrder {
+  id: string; number: number; customer_name: string; state: OrderState; payment_state: PaymentState; effective_total: string;
+  paid_amount: string; pending_amount: string; on_account: string; balance_due: string; lines: OrderLine[];
+  delivery: Delivery | null; masked_fields: string[];
+}
+export interface TripStop {
+  id: string; seq: number; state: StopState; recipient_name: string | null; delivered_at: string | null; delivered_by_name: string | null;
+  order: StopOrder; load: string | null; incidents: TripIncident[];
+}
+export interface Trip {
+  id: string; number: number; state: TripState; planned_date: string; notes: string | null; vehicle_id: string | null; plate: string | null;
+  vehicle_model: string | null; capacity_quantity: string | null; capacity_unit: Unit | null; load: string | null; driver_id: string | null;
+  driver_name: string | null; departed_at: string | null; departure_odometer: string | null; returned_at: string | null;
+  return_odometer: string | null; distance_km: string | null; returned_by_name: string | null; cash_collected: string | null;
+  cash_expenses: string | null; cash_expected: string | null; cash_declared: string | null; cash_difference: string | null;
+  return_note: string | null; reconciled_at: string | null; reconciled_by_name: string | null; reconcile_note: string | null;
+  cancel_reason: string | null; created_by_name: string; created_at: string; version: number; stops: TripStop[]; incidents: TripIncident[];
+}
+export interface TripSummary { id: string; number: number; state: TripState; planned_date: string; plate: string | null; driver_name: string | null; stops: number; delivered: number; created_at: string; version: number }
+export interface DriverOption { id: string; name: string; busy: boolean }
+export interface TripCosts {
+  trip_id: string; rule_code: string; rule_version: number; rule_description: string; capacity_unit: Unit | null; total_cost: string;
+  allocated_total: string; unallocated: string; pending_cost: string; distance_km: string | null; cost_per_km: string | null;
+  lines: { stop_id: string; order_number: number; customer_name: string; delivered_quantity: string; share: string; allocated_cost: string }[];
+  expenses: { id: string; kind: ExpenseKind; amount: string; state: string; paid_with: string }[]; message: string | null;
+}

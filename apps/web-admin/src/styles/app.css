@@ -231,3 +231,8 @@ tbody tr:last-child > * { border-bottom: none; }
   .line-grid { grid-template-columns: minmax(0, 1fr); }
   .table-wrap table.stack td.num { text-align: left; }
 }
+
+/* Lista de fatos (rótulo/valor) — F05 */
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: var(--space-3, 12px); margin: 0; }
+.facts dt { font-size: 0.85em; color: var(--text-muted, inherit); }
+.facts dd { margin: 0; overflow-wrap: anywhere; }

@@ -70,6 +70,26 @@ public class PayableService {
         return id;
     }
 
+    /** Obrigação genérica por origem (ex.: gasto de veículo pago pela empresa). Uma por origem (unicidade no banco). */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public UUID createForSource(Actor actor, UUID branchId, String sourceType, UUID sourceId, String description,
+                                BigDecimal amount, LocalDate dueDate) {
+        UUID id = Ids.newId();
+        String desc = description.length() > 200 ? description.substring(0, 200) : description;
+        jdbc.sql("""
+                        INSERT INTO payables (id, organization_id, branch_id, source_type, source_id, description,
+                                              competence, amount, balance, due_date, created_by)
+                        VALUES (:id, :o, :b, :st, :src, :d, :comp, :a, :a, :due, :by)
+                        """)
+                .param("id", id).param("o", actor.organizationId()).param("b", branchId).param("st", sourceType)
+                .param("src", sourceId).param("d", desc).param("comp", LocalDate.now(COMMERCIAL))
+                .param("a", Decimals.money(amount)).param("due", dueDate).param("by", actor.userId()).update();
+        audit.record(new AuditEntry(actor.organizationId(), branchId, actor.userId(), "USER", actor.clientId(),
+                "payables.create", "payable", id.toString(), "SUCCESS", null,
+                Map.of("source_type", sourceType, "source_id", sourceId.toString()), "api"));
+        return id;
+    }
+
     @Transactional(readOnly = true)
     public Page list(Actor actor, String state, int limit, String cursor) {
         authz.requireAdmin(actor, "payables.view");

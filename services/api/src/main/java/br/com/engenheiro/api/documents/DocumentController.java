@@ -21,10 +21,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class DocumentController {
     private final DocumentService documents;
     private final ReceiptService receipts;
+    private final br.com.engenheiro.api.logistics.TripService trips;
+    private final br.com.engenheiro.api.logistics.VehicleExpenseService expenses;
 
-    public DocumentController(DocumentService documents, ReceiptService receipts) {
+    public DocumentController(DocumentService documents, ReceiptService receipts,
+                              br.com.engenheiro.api.logistics.TripService trips,
+                              br.com.engenheiro.api.logistics.VehicleExpenseService expenses) {
         this.documents = documents;
         this.receipts = receipts;
+        this.trips = trips;
+        this.expenses = expenses;
     }
 
     @GetMapping("/{id}/download")
@@ -33,6 +39,8 @@ public class DocumentController {
                 .orElseThrow(ApiException::notFound);
         switch (d.ownerType()) {
             case "inventory_receipt" -> receipts.get(actor, d.ownerId()); // 403/404 conforme a política do recebimento
+            case "trip_stop" -> trips.requireStopVisible(actor, d.ownerId());
+            case "vehicle_expense" -> expenses.get(actor, d.ownerId());
             default -> throw ApiException.notFound();
         }
         DocumentService.Content c = documents.read(actor, d);

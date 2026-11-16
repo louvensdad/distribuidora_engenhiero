@@ -72,7 +72,12 @@ public class OrderService {
     public record ItemInput(UUID product_id, String unit, String quantity, String requested_discount) {
     }
 
-    public record CreateCommand(String type, UUID customer_id, List<ItemInput> items, String notes) {
+    public record DeliveryInput(String address, String reference, String contact, OffsetDateTime window_start,
+                                OffsetDateTime window_end, String agreed_payment) {
+    }
+
+    public record CreateCommand(String type, UUID customer_id, List<ItemInput> items, String notes,
+                                DeliveryInput delivery) {
     }
 
     public record LineQty(int line_no, String quantity) {
@@ -93,11 +98,21 @@ public class OrderService {
                            String returned_quantity, String remaining_quantity) {
     }
 
+    public record DeliveryView(String address, String reference, String contact, OffsetDateTime window_start,
+                               OffsetDateTime window_end, String agreed_payment) {
+    }
+
+    /** Viagem aberta (ou a última) em que o pedido de entrega está. */
+    public record DispatchView(UUID trip_id, long trip_number, String trip_state, String stop_state, String driver_name,
+                               String plate) {
+    }
+
     public record OrderView(UUID id, long number, String type, String state, String payment_state, UUID customer_id,
                             String customer_name, String branch, String gross_total, String discount_total,
                             String total, String effective_total, String paid_amount, String pending_amount,
                             String on_account, String balance_due, String notes, String created_by_name,
-                            OffsetDateTime created_at, String cancel_reason, long version, List<LineView> lines) {
+                            OffsetDateTime created_at, String cancel_reason, long version, List<LineView> lines,
+                            DeliveryView delivery, DispatchView dispatch, List<String> masked_fields) {
     }
 
     public record Page(List<OrderView> items, String next_cursor) {
@@ -108,7 +123,9 @@ public class OrderService {
                String sector, UUID customerId, String customerName, String state, String paymentState,
                BigDecimal grossTotal, BigDecimal discountTotal, BigDecimal total, BigDecimal paidAmount,
                BigDecimal pendingAmount, BigDecimal onAccount, String notes, UUID createdBy, String createdByName,
-               OffsetDateTime createdAt, String cancelReason, long version) {
+               OffsetDateTime createdAt, String cancelReason, long version, String deliveryAddress,
+               String deliveryReference, String deliveryContact, OffsetDateTime windowStart, OffsetDateTime windowEnd,
+               String agreedPayment) {
     }
 
     record LineRow(UUID id, int lineNo, UUID productId, String sku, String productName, String baseUnit, String unit,
@@ -152,6 +169,10 @@ public class OrderService {
         String notes = Text.trim(cmd.notes());
         if (notes != null && notes.length() > 1000) {
             errors.add(new FieldError("notes", "Até 1000 caracteres"));
+        }
+        DeliveryInput dlv = type.equals("DELIVERY") ? validateDelivery(actor, cmd.delivery(), errors) : null;
+        if (type.equals("PICKUP") && cmd.delivery() != null) {
+            errors.add(new FieldError("delivery", "Retirada não tem dados de entrega"));
         }
         List<ItemInput> items = cmd.items() == null ? List.of() : cmd.items();
         if (items.isEmpty() || items.size() > 50) {
@@ -199,9 +220,15 @@ public class OrderService {
         BigDecimal gross = parsed.stream().map(Parsed::gross).reduce(BigDecimal.ZERO, BigDecimal::add);
         jdbc.sql("""
                         INSERT INTO orders (id, organization_id, branch_id, number, type, sector, customer_id, state,
-                                            gross_total, discount_total, total, notes, created_by)
-                        VALUES (:id, :o, :b, :n, :t, :s, :c, 'CONFIRMED', :g, :d, :tot, :notes, :by)
+                                            gross_total, discount_total, total, notes, created_by, delivery_address,
+                                            delivery_reference, delivery_contact, window_start, window_end,
+                                            agreed_payment)
+                        VALUES (:id, :o, :b, :n, :t, :s, :c, 'CONFIRMED', :g, :d, :tot, :notes, :by, :da, :dr, :dc,
+                                :ws, :we, :ap)
                         """)
+                .param("da", dlv == null ? null : dlv.address()).param("dr", dlv == null ? null : dlv.reference())
+                .param("dc", dlv == null ? null : dlv.contact()).param("ws", dlv == null ? null : dlv.window_start())
+                .param("we", dlv == null ? null : dlv.window_end()).param("ap", dlv == null ? null : dlv.agreed_payment())
                 .param("id", id).param("o", actor.organizationId()).param("b", actor.branchId()).param("n", number)
                 .param("t", type).param("s", type.equals("PICKUP") ? Sector.RETIRADA.name() : Sector.ENTREGAS.name())
                 .param("c", cmd.customer_id()).param("g", gross).param("d", discountTotal)
@@ -233,7 +260,49 @@ public class OrderService {
         }
         audit.record(entry(actor, "orders.create", id, Map.of("number", number, "type", type, "lines", parsed.size(),
                 "total", gross.subtract(discountTotal).toPlainString(), "discount", discountTotal.toPlainString())));
-        return view(find(id).orElseThrow());
+        return view(actor, find(id).orElseThrow());
+    }
+
+    /**
+     * Pedido de entrega (LOG-01): endereço e forma de pagamento combinada obrigatórios; janela coerente. Quem não vê
+     * endereço/contato (política de campo) não pode gravá-los — usa o cadastro do cliente, se houver.
+     */
+    private DeliveryInput validateDelivery(Actor actor, DeliveryInput d, List<FieldError> errors) {
+        if (d == null) {
+            errors.add(new FieldError("delivery", "Informe endereço e pagamento combinado da entrega"));
+            return null;
+        }
+        boolean seesAddress = authz.canSeeField(actor, br.com.engenheiro.api.identityaccess.domain.FieldClass.DELIVERY_ADDRESS);
+        boolean seesContact = authz.canSeeField(actor, br.com.engenheiro.api.identityaccess.domain.FieldClass.OPERATIONAL_CONTACT);
+        String address = Text.trim(d.address());
+        String reference = Text.trim(d.reference());
+        String contact = Text.trim(d.contact());
+        if (!seesAddress && (address != null || reference != null)) {
+            errors.add(new FieldError("delivery.address", "Sem permissão para informar endereço"));
+        }
+        if (!seesContact && contact != null) {
+            errors.add(new FieldError("delivery.contact", "Sem permissão para informar contato"));
+        }
+        if (address == null) {
+            errors.add(new FieldError("delivery.address", "Endereço de entrega obrigatório"));
+        } else if (address.length() > 300) {
+            errors.add(new FieldError("delivery.address", "Até 300 caracteres"));
+        }
+        if (reference != null && reference.length() > 200) {
+            errors.add(new FieldError("delivery.reference", "Até 200 caracteres"));
+        }
+        if (contact != null && contact.length() > 100) {
+            errors.add(new FieldError("delivery.contact", "Até 100 caracteres"));
+        }
+        if ((d.window_start() == null) != (d.window_end() == null)) {
+            errors.add(new FieldError("delivery.window_end", "Informe início e fim da janela"));
+        } else if (d.window_start() != null && !d.window_end().isAfter(d.window_start())) {
+            errors.add(new FieldError("delivery.window_end", "Fim da janela deve ser depois do início"));
+        }
+        if (d.agreed_payment() == null || !PaymentService.METHODS.contains(d.agreed_payment())) {
+            errors.add(new FieldError("delivery.agreed_payment", "Escolha a forma de pagamento combinada"));
+        }
+        return new DeliveryInput(address, reference, contact, d.window_start(), d.window_end(), d.agreed_payment());
     }
 
     /**
@@ -269,7 +338,7 @@ public class OrderService {
         bump(o, expectedVersion);
         jdbc.sql("UPDATE orders SET state = 'READY' WHERE id = :id").param("id", id).update();
         audit.record(entry(actor, "orders.ready", id, Map.of("number", o.number())));
-        return view(find(id).orElseThrow());
+        return view(actor, find(id).orElseThrow());
     }
 
     // ---------------- cumprimento (retirada/entrega) ----------------
@@ -389,7 +458,58 @@ public class OrderService {
         refreshState(o.id());
         audit.record(entry(actor, "orders.fulfill", o.id(), Map.of("fulfillment_id", fid.toString(),
                 "lines", wanted.size(), "net", netTotal.toPlainString())));
-        return view(find(o.id()).orElseThrow());
+        return view(actor, find(o.id()).orElseThrow());
+    }
+
+    /**
+     * Cumprimento de entrega feito pela viagem (LOG-03): o chamador (TripService) já autorizou por `trips.confirm` no
+     * escopo da viagem; aqui só se bloqueia o pedido e se aplicam as mesmas regras de cobertura e reconhecimento.
+     */
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
+    public OrderView fulfillForTrip(Actor actor, UUID orderId, FulfillCommand cmd) {
+        Row o = jdbc.sql(SELECT + " WHERE o.id = :id FOR UPDATE OF o").param("id", orderId).query(Row.class).single();
+        if (!o.type().equals("DELIVERY")) {
+            throw new ApiException(ErrorCode.INVALID_TRANSITION, "Só pedido de entrega é cumprido pela viagem.");
+        }
+        return doFulfill(actor, o, cmd);
+    }
+
+    /** Pedido bloqueado para recebimento na viagem (autorizado pelo chamador). */
+    Row lockForTrip(UUID orderId) {
+        return jdbc.sql(SELECT + " WHERE o.id = :id FOR UPDATE OF o").param("id", orderId).query(Row.class).single();
+    }
+
+    /** Situação resumida para a parada da viagem (sem custo). */
+    public record StopOrder(UUID id, long number, String customer_name, String state, String payment_state,
+                            String effective_total, String paid_amount, String pending_amount, String on_account,
+                            String balance_due, List<LineView> lines, DeliveryView delivery, List<String> masked_fields) {
+    }
+
+    @Transactional(readOnly = true)
+    public StopOrder stopOrder(Actor actor, UUID orderId) {
+        OrderView v = view(actor, find(orderId).orElseThrow());
+        return new StopOrder(v.id(), v.number(), v.customer_name(), v.state(), v.payment_state(), v.effective_total(),
+                v.paid_amount(), v.pending_amount(), v.on_account(), v.balance_due(), v.lines(), v.delivery(),
+                v.masked_fields());
+    }
+
+    /** Linhas abertas (quantidade-base) por produto, para capacidade. */
+    public record OpenLine(UUID productId, String productName, String baseUnit, BigDecimal openBase,
+                           BigDecimal fulfilledBase) {
+    }
+
+    public List<OpenLine> openLines(UUID orderId) {
+        return lines(orderId).stream().map(l -> new OpenLine(l.productId(), l.productName(), l.baseUnit(), l.open(),
+                l.fulfilledBaseQty())).toList();
+    }
+
+    public record OrderHead(UUID id, UUID organizationId, UUID branchId, long number, String type, String state,
+                            String sector, UUID createdBy) {
+    }
+
+    public Optional<OrderHead> head(UUID orderId) {
+        return find(orderId).map(o -> new OrderHead(o.id(), o.organizationId(), o.branchId(), o.number(), o.type(),
+                o.state(), o.sector(), o.createdBy()));
     }
 
     // ---------------- cancelamento ----------------
@@ -404,6 +524,17 @@ public class OrderService {
                         "Pedido já encerrado; venda cumprida exige devolução formal.");
             }
             bump(o, expectedVersion);
+            // Pedido em rota não é cancelado pelo escritório: a viagem registra ocorrência e retorno (LOG-04).
+            String tripState = jdbc.sql("""
+                            SELECT t.state FROM trip_stops s JOIN trips t ON t.id = s.trip_id
+                             WHERE s.order_id = :o AND s.is_open
+                            """).param("o", o.id()).query(String.class).optional().orElse(null);
+            if ("DEPARTED".equals(tripState)) {
+                throw new ApiException(ErrorCode.INVALID_TRANSITION,
+                        "Pedido está em rota; registre a ocorrência na viagem e cancele após o retorno.");
+            }
+            jdbc.sql("UPDATE trip_stops SET state = 'REMOVED', is_open = false, version = version + 1 "
+                    + "WHERE order_id = :o AND is_open").param("o", o.id()).update();
             boolean anyFulfilled = false;
             for (LineRow l : lines(o.id())) {
                 if (l.fulfilledBaseQty().signum() > 0) {
@@ -421,7 +552,7 @@ public class OrderService {
                     .param("id", o.id()).update();
             refreshPayment(o.id());
             audit.record(entry(actor, "orders.cancel", o.id(), Map.of("reason", reason, "remainder_only", anyFulfilled)));
-            return view(find(o.id()).orElseThrow());
+            return view(actor, find(o.id()).orElseThrow());
         });
     }
 
@@ -505,7 +636,7 @@ public class OrderService {
             refreshPayment(o.id());
             audit.record(entry(actor, "orders.return", o.id(), Map.of("return_id", rid.toString(),
                     "net", netTotal.toPlainString(), "reason", reason)));
-            return view(find(o.id()).orElseThrow());
+            return view(actor, find(o.id()).orElseThrow());
         });
     }
 
@@ -518,7 +649,7 @@ public class OrderService {
             throw ApiException.notFound();
         }
         authz.requireRecord(actor, resource(o.type()), "view", "order", id.toString(), ref(o));
-        return view(o);
+        return view(actor, o);
     }
 
     @Transactional(readOnly = true)
@@ -560,7 +691,7 @@ public class OrderService {
             rows = rows.subList(0, limit);
             next = Cursor.encode(rows.getLast().createdAt().toString(), rows.getLast().id());
         }
-        return new Page(rows.stream().map(this::view).toList(), next);
+        return new Page(rows.stream().map(r -> view(actor, r)).toList(), next);
     }
 
     public record HistoryItem(OffsetDateTime occurred_at, String action, String actor_name, String client_id,
@@ -682,7 +813,8 @@ public class OrderService {
             SELECT o.id, o.organization_id, o.branch_id, b.name AS branch_name, o.number, o.type, o.sector, o.customer_id,
                    c.name AS customer_name, o.state, o.payment_state, o.gross_total, o.discount_total, o.total,
                    o.paid_amount, o.pending_amount, o.on_account, o.notes, o.created_by, u.display_name AS created_by_name,
-                   o.created_at, o.cancel_reason, o.version
+                   o.created_at, o.cancel_reason, o.version, o.delivery_address, o.delivery_reference,
+                   o.delivery_contact, o.window_start, o.window_end, o.agreed_payment
               FROM orders o JOIN branches b ON b.id = o.branch_id JOIN customers c ON c.id = o.customer_id
               JOIN app_users u ON u.id = o.created_by
             """;
@@ -701,9 +833,10 @@ public class OrderService {
                         """).param("o", orderId).query(LineRow.class).list();
     }
 
-    OrderView view(Row o) {
+    OrderView view(Actor actor, Row o) {
         BigDecimal effective = effectiveTotal(o.id());
         BigDecimal balance = effective.subtract(o.paidAmount()).subtract(o.onAccount());
+        List<String> masked = new ArrayList<>();
         List<LineView> lv = lines(o.id()).stream().map(l -> new LineView(l.lineNo(), l.productId(), l.sku(),
                 l.productName(), l.unit(), Decimals.str(l.factor()), Decimals.str(l.quantity()),
                 Decimals.str(l.baseQuantity()), l.baseUnit(), Decimals.moneyStr(l.unitPrice()), Decimals.moneyStr(l.gross()),
@@ -716,7 +849,39 @@ public class OrderService {
                 o.branchName(), Decimals.moneyStr(o.grossTotal()), Decimals.moneyStr(o.discountTotal()),
                 Decimals.moneyStr(o.total()), Decimals.moneyStr(effective), Decimals.moneyStr(o.paidAmount()),
                 Decimals.moneyStr(o.pendingAmount()), Decimals.moneyStr(o.onAccount()), Decimals.moneyStr(balance),
-                o.notes(), o.createdByName(), o.createdAt(), o.cancelReason(), o.version(), lv);
+                o.notes(), o.createdByName(), o.createdAt(), o.cancelReason(), o.version(), lv,
+                deliveryView(actor, o, masked), dispatch(o), masked);
+    }
+
+    private DeliveryView deliveryView(Actor actor, Row o, List<String> masked) {
+        if (!o.type().equals("DELIVERY")) {
+            return null;
+        }
+        boolean address = authz.canSeeField(actor, br.com.engenheiro.api.identityaccess.domain.FieldClass.DELIVERY_ADDRESS);
+        boolean contact = authz.canSeeField(actor, br.com.engenheiro.api.identityaccess.domain.FieldClass.OPERATIONAL_CONTACT);
+        if (!address) {
+            masked.add("delivery.address");
+            masked.add("delivery.reference");
+        }
+        if (!contact) {
+            masked.add("delivery.contact");
+        }
+        return new DeliveryView(address ? o.deliveryAddress() : null, address ? o.deliveryReference() : null,
+                contact ? o.deliveryContact() : null, o.windowStart(), o.windowEnd(), o.agreedPayment());
+    }
+
+    private DispatchView dispatch(Row o) {
+        if (!o.type().equals("DELIVERY")) {
+            return null;
+        }
+        return jdbc.sql("""
+                        SELECT t.id AS trip_id, t.number AS trip_number, t.state AS trip_state, s.state AS stop_state,
+                               u.display_name AS driver_name, v.plate
+                          FROM trip_stops s JOIN trips t ON t.id = s.trip_id
+                          LEFT JOIN app_users u ON u.id = t.driver_id LEFT JOIN vehicles v ON v.id = t.vehicle_id
+                         WHERE s.order_id = :o AND s.state <> 'REMOVED'
+                         ORDER BY s.is_open DESC, t.created_at DESC LIMIT 1
+                        """).param("o", o.id()).query(DispatchView.class).optional().orElse(null);
     }
 
     static AuditEntry entry(Actor actor, String action, UUID id, Map<String, Object> changes) {

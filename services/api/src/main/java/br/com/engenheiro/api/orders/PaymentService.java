@@ -96,10 +96,21 @@ public class PaymentService {
         Map<String, Object> req = new HashMap<>();
         req.put("order", orderId.toString());
         req.put("body", cmd);
-        return idem.execute(actor, "payments.register", idemKey, req, RegisterResult.class, () -> doRegister(actor, o, cmd));
+        return idem.execute(actor, "payments.register", idemKey, req, RegisterResult.class,
+                () -> doRegister(actor, o, cmd, null));
     }
 
-    private RegisterResult doRegister(Actor actor, Row o, RegisterCommand cmd) {
+    /**
+     * Recebimento na entrega (LOG-07): a viagem já autorizou o acesso ao pedido (`trips.confirm` no escopo da viagem);
+     * as capacidades por meio de pagamento continuam valendo. O dinheiro vai para o caixa aberto do motorista.
+     */
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
+    public RegisterResult registerForTrip(Actor actor, UUID orderId, UUID tripId, RegisterCommand cmd) {
+        Row o = orders.lockForTrip(orderId);
+        return doRegister(actor, o, cmd, tripId);
+    }
+
+    private RegisterResult doRegister(Actor actor, Row o, RegisterCommand cmd, UUID tripId) {
         if (o.state().equals("CANCELLED")) {
             throw new ApiException(ErrorCode.INVALID_TRANSITION, "Pedido cancelado não recebe pagamento.");
         }
@@ -211,10 +222,10 @@ public class PaymentService {
                                 INSERT INTO payments (id, organization_id, branch_id, order_id, method, state, confirmation_kind,
                                                       amount, fee, net, presented_cash, change_given, installments,
                                                       provider_reference, document_id, due_date, cash_session_id, notes,
-                                                      created_by, confirmed_at, confirmed_by)
+                                                      created_by, confirmed_at, confirmed_by, trip_id)
                                 VALUES (:id, :o, :b, :ord, :m, :st, 'MANUAL_AUTHORIZED', :a, :fee, :net, :pc, :ch, :inst,
-                                        :ref, :doc, :due, :cs, :notes, :by, CASE WHEN :conf THEN now() END, :cby)
-                                """)
+                                        :ref, :doc, :due, :cs, :notes, :by, CASE WHEN :conf THEN now() END, :cby, :trip)
+                                """).param("trip", tripId)
                         .param("id", id).param("o", actor.organizationId()).param("b", o.branchId()).param("ord", o.id())
                         .param("m", method).param("st", confirmed ? "CONFIRMED" : "PENDING").param("a", v.amount())
                         .param("fee", v.fee()).param("net", v.amount().subtract(v.fee())).param("pc", v.presented())
@@ -238,7 +249,7 @@ public class PaymentService {
         orders.refreshPayment(o.id());
         audit.record(entry(actor, "payments.register", o.id(), "order", Map.of("parts", valid.size(),
                 "amount", sum.toPlainString(), "methods", valid.stream().map(v -> v.p().method()).toList())));
-        return new RegisterResult(created, orders.view(orders.find(o.id()).orElseThrow()));
+        return new RegisterResult(created, orders.view(actor, orders.find(o.id()).orElseThrow()));
     }
 
     /** Lançamento do recebimento confirmado: entra o meio, credita CLIENTES (adiantamento ou baixa do a receber). */

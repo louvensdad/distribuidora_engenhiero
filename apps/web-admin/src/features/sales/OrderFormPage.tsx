@@ -8,6 +8,7 @@ import { Field, FormError, fieldError } from "../../components/Form";
 import { Icon } from "../../components/Icon";
 import { ErrorState, ForbiddenState, LoadingState } from "../../components/States";
 import { useSession } from "../../session/SessionContext";
+import { METHOD } from "./orderLabels";
 
 interface Item { product_id: string; unit: string; quantity: string; discount: string }
 const empty = (): Item => ({ product_id: "", unit: "", quantity: "", discount: "" });
@@ -23,6 +24,9 @@ export function OrderFormPage() {
   const [customer, setCustomer] = useState("");
   const [notes, setNotes] = useState("");
   const [items, setItems] = useState<Item[]>([empty()]);
+  const [dlv, setDlv] = useState({ address: "", reference: "", contact: "", start: "", end: "", agreed: "" });
+  const seesAddress = !!me?.admin || !!me?.fields?.delivery_address;
+  const seesContact = !!me?.admin || !!me?.fields?.operational_contact;
   const [key] = useState(newIdempotencyKey);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
@@ -41,6 +45,11 @@ export function OrderFormPage() {
     try {
       const { data } = await api.command<Order>("/api/v1/orders", {
         type, customer_id: customer || null, notes: notes.trim() || null,
+        delivery: type === "DELIVERY" ? {
+          address: dlv.address.trim() || null, reference: dlv.reference.trim() || null, contact: dlv.contact.trim() || null,
+          window_start: dlv.start ? new Date(dlv.start).toISOString() : null, window_end: dlv.end ? new Date(dlv.end).toISOString() : null,
+          agreed_payment: dlv.agreed || null,
+        } : null,
         items: items.map((x) => ({ product_id: x.product_id || null, unit: x.unit || null, quantity: x.quantity.replace(",", "."),
           requested_discount: x.discount.trim() ? x.discount.replace(",", ".") : null })),
       }, key);
@@ -67,11 +76,48 @@ export function OrderFormPage() {
           </select>
         </Field>
         <Field id="np-cliente" label="Cliente *" error={fieldError(error, "customer_id")}>
-          <select id="np-cliente" value={customer} onChange={(e) => setCustomer(e.target.value)}>
+          <select id="np-cliente" value={customer} onChange={(e) => {
+            setCustomer(e.target.value);
+            const c = customers.data.items.find((x) => x.id === e.target.value);
+            if (c && type === "DELIVERY") setDlv((d) => ({ ...d, address: d.address || c.address || "", contact: d.contact || c.contact || "" }));
+          }}>
             <option value="">Selecione</option>
             {customers.data.items.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </Field>
+        {type === "DELIVERY" && (
+          <fieldset className="span-2 form-grid" aria-describedby="np-entrega-dica">
+            <legend className="h3">Entrega</legend>
+            <p id="np-entrega-dica" className="muted small span-2">O motorista vê só o endereço, o contato e o valor a cobrar desta entrega — não o cadastro do cliente.</p>
+            {seesAddress ? (
+              <>
+                <Field id="np-end" label="Endereço de entrega *" error={fieldError(error, "delivery.address")}>
+                  <input id="np-end" maxLength={300} value={dlv.address} onChange={(e) => setDlv({ ...dlv, address: e.target.value })} />
+                </Field>
+                <Field id="np-ref" label="Referência" error={fieldError(error, "delivery.reference")}>
+                  <input id="np-ref" maxLength={200} value={dlv.reference} onChange={(e) => setDlv({ ...dlv, reference: e.target.value })} />
+                </Field>
+              </>
+            ) : <p className="notice span-2">Endereço: sua permissão de campo não inclui endereço de entrega. Peça a quem tem acesso.</p>}
+            {seesContact && (
+              <Field id="np-contato" label="Contato no local" error={fieldError(error, "delivery.contact")}>
+                <input id="np-contato" maxLength={100} value={dlv.contact} onChange={(e) => setDlv({ ...dlv, contact: e.target.value })} />
+              </Field>
+            )}
+            <Field id="np-pag" label="Pagamento combinado *" error={fieldError(error, "delivery.agreed_payment")}>
+              <select id="np-pag" value={dlv.agreed} onChange={(e) => setDlv({ ...dlv, agreed: e.target.value })}>
+                <option value="">Selecione</option>
+                {Object.entries(METHOD).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              </select>
+            </Field>
+            <Field id="np-ini" label="Janela — início" error={fieldError(error, "delivery.window_start")}>
+              <input id="np-ini" type="datetime-local" value={dlv.start} onChange={(e) => setDlv({ ...dlv, start: e.target.value })} />
+            </Field>
+            <Field id="np-fim" label="Janela — fim" error={fieldError(error, "delivery.window_end")}>
+              <input id="np-fim" type="datetime-local" value={dlv.end} onChange={(e) => setDlv({ ...dlv, end: e.target.value })} />
+            </Field>
+          </fieldset>
+        )}
         <fieldset className="span-2 lines">
           <legend className="h3">Itens</legend>
           {items.map((it, i) => {
