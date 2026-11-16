@@ -10,3 +10,11 @@ Resultado com a mutação:
   (a restrição reserved <= physical do banco barrou a reserva acima do físico; as demais repetições
    falharam nas asserções de contagem de reservas)
 Código original restaurado; com ele o mesmo teste passa (ver F03-mvnw-verify.txt).
+
+# F04 — mutação da retirada concorrente (16/11/2026)
+Teste: OrdersIntegrationTest#retiradasConcorrentesDoMesmoPedidoBaixamUmaVez (4 retiradas simultâneas, ×3)
+1) Sem o bloqueio da linha do pedido (FOR UPDATE OF o em lockRow): o teste CONTINUA passando.
+2) Sem o bloqueio do pedido E sem bloqueio/conferência do saldo da reserva (consumeReservation): CONTINUA passando.
+Motivo verificado: terceira barreira no banco — CHECK (fulfilled_base_qty + cancelled_base_qty <= base_quantity) em
+order_lines e CHECK (reserved >= 0) em inventory_balances fazem a segunda retirada falhar e a transação ser desfeita.
+Conclusão: a garantia "uma baixa por pedido" tem três camadas; o teste não isola uma camada sozinha. Código restaurado.

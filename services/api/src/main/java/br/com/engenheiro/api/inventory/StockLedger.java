@@ -28,6 +28,7 @@ import tools.jackson.databind.json.JsonMapper;
 @Service
 public class StockLedger {
     static final int COST_SCALE = 6;
+    public static final int COST_SCALE_PUBLIC = COST_SCALE;
 
     private final JdbcClient jdbc;
     private final JsonMapper json;
@@ -133,9 +134,9 @@ public class StockLedger {
         }
         UUID id = Ids.newId();
         jdbc.sql("""
-                        INSERT INTO stock_reservations (id, organization_id, branch_id, product_id, quantity,
+                        INSERT INTO stock_reservations (id, organization_id, branch_id, product_id, quantity, remaining,
                                                         source_type, source_id, expires_at, created_by)
-                        VALUES (:id, :o, :b, :p, :q, :t, :s, :exp, :by)
+                        VALUES (:id, :o, :b, :p, :q, :q, :t, :s, :exp, :by)
                         """)
                 .param("id", id).param("o", actor.organizationId()).param("b", branch).param("p", product)
                 .param("q", qty).param("t", sourceType).param("s", sourceId)
@@ -153,8 +154,10 @@ public class StockLedger {
         record Res(UUID branchId, UUID productId, BigDecimal quantity) {
         }
         Optional<Res> r = jdbc.sql("""
-                        UPDATE stock_reservations SET state = :st, closed_at = clock_timestamp()
-                         WHERE id = :id AND state = 'ACTIVE' RETURNING branch_id, product_id, quantity
+                        UPDATE stock_reservations r SET state = :st, closed_at = clock_timestamp(), remaining = 0
+                          FROM (SELECT id, remaining FROM stock_reservations WHERE id = :id FOR UPDATE) old
+                         WHERE r.id = old.id AND r.state = 'ACTIVE'
+                         RETURNING r.branch_id, r.product_id, old.remaining AS quantity
                         """)
                 .param("st", finalState).param("id", reservationId).query(Res.class).optional();
         r.ifPresent(x -> jdbc.sql("UPDATE inventory_balances SET reserved = reserved - :q, version = version + 1, "
@@ -163,20 +166,42 @@ public class StockLedger {
         return r.isPresent();
     }
 
-    /** Cumprimento (F04 usa): baixa a quantidade reservada pelo custo médio e encerra a reserva. */
+    /** Cumprimento total: baixa o saldo restante da reserva pelo custo médio e encerra a reserva. */
     @Transactional(propagation = Propagation.MANDATORY)
     public Movement fulfillReservation(Actor actor, UUID reservationId, Source src) {
-        record Res(UUID branchId, UUID productId, BigDecimal quantity) {
+        BigDecimal remaining = jdbc.sql("SELECT remaining FROM stock_reservations WHERE id = :id AND state = 'ACTIVE'")
+                .param("id", reservationId).query(BigDecimal.class).optional()
+                .orElseThrow(() -> new ApiException(ErrorCode.INVALID_TRANSITION, "Reserva não está ativa."));
+        return consumeReservation(actor, reservationId, remaining, src);
+    }
+
+    /**
+     * Cumprimento parcial (F04): baixa [qty] da reserva pelo custo médio; a reserva fica ativa com o restante ou é
+     * encerrada (CONSUMED) quando zera. Bloqueio da reserva evita consumo duplo concorrente.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Movement consumeReservation(Actor actor, UUID reservationId, BigDecimal qty, Source src) {
+        requirePositive(qty);
+        record Res(UUID branchId, UUID productId, BigDecimal remaining) {
         }
         Res r = jdbc.sql("""
-                        UPDATE stock_reservations SET state = 'CONSUMED', closed_at = clock_timestamp()
-                         WHERE id = :id AND state = 'ACTIVE' AND organization_id = :o
-                         RETURNING branch_id, product_id, quantity
+                        SELECT branch_id, product_id, remaining FROM stock_reservations
+                         WHERE id = :id AND state = 'ACTIVE' AND organization_id = :o FOR UPDATE
                         """)
                 .param("id", reservationId).param("o", actor.organizationId()).query(Res.class).optional()
                 .orElseThrow(() -> new ApiException(ErrorCode.INVALID_TRANSITION, "Reserva não está ativa."));
-        return issueAtAverage(actor, r.branchId(), r.productId(), r.quantity(), "SALE_ISSUE", src, r.quantity(),
-                null);
+        if (qty.compareTo(r.remaining()) > 0) {
+            throw new ApiException(ErrorCode.STOCK_INSUFFICIENT, "Quantidade maior que a reservada para esta linha.");
+        }
+        BigDecimal left = r.remaining().subtract(qty);
+        jdbc.sql("""
+                        UPDATE stock_reservations SET remaining = :left,
+                               state = CASE WHEN :left = 0 THEN 'CONSUMED' ELSE state END,
+                               closed_at = CASE WHEN :left = 0 THEN clock_timestamp() ELSE closed_at END
+                         WHERE id = :id
+                        """)
+                .param("left", left).param("id", reservationId).update();
+        return issueAtAverage(actor, r.branchId(), r.productId(), qty, "SALE_ISSUE", src, qty, null);
     }
 
     private static void checkAvailable(Balance b, BigDecimal qty, BigDecimal fromReservation) {

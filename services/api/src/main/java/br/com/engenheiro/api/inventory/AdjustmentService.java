@@ -50,9 +50,11 @@ public class AdjustmentService {
     private final IdempotencyService idem;
     private final ProductService products;
     private final StockLedger ledger;
+    private final br.com.engenheiro.api.finance.Journal journal;
 
     public AdjustmentService(JdbcClient jdbc, AuthorizationService authz, AuditService audit, IdempotencyService idem,
-                             ProductService products, StockLedger ledger) {
+                             ProductService products, StockLedger ledger, br.com.engenheiro.api.finance.Journal journal) {
+        this.journal = journal;
         this.jdbc = jdbc;
         this.authz = authz;
         this.audit = audit;
@@ -163,6 +165,14 @@ public class AdjustmentService {
                         m = ledger.receive(actor, row.branchId(), row.productId(), row.difference(), total,
                                 "ADJUSTMENT_IN", src, null, row.notes());
                     }
+                    BigDecimal v = Decimals.money(m.totalCost().abs());
+                    boolean in = m.totalCost().signum() > 0;
+                    journal.post(actor, row.branchId(), "inventory_adjustment", row.id(), "ADJUSTMENT_APPROVED",
+                            row.notes(), null, List.of(
+                                    in ? br.com.engenheiro.api.finance.Journal.Line.debit("ESTOQUE", v)
+                                            : br.com.engenheiro.api.finance.Journal.Line.debit("AJUSTES_ESTOQUE", v),
+                                    in ? br.com.engenheiro.api.finance.Journal.Line.credit("AJUSTES_ESTOQUE", v)
+                                            : br.com.engenheiro.api.finance.Journal.Line.credit("ESTOQUE", v)));
                     jdbc.sql("""
                                     UPDATE inventory_adjustments SET status = 'APPROVED', movement_id = :m, total_cost = :c,
                                                                      decided_by = :by, decided_at = now()

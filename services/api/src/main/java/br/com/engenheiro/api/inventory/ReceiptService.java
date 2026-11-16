@@ -57,11 +57,14 @@ public class ReceiptService {
     private final StockLedger ledger;
     private final br.com.engenheiro.api.finance.PayableService payables;
     private final br.com.engenheiro.api.documents.DocumentService documents;
+    private final br.com.engenheiro.api.finance.Journal journal;
 
     public ReceiptService(JdbcClient jdbc, AuthorizationService authz, AuditService audit, IdempotencyService idem,
                           ProductService products, SupplierService suppliers, StockLedger ledger,
                           br.com.engenheiro.api.finance.PayableService payables,
-                          br.com.engenheiro.api.documents.DocumentService documents) {
+                          br.com.engenheiro.api.documents.DocumentService documents,
+                          br.com.engenheiro.api.finance.Journal journal) {
+        this.journal = journal;
         this.payables = payables;
         this.documents = documents;
         this.jdbc = jdbc;
@@ -334,6 +337,10 @@ public class ReceiptService {
                         """)
                 .param("fr", freightTotal).param("tc", goodsTotal.add(freightTotal)).param("by", actor.userId())
                 .param("due", dueDate).param("id", row.id()).update();
+        BigDecimal totalCost = goodsTotal.add(freightTotal);
+        journal.post(actor, row.branchId(), "inventory_receipt", row.id(), "RECEIPT_CONFIRMED", "Entrada de mercadoria",
+                null, List.of(br.com.engenheiro.api.finance.Journal.Line.debit("ESTOQUE", totalCost),
+                        br.com.engenheiro.api.finance.Journal.Line.credit("FORNECEDORES", totalCost)));
         // Confirmação cria a obrigação a pagar ao fornecedor (passivo; a compra não é despesa do período).
         payables.createForReceipt(actor, row.branchId(), row.id(), row.supplierId(), row.supplierName(),
                 row.documentNumber(), goodsTotal.add(freightTotal), dueDate);
@@ -386,6 +393,10 @@ public class ReceiptService {
         UUID returnId = Ids.newId();
         Movement m = ledger.issueAtCost(actor, row.branchId(), line.productId(), baseQty, histUnit,
                 "SUPPLIER_RETURN", new Source("supplier_return", returnId, line.lineNo()), origin, reason);
+        BigDecimal back = Decimals.money(m.totalCost().negate());
+        journal.post(actor, row.branchId(), "supplier_return", returnId, "SUPPLIER_RETURN", reason, null,
+                List.of(br.com.engenheiro.api.finance.Journal.Line.debit("FORNECEDORES", back),
+                        br.com.engenheiro.api.finance.Journal.Line.credit("ESTOQUE", back)));
         jdbc.sql("UPDATE inventory_receipt_lines SET returned_base_qty = returned_base_qty + :q WHERE id = :id")
                 .param("q", baseQty).param("id", line.id()).update();
         audit.record(entry(actor, "inventory.receipts.return", row.id(), Map.of("line_no", line.lineNo(),

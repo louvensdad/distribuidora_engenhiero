@@ -72,4 +72,14 @@ public class Fixtures {
         String primaryClient = template.admin() ? AppClients.WEB : clients.iterator().next();
         return new Person(user, membership, subject, primaryClient);
     }
+
+    /** Concessão extra (o que o dono liberaria no mapa de acessos). maxAmount = alçada; null = sem valor. */
+    public void grant(Person p, String resource, String action, String scope, java.math.BigDecimal maxAmount) {
+        jdbc.sql("""
+                        INSERT INTO permission_grants (id, membership_id, resource, action, scope, effect, max_amount)
+                        VALUES (:id, :m, :r, :a, :s, 'ALLOW', :max)
+                        """)
+                .param("id", Ids.newId()).param("m", p.membershipId()).param("r", resource).param("a", action)
+                .param("s", scope).param("max", maxAmount).update();
+    }
 }

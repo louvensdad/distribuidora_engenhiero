@@ -51,9 +51,11 @@ public class LossService {
     private final IdempotencyService idem;
     private final ProductService products;
     private final StockLedger ledger;
+    private final br.com.engenheiro.api.finance.Journal journal;
 
     public LossService(JdbcClient jdbc, AuthorizationService authz, AuditService audit, IdempotencyService idem,
-                       ProductService products, StockLedger ledger) {
+                       ProductService products, StockLedger ledger, br.com.engenheiro.api.finance.Journal journal) {
+        this.journal = journal;
         this.jdbc = jdbc;
         this.authz = authz;
         this.audit = audit;
@@ -132,6 +134,10 @@ public class LossService {
             }
             Movement m = ledger.issueAtAverage(actor, row.branchId(), row.productId(), row.baseQuantity(), "LOSS",
                     new Source("inventory_loss", row.id(), 0), null, row.reason());
+            BigDecimal lossValue = Decimals.money(m.totalCost().negate());
+            journal.post(actor, row.branchId(), "inventory_loss", row.id(), "LOSS_APPROVED", row.reason(), null,
+                    List.of(br.com.engenheiro.api.finance.Journal.Line.debit("PERDAS_ESTOQUE", lossValue),
+                            br.com.engenheiro.api.finance.Journal.Line.credit("ESTOQUE", lossValue)));
             jdbc.sql("""
                             UPDATE inventory_losses SET status = 'APPROVED', movement_id = :m, total_cost = :c,
                                                         decided_by = :by, decided_at = now()
@@ -171,6 +177,12 @@ public class LossService {
                     .param("m", row.movementId()).query(BigDecimal.class).single().negate();
             Movement m = ledger.receive(actor, row.branchId(), row.productId(), row.baseQuantity(), originalCost,
                     "LOSS_REVERSAL", new Source("inventory_loss", row.id(), 0), row.movementId(), reason);
+            BigDecimal backValue = Decimals.money(originalCost);
+            UUID original = jdbc.sql("SELECT id FROM journal_entries WHERE source_type = 'inventory_loss' AND source_id = :s "
+                    + "AND event_kind = 'LOSS_APPROVED'").param("s", row.id()).query(UUID.class).optional().orElse(null);
+            journal.post(actor, row.branchId(), "inventory_loss", row.id(), "LOSS_REVERSED", reason, original,
+                    List.of(br.com.engenheiro.api.finance.Journal.Line.debit("ESTOQUE", backValue),
+                            br.com.engenheiro.api.finance.Journal.Line.credit("PERDAS_ESTOQUE", backValue)));
             jdbc.sql("UPDATE inventory_losses SET status = 'REVERSED', decision_reason = :r WHERE id = :id")
                     .param("r", reason).param("id", row.id()).update();
             audit.record(entry(actor, "inventory.losses.reverse", row.id(), Map.of("reason", reason,

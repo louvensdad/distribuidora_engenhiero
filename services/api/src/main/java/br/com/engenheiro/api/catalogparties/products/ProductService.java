@@ -52,9 +52,18 @@ public class ProductService {
     public record ConversionView(String unit, String factor, OffsetDateTime valid_from) {
     }
 
+    public record PriceView(String unit, String price, OffsetDateTime valid_from) {
+    }
+
     public record ProductView(UUID id, String sku, String name, String base_unit, boolean base_unit_confirmed,
                               OffsetDateTime unit_confirmed_at, String status, long version,
-                              List<ConversionView> conversions, OffsetDateTime created_at) {
+                              List<ConversionView> conversions, List<PriceView> prices, OffsetDateTime created_at) {
+    }
+
+    public record PriceInput(String unit, String price) {
+    }
+
+    record PriceRow(String unit, BigDecimal price, OffsetDateTime validFrom) {
     }
 
     public record ConversionInput(String unit, String factor) {
@@ -150,6 +159,39 @@ public class ProductService {
                 actor.clientId(), "catalog.products.conversion", "product", id.toString(), "SUCCESS", null,
                 changes, "api"));
         return view(find(id).orElseThrow());
+    }
+
+    /** Preço de venda por medida, com vigência; pedidos usam o preço vigente no momento (preço do servidor). */
+    @Transactional
+    public ProductView addPrice(Actor actor, UUID id, long expectedVersion, PriceInput in) {
+        Row row = requireRow(actor, id, "edit_draft");
+        List<FieldError> errors = new ArrayList<>();
+        String unit = in.unit() == null || in.unit().isBlank() ? row.baseUnit() : in.unit();
+        if (!unit.equals(row.baseUnit()) && currentFactor(id, unit).isEmpty()) {
+            errors.add(new FieldError("unit", "Cadastre a conversão desta medida antes do preço"));
+        }
+        BigDecimal price = Decimals.parse(in.price(), Decimals.MONEY_SCALE, false, "price", errors);
+        if (!errors.isEmpty()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "Corrija os campos indicados.", errors);
+        }
+        bumpVersion(actor, id, expectedVersion);
+        BigDecimal previous = currentPrice(id, unit).orElse(null);
+        jdbc.sql("INSERT INTO product_prices (id, product_id, unit, price, created_by) VALUES (:id, :p, :u, :v, :by)")
+                .param("id", Ids.newId()).param("p", id).param("u", unit).param("v", price).param("by", actor.userId())
+                .update();
+        Map<String, Object> changes = new java.util.HashMap<>();
+        changes.put("unit", unit);
+        changes.put("price", price.toPlainString());
+        changes.put("previous_price", previous == null ? null : previous.toPlainString());
+        audit.record(new AuditEntry(actor.organizationId(), actor.branchId(), actor.userId(), "USER",
+                actor.clientId(), "catalog.products.price", "product", id.toString(), "SUCCESS", null, changes, "api"));
+        return view(find(id).orElseThrow());
+    }
+
+    public Optional<BigDecimal> currentPrice(UUID productId, String unit) {
+        return jdbc.sql("SELECT price FROM product_prices WHERE product_id = :p AND unit = :u "
+                        + "AND valid_from <= clock_timestamp() ORDER BY valid_from DESC, id DESC LIMIT 1")
+                .param("p", productId).param("u", unit).query(BigDecimal.class).optional();
     }
 
     /** Confirmação da unidade comercial (D01): sem ela o produto não entra/sai do estoque. */
@@ -276,7 +318,14 @@ public class ProductService {
                         """)
                 .param("p", r.id()).query(ConversionRow.class).list().stream()
                 .map(c -> new ConversionView(c.unit(), Decimals.str(c.factor()), c.validFrom())).toList();
+        List<PriceView> prices = jdbc.sql("""
+                        SELECT DISTINCT ON (unit) unit, price, valid_from FROM product_prices
+                         WHERE product_id = :p AND valid_from <= clock_timestamp()
+                         ORDER BY unit, valid_from DESC, id DESC
+                        """)
+                .param("p", r.id()).query(PriceRow.class).list().stream()
+                .map(x -> new PriceView(x.unit(), Decimals.moneyStr(x.price()), x.validFrom())).toList();
         return new ProductView(r.id(), r.sku(), r.name(), r.baseUnit(), r.baseUnitConfirmed(), r.unitConfirmedAt(),
-                r.status(), r.version(), conv, r.createdAt());
+                r.status(), r.version(), conv, prices, r.createdAt());
     }
 }

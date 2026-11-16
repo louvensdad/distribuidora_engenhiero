@@ -60,6 +60,13 @@ public class ProductController {
         return ok(service.addConversion(actor, id, IfMatch.version(ifMatch), body));
     }
 
+    @PostMapping("/{id}/prices")
+    public ResponseEntity<ProductView> addPrice(Actor actor, @PathVariable UUID id,
+                                                @RequestHeader(value = "If-Match", required = false) String ifMatch,
+                                                @RequestBody ProductService.PriceInput body) {
+        return ok(service.addPrice(actor, id, IfMatch.version(ifMatch), body));
+    }
+
     @PostMapping("/{id}/unit-confirmation")
     public ResponseEntity<ProductView> confirmUnit(Actor actor, @PathVariable UUID id,
                                                    @RequestHeader(value = "If-Match", required = false) String ifMatch) {
