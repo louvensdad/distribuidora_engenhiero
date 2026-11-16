@@ -18,3 +18,24 @@ apps/mobile-counter (br.com.engenheiro.retirada) e apps/mobile-owner (br.com.eng
   Detalhe: "Rascunho — aguardando conferência", 8 feixes (= 24 dúzias), diferença −2, custo "oculto" (F03-retirada-r07-rascunho.png)
 - Banco (psql): status DRAFT, autor Recebimento Exemplo, base_quantity 24, unit_cost NULL, freight NULL, 0 movimentos de estoque
 - Auditoria: inventory.receipts.create | client_id engenheiro-retirada | SUCCESS | {"lines": 1, "cost_informed": false}
+
+## Limites resolvidos — 2026-11-16T11:45:24-03:00
+Dart: 34 testes, 0 falhas (novos: anexo multipart no R07/detalhe; conferência do patrão com custo/frete no app).
+image_picker 1.2.4 (publicado em 06/10/2026) em packages/mobile-core; http_parser 4.1.2 fixado em mobile-api.
+
+### Anexo pelo app Retirada (usuário recebimento, emulador, galeria do Android com imagem fictícia)
+- Detalhe do rascunho NF-APP-01 → "Da galeria" → Photo Picker → foto escolhida → listada (telas-mobile/F03-retirada-anexo.png)
+- Banco: scaled_20.png | image/jpeg | 2442 bytes | AVAILABLE | ESTRUTURA_VALIDADA; ANTIVIRUS_NAO_CONFIGURADO | Recebimento Exemplo
+  (o seletor recomprimiu em JPEG mantendo o nome .png; o servidor detectou o tipo pelo conteúdo. Corrigido em seguida:
+   o servidor ajusta a extensão ao conteúdo real e o app informa o tipo pelos bytes.)
+- Auditoria: documents.attach | engenheiro-retirada | SUCCESS
+
+### App Patrão (login com TOTP real no emulador)
+- Mais → Estoque: saldos com valor em estoque visível ao patrão (telas-mobile/F03-patrao-estoque.png)
+- Mais → Recebimentos → rascunho NF-APP-01 feito no app Retirada: custo "pendente"; campos de custo, frete e vencimento
+  (telas-mobile/F03-patrao-conferencia.png) → Confirmar entrada (F03-patrao-confirmado.png)
+- Banco: CONFIRMED | registrou Recebimento Exemplo | conferiu Patrão Fictício | total 240.08 | RECEIPT 24 dúzias 240.08 |
+  conta a pagar 240.08 OPEN; trilha: receipts.create (engenheiro-retirada) → receipts.confirm (engenheiro-gestao)
+- Observação honesta: o custo ficou 30,0098 (e não 30,00 + frete 8) porque, na automação por adb, o teclado rolou a tela e o
+  segundo toque caiu no mesmo campo — a captura antes da confirmação mostra "30,0098" digitado e o frete vazio. O app enviou
+  o que estava no campo; o mapeamento custo/frete/linha está provado pelo teste de widget. Dados fictícios locais.

@@ -21,7 +21,8 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
         "engenheiro.security.oidc.issuer=" + TestJwt.ISSUER,
         "engenheiro.security.oidc.jwk-set-uri=https://idp.teste.invalid/nao-usado",
-        "engenheiro.security.oidc.audience=" + TestJwt.AUDIENCE})
+        "engenheiro.security.oidc.audience=" + TestJwt.AUDIENCE,
+        "engenheiro.storage.local-dir=${java.io.tmpdir}/engenheiro-teste-objetos"})
 @Import(IntegrationTest.Config.class)
 public @interface IntegrationTest {
 

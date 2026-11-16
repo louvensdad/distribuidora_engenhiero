@@ -3,8 +3,8 @@
 Data/hora e fuso: 16/11/2026 11:30 America/Sao_Paulo
 Agente e repositório: Claude Code (Opus 5.5) — `/home/louvens/Ivan/distribuidora-engenheiro` (movido de `~/distribuidora-engenheiro`)
 Branch e commit atual: `main` — ver `git log -1`
-Fase: F03 concluída com limites (estoque na API, site e app Retirada)
-Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS com limites** (ver abaixo) · F04 **NOT_STARTED**
+Fase: F03 concluída (limites resolvidos em 16/11/2026); próxima F04
+Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** (pendências externas abaixo) · F04 **NOT_STARTED**
 
 ## Entregue e comprovado
 
@@ -87,14 +87,18 @@ Problemas encontrados e corrigidos nesta etapa: seed local como `V1000` impedia 
 com teste); tabela estourava a largura no celular por texto `visually-hidden` absoluto; matriz de acessos longa demais
 (agora agrupada por área).
 
-## Limites do gate F03 (explícitos)
+## F03 — limites resolvidos (16/11/2026) e pendências restantes
 
-- **Anexos** do recebimento (foto/nota): o módulo de documentos com objeto privado e quarentena é da F07; hoje o
-  recebimento guarda só o número do documento.
-- **Cadastro de unidades (filiais)** pela interface não existe; as unidades vêm do seed/admin.
-- Obrigação a pagar na confirmação do recebimento: F06. Ajuste de inventário por contagem (sobra): pendente (ADR-016).
-- Venda/cumprimento real (SALE_ISSUE a partir de pedido) chega na F04; o CMV foi provado pelo serviço do livro.
-- App Patrão: Estoque/Recebimentos compilados e com teste de widget, mas não exercitados no emulador.
+Resolvidos: conta a pagar criada na confirmação (vencimento opcional; site Financeiro > Contas a pagar); ajuste por
+contagem com aprovação (site e API); cadastro de unidades (Equipe > Unidades, com trava de pessoas/estoque); anexos
+privados no recebimento (site e app, câmera/galeria); app Patrão exercitado no emulador (estoque e conferência com custo
+de um rascunho feito no app Retirada). Validação: `./mvnw verify` **99 testes** (`F03-mvnw-verify.txt`), Vitest **26**,
+Playwright **54**, Dart **34**, evidências móveis em `F03-mobile.txt`. Decisões: ADR-016, ADR-017.
+
+Pendências que não dependem desta fase:
+- Antivírus do anexo: NÃO CONFIGURADO (registrado no documento); armazenamento S3 privado de produção: F16.
+- Liquidação da conta a pagar: F06. Venda real a partir de pedido (SALE_ISSUE): F04 (próxima).
+- `payables`/unidades sem recurso no contrato de permissões: restritos ao administrador até o contrato mudar (ADR-017).
 
 ## Limites do gate F01 (explícitos)
 

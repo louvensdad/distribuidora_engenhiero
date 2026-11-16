@@ -15,6 +15,8 @@ import { ReceiptFormPage } from "../features/operation/ReceiptFormPage";
 import { ReceiptDetailPage } from "../features/operation/ReceiptDetailPage";
 import { ProductsPage } from "../features/operation/ProductsPage";
 import { SuppliersPage } from "../features/operation/SuppliersPage";
+import { PayablesPage } from "../features/finance/PayablesPage";
+import { BranchesPage } from "../features/team/BranchesPage";
 import { ForbiddenState, PendingModule } from "../components/States";
 
 const IMPLEMENTED: Record<string, () => React.JSX.Element> = {
@@ -24,6 +26,8 @@ const IMPLEMENTED: Record<string, () => React.JSX.Element> = {
   "/operation/receipts": ReceiptsPage,
   "/operation/products": ProductsPage,
   "/operation/suppliers": SuppliersPage,
+  "/finance/payables": PayablesPage,
+  "/team/branches": BranchesPage,
   "/team/people": PeoplePage,
   "/team/access": AccessMapPage,
   "/team/audit": AuditPage,

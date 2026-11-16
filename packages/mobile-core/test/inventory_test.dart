@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:engenheiro_api/engenheiro_api.dart';
 import 'package:engenheiro_auth/engenheiro_auth.dart';
 import 'package:engenheiro_core/engenheiro_core.dart';
@@ -50,6 +51,10 @@ void main() {
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
     http.Request? posted;
+    http.BaseRequest? upload;
+    Map<String, dynamic>? uploaded;
+    attachmentPicker = ({required bool camera}) async =>
+        (name: 'carga.jpg', bytes: Uint8List.fromList([0xFF, 0xD8, 0xFF, 0xD9]), mime: 'image/jpeg');
     await login(tester, (r) async {
       switch (r.url.path) {
         case '/api/v1/me/capabilities':
@@ -61,6 +66,13 @@ void main() {
           return j(201, receipt('DRAFT'));
         case '/api/v1/inventory/receipts/r1':
           return j(200, receipt('DRAFT'));
+        case '/api/v1/inventory/receipts/r1/attachments' when r.method == 'GET':
+          return j(200, {'items': uploaded == null ? [] : [uploaded]});
+        case '/api/v1/inventory/receipts/r1/attachments':
+          upload = r;
+          uploaded = {'id': 'd1', 'file_name': 'carga.jpg', 'mime': 'image/jpeg', 'size_bytes': 2048, 'sha256': '0' * 64,
+            'state': 'AVAILABLE', 'scan_state': 'x', 'rejection': null, 'created_by_name': 'Recebimento', 'created_at': '2026-11-16T12:00:00Z'};
+          return j(201, uploaded!);
         case '/api/v1/suppliers':
           return j(200, {'items': [supplier], 'next_cursor': null});
         case '/api/v1/products':
@@ -105,6 +117,17 @@ void main() {
     expect(find.text('−1'), findsOneWidget);
     expect(find.text('oculto'), findsWidgets);
     expect(find.text('Confirmar entrada'), findsNothing); // sem inventory.receipts.confirm
+    // Anexo: foto enviada em multipart e listada.
+    expect(find.text('Nenhum anexo.'), findsOneWidget);
+    await tester.tap(find.text('Fotografar'));
+    await tester.pumpAndSettle();
+    final up = upload! as http.Request;
+    expect(up.headers['content-type'], startsWith('multipart/form-data; boundary='));
+    final raw = latin1.decode(up.bodyBytes);
+    expect(raw, contains('name="file"; filename="carga.jpg"'));
+    expect(raw, contains('content-type: image/jpeg'));
+    expect(find.textContaining('carga.jpg · 2 KB'), findsOneWidget);
+    expect(find.text('Anexo enviado.'), findsOneWidget);
   });
 
   testWidgets('estoque: disponível em destaque e valor oculto sem custo', (tester) async {
@@ -130,5 +153,40 @@ void main() {
     expect(decimalText('1.234,5'), '1234.5');
     expect(decimalText('12.5'), '12.5');
     expect(decimalText(' 12,50 '), '12.50');
+  });
+
+  testWidgets('patrão confere pelo app: custo por linha e frete vão na confirmação', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    http.Request? confirm;
+    await login(tester, (r) async {
+      switch (r.url.path) {
+        case '/api/v1/me/capabilities':
+          return j(200, meJson(['inventory.receipts.view', 'inventory.receipts.confirm'], fields: {'purchase_cost': true}));
+        case '/api/v1/inventory/receipts':
+          return j(200, {'items': [receipt('DRAFT')], 'next_cursor': null});
+        case '/api/v1/inventory/receipts/r1':
+          return j(200, receipt('DRAFT'));
+        case '/api/v1/inventory/receipts/r1/attachments':
+          return j(200, {'items': []});
+        case '/api/v1/inventory/receipts/r1/confirm':
+          confirm = r;
+          return j(200, {...receipt('CONFIRMED'), 'version': 2});
+      }
+      return j(404, {});
+    });
+    await tester.tap(find.text('Sítio Boa Colheita'));
+    await tester.pumpAndSettle();
+    final custo = find.widgetWithText(TextField, 'Custo unitário — Cana caiana (por feixe)');
+    await tester.dragUntilVisible(custo, find.byType(ListView).last, const Offset(0, -300));
+    await tester.enterText(custo, '30,00');
+    await tester.enterText(find.widgetWithText(TextField, 'Frete de compra autorizado (R\$)'), '15');
+    await tester.dragUntilVisible(find.text('Confirmar entrada'), find.byType(ListView).last, const Offset(0, -300));
+    await tester.tap(find.text('Confirmar entrada'));
+    await tester.pumpAndSettle();
+    expect(confirm!.headers['If-Match'], '"1"');
+    expect(jsonDecode(confirm!.body), {'lines': [{'line_no': 1, 'unit_cost': '30.00'}], 'freight_amount': '15'});
+    expect(find.text('Confirmado'), findsOneWidget);
   });
 }

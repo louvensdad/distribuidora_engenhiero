@@ -124,3 +124,34 @@ describe("W06 recebimento", () => {
     expect(screen.getByRole("button", { name: /confirmar entrada/i })).toBeInTheDocument();
   });
 });
+
+describe("funções só de administrador (ADR-017)", () => {
+  it("contas a pagar e unidades não aparecem para quem não é administrador", async () => {
+    mockFetch({
+      "GET /bff/session": session,
+      "GET /api/v1/me/capabilities": { body: me({ admin: false, capabilities: caps("inventory.stock.view", "audit.view"), fields: {} }) },
+      "GET /api/v1/inventory/balances/summary": summary,
+      "GET /api/v1/inventory/balances": { body: { items: [], next_cursor: null } },
+    });
+    renderAt("/operation/stock");
+    await screen.findByRole("heading", { name: "Estoque, reservas e fornecedores" });
+    const tabs = screen.getByRole("navigation", { name: "Seções principais" });
+    expect(within(tabs).queryByText("Financeiro")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Unidades" })).not.toBeInTheDocument();
+  });
+
+  it("administrador vê contas a pagar com saldo vindo do servidor", async () => {
+    mockFetch({
+      "GET /bff/session": session,
+      "GET /api/v1/me/capabilities": { body: me() },
+      "GET /api/v1/payables": { body: { items: [{ id: "pg1", source_type: "inventory_receipt", source_id: "r1", supplier_id: "s1",
+        supplier_name: "Sítio", description: "Compra de mercadoria — Sítio — NF-1", competence: "2026-11-16", amount: "1510.00",
+        balance: "1510.00", due_date: "2026-12-10", state: "OPEN", branch: "Matriz", created_at: "2026-11-16T12:00:00Z" }], next_cursor: null } },
+    });
+    renderAt("/finance/payables");
+    const row = (await screen.findByRole("rowheader", { name: /Compra de mercadoria/ })).closest("tr")!;
+    expect(within(row).getByText("10/12/2026")).toBeInTheDocument();
+    expect(within(row).getAllByText("R$ 1.510,00")).toHaveLength(2);
+    expect(screen.getByText(/entra na fase/)).toBeInTheDocument();
+  });
+});

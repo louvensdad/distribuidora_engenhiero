@@ -1,11 +1,12 @@
 import { useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router";
-import { ApiError, api, newIdempotencyKey } from "../../api/http";
-import type { Receipt, ReceiptLine } from "../../api/types";
+import { ApiError, api, newIdempotencyKey, uploadFile } from "../../api/http";
+import type { DocumentView, Receipt, ReceiptLine } from "../../api/types";
 import { useResource } from "../../api/useResource";
 import { formatDateTime, formatDecimal, formatMoney, formatQty } from "../../app/format";
 import { Field, FormError, Hidden, fieldError } from "../../components/Form";
 import { ConflictState, ErrorState, ForbiddenState, LoadingState } from "../../components/States";
+import { Icon } from "../../components/Icon";
 import { useSession } from "../../session/SessionContext";
 import { RECEIPT_STATUS } from "./ReceiptsPage";
 
@@ -61,6 +62,8 @@ export function ReceiptDetailPage() {
       </div>
       {r.notes && <p className="muted">Observação: {r.notes}</p>}
 
+      <Attachments receiptId={r.id} canAttach={can("inventory.receipts.create") || can("inventory.receipts.confirm")} />
+
       {r.status === "DRAFT" && can("inventory.receipts.confirm") && (
         <ConfirmForm receipt={r} seesCost={canSeeField("purchase_cost")} onDone={reload} />
       )}
@@ -73,6 +76,7 @@ function ConfirmForm({ receipt, seesCost, onDone }: { receipt: Receipt; seesCost
   const [costs, setCosts] = useState<Record<number, string>>(() =>
     Object.fromEntries(receipt.lines.map((l) => [l.line_no, l.unit_cost ?? ""])));
   const [freight, setFreight] = useState(receipt.freight_amount ?? "");
+  const [due, setDue] = useState("");
   const [key] = useState(newIdempotencyKey);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
@@ -85,7 +89,8 @@ function ConfirmForm({ receipt, seesCost, onDone }: { receipt: Receipt; seesCost
     const body = seesCost ? {
       freight_amount: freight.trim() ? freight.trim().replace(",", ".") : null,
       lines: receipt.lines.filter((l) => (costs[l.line_no] ?? "").trim()).map((l) => ({ line_no: l.line_no, unit_cost: costs[l.line_no]!.trim().replace(",", ".") })),
-    } : undefined;
+      payment_due_date: due || null,
+    } : { payment_due_date: due || null };
     try {
       await api.command<Receipt>(`/api/v1/inventory/receipts/${receipt.id}/confirm`, body, key, `"${receipt.version}"`);
       onDone();
@@ -118,6 +123,9 @@ function ConfirmForm({ receipt, seesCost, onDone }: { receipt: Receipt; seesCost
       ) : (
         <p className="notice span-2">Custo já informado por quem tem acesso; você confirma as quantidades.</p>
       )}
+      <Field id="c-venc" label="Vencimento da conta a pagar" hint="A confirmação cria a obrigação a pagar ao fornecedor." error={fieldError(error, "payment_due_date")}>
+        <input id="c-venc" type="date" value={due} onChange={(e) => setDue(e.target.value)} />
+      </Field>
       <FormError error={error} />
       <div className="actions span-2">
         <button className="btn btn-primary" disabled={busy || (!seesCost && pending.length > 0)}>{busy ? "Confirmando…" : "Confirmar entrada"}</button>
@@ -173,5 +181,61 @@ function ReturnForm({ receipt, onDone }: { receipt: Receipt; onDone: () => void 
       {done && <p className="notice span-2" role="status">{done}</p>}
       <div className="actions span-2"><button className="btn" disabled={busy}>{busy ? "Registrando…" : "Registrar devolução"}</button></div>
     </form>
+  );
+}
+
+const DOC_STATE: Record<DocumentView["state"], string> = { UPLOADING: "Enviando", QUARANTINED: "Em quarentena", AVAILABLE: "Disponível",
+  REJECTED: "Recusado", SUPERSEDED: "Substituído", ARCHIVED: "Arquivado" };
+
+/** Anexos privados: nota/romaneio/foto. Tipo validado pelo conteúdo no servidor; download autorizado e auditado. */
+function Attachments({ receiptId, canAttach }: { receiptId: string; canAttach: boolean }) {
+  const [res, reload] = useResource<{ items: DocumentView[] }>(`/api/v1/inventory/receipts/${receiptId}/attachments`);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+  const onFile = async (file: File | undefined) => {
+    if (!file) return;
+    setBusy(true);
+    setMessage(null);
+    try {
+      const d = await uploadFile<DocumentView>(`/api/v1/inventory/receipts/${receiptId}/attachments`, file);
+      setMessage(d.state === "AVAILABLE" ? { ok: true, text: `“${d.file_name}” anexado.` } : { ok: false, text: `Arquivo recusado: ${d.rejection}` });
+      reload();
+    } catch (err) {
+      setMessage({ ok: false, text: err instanceof ApiError ? err.message : "Erro inesperado" });
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <section className="card" aria-labelledby="titulo-anexos">
+      <div className="page-head">
+        <h2 id="titulo-anexos" className="h3">Anexos</h2>
+        {canAttach && (
+          <label className="btn btn-small">
+            <Icon name="attachment" size={14} /> {busy ? "Enviando…" : "Anexar nota, romaneio ou foto"}
+            <input type="file" accept="image/jpeg,image/png,application/pdf" className="visually-hidden" disabled={busy}
+              onChange={(e) => { void onFile(e.target.files?.[0]); e.target.value = ""; }} />
+          </label>
+        )}
+      </div>
+      <p className="muted small">JPEG, PNG ou PDF até 10 MB. O servidor confere o conteúdo real e recusa PDF com conteúdo ativo; antivírus ainda não configurado.</p>
+      {message && <p className={"notice" + (message.ok ? "" : " notice-error")} role="status">{message.text}</p>}
+      {res.status === "loading" && <LoadingState label="Carregando anexos" />}
+      {res.status === "error" && <ErrorState error={res.error} onRetry={reload} />}
+      {res.status === "ready" && (res.data.items.length === 0 ? <p className="muted">Nenhum anexo.</p> : (
+        <ul className="timeline">
+          {res.data.items.map((d) => (
+            <li key={d.id}>
+              {d.state === "AVAILABLE"
+                ? <a href={`/api/v1/documents/${d.id}/download`}>{d.file_name}</a>
+                : <span>{d.file_name}</span>}
+              <span className={"badge " + (d.state === "AVAILABLE" ? "badge-ok" : "badge-error")}>{DOC_STATE[d.state]}</span>
+              {d.rejection && <span className="muted">{d.rejection}</span>}
+              <span className="muted small">{Math.ceil(d.size_bytes / 1024)} KB · {d.created_by_name} · {formatDateTime(d.created_at)}</span>
+            </li>
+          ))}
+        </ul>
+      ))}
+    </section>
   );
 }

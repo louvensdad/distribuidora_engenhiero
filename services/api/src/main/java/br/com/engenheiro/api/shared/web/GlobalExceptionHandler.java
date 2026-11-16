@@ -23,6 +23,19 @@ public class GlobalExceptionHandler {
         return respond(e.code(), e.getMessage(), e.errors());
     }
 
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    ResponseEntity<ApiProblem> tooLarge(org.springframework.web.multipart.MaxUploadSizeExceededException e) {
+        return respond(ErrorCode.VALIDATION_ERROR, "Arquivo acima de 10 MB.",
+                List.of(new ApiProblem.FieldError("file", "Envie um arquivo de até 10 MB")));
+    }
+
+    @ExceptionHandler({org.springframework.web.multipart.support.MissingServletRequestPartException.class,
+            org.springframework.web.multipart.MultipartException.class})
+    ResponseEntity<ApiProblem> badMultipart(Exception e) {
+        return respond(ErrorCode.VALIDATION_ERROR, "Envie o arquivo no campo 'file' (multipart/form-data).",
+                List.of(new ApiProblem.FieldError("file", "Arquivo obrigatório")));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<ApiProblem> invalid(MethodArgumentNotValidException e) {
         List<ApiProblem.FieldError> errors = e.getBindingResult().getFieldErrors().stream()

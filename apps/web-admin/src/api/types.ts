@@ -199,7 +199,7 @@ export interface Balance {
   masked_fields: string[];
 }
 
-export type MovementKind = "RECEIPT" | "SUPPLIER_RETURN" | "LOSS" | "LOSS_REVERSAL" | "SALE_ISSUE" | "SALE_RETURN";
+export type MovementKind = "RECEIPT" | "SUPPLIER_RETURN" | "LOSS" | "LOSS_REVERSAL" | "SALE_ISSUE" | "SALE_RETURN" | "ADJUSTMENT_IN" | "ADJUSTMENT_OUT";
 
 export interface StockMovement {
   id: string;
@@ -247,4 +247,25 @@ export interface Loss {
   movement_id: string | null;
   version: number;
   masked_fields: string[];
+}
+
+export interface Payable {
+  id: string; source_type: string; source_id: string; supplier_id: string | null; supplier_name: string | null;
+  description: string; competence: string; amount: string; balance: string; due_date: string | null;
+  state: "OPEN" | "PARTIALLY_PAID" | "PAID" | "CANCELLED"; branch: string; created_at: string;
+}
+
+export interface BranchView { id: string; name: string; timezone: string; status: "ACTIVE" | "INACTIVE"; active_people: number; created_at: string }
+
+export interface Adjustment {
+  id: string; status: "PENDING" | "APPROVED" | "REJECTED"; product_id: string; sku: string; product_name: string; base_unit: Unit;
+  counted_quantity: string; system_quantity: string; difference: string; unit_cost: string | null; total_cost: string | null;
+  notes: string; branch: string; created_by_name: string; created_at: string; decided_by_name: string | null;
+  decided_at: string | null; decision_reason: string | null; movement_id: string | null; version: number; masked_fields: string[];
+}
+
+export interface DocumentView {
+  id: string; file_name: string; mime: string; size_bytes: number; sha256: string;
+  state: "UPLOADING" | "QUARANTINED" | "AVAILABLE" | "REJECTED" | "SUPERSEDED" | "ARCHIVED";
+  scan_state: string; rejection: string | null; created_by_name: string; created_at: string;
 }

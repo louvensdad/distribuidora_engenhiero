@@ -22,11 +22,11 @@ Requisitos de F02 em diante seguem NOT_STARTED (lista completa em `docs/especifi
 | SEC-09 | Ator real na auditoria; sem impersonação | `campoExtraNoCorpoNaoMudaAtor...`, `historicoRegistraAtorReal...` | PASS (identidade) |
 
 | INV-01 | `catalogparties.products` (unidade-base confirmada, `unit_conversions` com vigência); site Produtos | `InventoryIntegrationTest.produtoComConversao...`; `inventory.spec.ts` | PASS |
-| INV-02 | `suppliers`, `inventory.ReceiptService` (rascunho → conferência, lote, documento, custo, frete rateado); W06; app Retirada R06/R07 | `recebimentoQuantitativoSemCustoVisivel...`, `idempotenciaDoRecebimento`, `inventory.spec.ts`, `inventory_test.dart`, `F03-mobile.txt` | PASS (obrigação a pagar: F06) |
+| INV-02 | `suppliers`, `inventory.ReceiptService` (rascunho → conferência, lote, documento, custo, frete rateado); W06; app Retirada R06/R07 | `recebimentoQuantitativoSemCustoVisivel...`, `idempotenciaDoRecebimento`, `inventory.spec.ts`, `inventory_test.dart`, `F03-mobile.txt` | PASS (obrigação a pagar criada na confirmação; liquidação F06); anexos privados `F03LimitsIntegrationTest`, `f03-limites.spec.ts` |
 | INV-03 | `StockLedger` (físico/reservado/disponível, reserva atômica), W05 | `duasReservasConcorrentesNaoNegativamEstoque` (×3, com mutação), `reservaRepetida...`, `livroDeEstoqueImutavel...` | PASS |
 | INV-04 | Custo médio móvel; CMV = saídas por venda | `recebimentoDe100EVendaDe20NaoLancaAs100ComoCmv` | PASS (cumprimento real de pedido: F04) |
 | INV-05 | `LossService` (motivo, aprovação, custo, autor) | `perdaBaixaFisicoUmaVezPeloCustoMedioEForaDoCmv`, `inventory.spec.ts` | PASS |
-| INV-06 | Devolução ao fornecedor e estorno de perda com `reversal_of` e custo histórico | `devolucaoAoFornecedorEEstornoDePerda...`, `inventory.spec.ts` | PASS (ajuste por contagem: pendente, ADR-016) |
+| INV-06 | Devolução ao fornecedor e estorno de perda com `reversal_of` e custo histórico | `devolucaoAoFornecedorEEstornoDePerda...`, `inventory.spec.ts` | PASS; ajuste por contagem `F03LimitsIntegrationTest.ajustePorContagem...`, `f03-limites.spec.ts` |
 | clientes (F03) | `catalogparties.customers` — cliente com campos classificados | `CustomersIntegrationTest` (11) | PASS |
 
 | UX-01 | `apps/web-admin` abas horizontais + subabas por capacidade | `navigation.test.ts`, `site.spec.ts` (ordem das 7 abas) | PASS (web) |
@@ -34,7 +34,7 @@ Requisitos de F02 em diante seguem NOT_STARTED (lista completa em `docs/especifi
 | UX-03 | Ícones/nomes/IDs dos 4 apps | realm + `F00_INVENTARIO.md`; ícones em `docs/especificacao/assets/apps` | PARTIAL — builds dos apps em F11–F14 |
 | UX-04 | Estados carregando/vazio/erro/sem permissão/conflito/offline/pendente | `App.test.tsx` (403, 412, pendente), `States.tsx` | PASS (web) |
 | UX-05 | Skip link, foco visível, labels, aria-live, alvo 44 px, movimento reduzido | `site.spec.ts` (teclado) | PARTIAL — falta auditoria com leitor de tela |
-| WEB-01..03 | Site integrado a serviços reais (sem botões falsos; módulos futuros rotulados por fase) | Playwright 47 testes (`F03-web-playwright.txt`) | PARTIAL — só módulos já existentes no backend |
+| WEB-01..03 | Site integrado a serviços reais (sem botões falsos; módulos futuros rotulados por fase) | Playwright 54 testes (`F03-web-playwright.txt`) | PARTIAL — só módulos já existentes no backend |
 
 Testes adicionais de F01: imutabilidade de `audit_events` (trigger), paginação por cursor, 412 por versão,
 concorrência entre administradores (`ConcurrencyIntegrationTest`, com teste de mutação).

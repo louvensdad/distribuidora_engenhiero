@@ -10,5 +10,7 @@ server:
       cookie:
         secure: false  # http://localhost apenas
 engenheiro:
+  storage:
+    local-dir: ${ENGENHEIRO_STORAGE_DIR:${user.home}/.local/share/engenheiro/objetos}
   seed-local:
     enabled: true

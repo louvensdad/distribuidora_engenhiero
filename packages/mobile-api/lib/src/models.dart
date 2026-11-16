@@ -304,3 +304,27 @@ String decimalText(String typed) {
   final t = typed.trim().replaceAll(' ', '');
   return t.contains(',') ? t.replaceAll('.', '').replaceAll(',', '.') : t;
 }
+
+/// Anexo privado (metadados). Bytes só pelo download autorizado.
+class DocumentInfo {
+  const DocumentInfo({required this.id, required this.fileName, required this.mime, required this.sizeBytes, required this.state,
+      this.rejection, required this.createdByName});
+  final String id;
+  final String fileName;
+  final String mime;
+  final int sizeBytes;
+  final String state;
+  final String? rejection;
+  final String createdByName;
+  bool get available => state == 'AVAILABLE';
+
+  factory DocumentInfo.fromJson(Map<String, dynamic> j) => DocumentInfo(
+        id: j['id'] as String,
+        fileName: j['file_name'] as String,
+        mime: j['mime'] as String,
+        sizeBytes: j['size_bytes'] as int,
+        state: j['state'] as String,
+        rejection: j['rejection'] as String?,
+        createdByName: j['created_by_name'] as String,
+      );
+}

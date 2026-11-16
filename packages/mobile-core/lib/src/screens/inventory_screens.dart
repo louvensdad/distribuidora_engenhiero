@@ -1,4 +1,6 @@
+import 'dart:typed_data';
 import 'package:engenheiro_api/engenheiro_api.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:engenheiro_design/engenheiro_design.dart';
 import 'package:material_ui/material_ui.dart';
 import '../labels.dart';
@@ -17,6 +19,21 @@ Widget _kv(String label, Widget value) => Padding(
         Expanded(child: value),
       ]),
     );
+
+/// Arquivo escolhido para anexar. [camera] = fotografar agora; senão galeria.
+typedef AttachmentPicker = Future<({String name, Uint8List bytes, String mime})?> Function({required bool camera});
+
+/// Seletor real (câmera/galeria do Android). Substituível em teste.
+AttachmentPicker attachmentPicker = ({required bool camera}) async {
+  final x = await ImagePicker().pickImage(
+      source: camera ? ImageSource.camera : ImageSource.gallery, imageQuality: 80, maxWidth: 2400, maxHeight: 2400);
+  if (x == null) return null;
+  final bytes = await x.readAsBytes();
+  // Tipo pelos bytes (o seletor pode recomprimir em JPEG mantendo o nome .png); o servidor confere de novo.
+  final png = bytes.length > 4 && bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47;
+  final name = x.name.isEmpty ? (png ? 'foto.png' : 'foto.jpg') : x.name;
+  return (name: name, bytes: bytes, mime: png ? 'image/png' : 'image/jpeg');
+};
 
 /// Saldo por produto: físico, reservado, disponível e perdas. Valor e custo médio só para quem vê custo.
 class StockScreen extends StatefulWidget {
@@ -190,8 +207,13 @@ class ReceiptDetailScreen extends StatefulWidget {
 
 class _ReceiptDetailScreenState extends State<ReceiptDetailScreen> {
   Receipt? _r;
+  List<DocumentInfo>? _docs;
   ApiException? _error;
   bool _busy = false;
+  bool _uploading = false;
+  final _costs = <int, TextEditingController>{};
+  final _freight = TextEditingController();
+  DateTime? _due;
   bool _changed = false;
   final _confirmKey = ApiClient.newIdempotencyKey();
 
@@ -203,8 +225,15 @@ class _ReceiptDetailScreenState extends State<ReceiptDetailScreen> {
 
   Future<void> _load() async {
     try {
-      final r = await EngScope.of(context).api.receipt(widget.id);
-      if (mounted) setState(() => _r = r);
+      final api = EngScope.of(context).api;
+      final r = await api.receipt(widget.id);
+      final docs = await api.receiptAttachments(widget.id);
+      if (mounted) {
+        setState(() {
+          _r = r;
+          _docs = docs;
+        });
+      }
     } on ApiException catch (e) {
       if (mounted) setState(() => _error = e);
     }
@@ -213,7 +242,11 @@ class _ReceiptDetailScreenState extends State<ReceiptDetailScreen> {
   Future<void> _confirm() async {
     setState(() => _busy = true);
     try {
-      final r = await EngScope.of(context).api.confirmReceipt(id: _r!.id, version: _r!.version, idempotencyKey: _confirmKey);
+      final r = await EngScope.of(context).api.confirmReceipt(
+          id: _r!.id, version: _r!.version, idempotencyKey: _confirmKey,
+          unitCosts: {for (final e in _costs.entries) e.key: e.value.text},
+          freightAmount: _freight.text,
+          dueDate: _due == null ? null : '${_due!.year.toString().padLeft(4, '0')}-${_due!.month.toString().padLeft(2, '0')}-${_due!.day.toString().padLeft(2, '0')}');
       if (mounted) {
         setState(() {
           _r = r;
@@ -227,6 +260,59 @@ class _ReceiptDetailScreenState extends State<ReceiptDetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
       }
     }
+  }
+
+  Future<void> _attach(bool camera) async {
+    final api = EngScope.of(context).api;
+    final messenger = ScaffoldMessenger.of(context);
+    final picked = await attachmentPicker(camera: camera);
+    if (picked == null || !mounted) return;
+    setState(() => _uploading = true);
+    try {
+      final d = await api.uploadReceiptAttachment(id: widget.id, fileName: picked.name, bytes: picked.bytes, contentType: picked.mime);
+      final docs = await api.receiptAttachments(widget.id);
+      if (!mounted) return;
+      setState(() => _docs = docs);
+      messenger.showSnackBar(SnackBar(content: Text(d.available ? 'Anexo enviado.' : 'Arquivo recusado: ${d.rejection}')));
+    } on ApiException catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(e.isNetwork ? 'Sem conexão. O anexo não foi enviado.' : e.message)));
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
+  }
+
+  Widget _attachments(bool canAttach) {
+    final docs = _docs ?? const <DocumentInfo>[];
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('Anexos', style: TextStyle(fontWeight: FontWeight.w600)),
+          const Text('Foto da carga, nota ou romaneio. O servidor confere o conteúdo; antivírus ainda não configurado.',
+              style: TextStyle(color: EngColors.muted, fontSize: 12)),
+          if (docs.isEmpty) const Padding(padding: EdgeInsets.only(top: 6), child: Text('Nenhum anexo.')),
+          for (final d in docs)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Row(children: [
+                EngIcon(d.available ? 'attachment' : 'close', size: 16, color: d.available ? EngColors.green : EngColors.error),
+                const SizedBox(width: 6),
+                Expanded(child: Text('${d.fileName} · ${(d.sizeBytes / 1024).ceil()} KB${d.available ? '' : ' · recusado'}',
+                    overflow: TextOverflow.ellipsis)),
+              ]),
+            ),
+          if (canAttach) ...[
+            const SizedBox(height: 8),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              OutlinedButton.icon(onPressed: _uploading ? null : () => _attach(true),
+                  icon: const EngIcon('attachment', size: 16), label: Text(_uploading ? 'Enviando…' : 'Fotografar')),
+              OutlinedButton.icon(onPressed: _uploading ? null : () => _attach(false),
+                  icon: const EngIcon('document', size: 16), label: const Text('Da galeria')),
+            ]),
+          ],
+        ]),
+      ),
+    );
   }
 
   @override
@@ -270,10 +356,34 @@ class _ReceiptDetailScreenState extends State<ReceiptDetailScreen> {
                           ]),
                         ),
                       ),
+                    const SizedBox(height: 8),
+                    _attachments(me.can('inventory.receipts.create') || me.can('inventory.receipts.confirm')),
                     if (r.isDraft && me.can('inventory.receipts.confirm')) ...[
                       const SizedBox(height: 16),
-                      const Text('Ao confirmar, as quantidades entram no estoque físico. Sem custo informado por quem tem acesso, o servidor não confirma.',
+                      const Text('Ao confirmar, as quantidades entram no estoque físico e nasce a conta a pagar. Sem custo informado por quem tem acesso, o servidor não confirma.',
                           style: TextStyle(color: EngColors.muted)),
+                      if (me.canSeeField('purchase_cost')) ...[
+                        for (final l in r.lines)
+                          TextField(
+                            controller: _costs.putIfAbsent(l.lineNo, () => TextEditingController(text: l.unitCost ?? '')),
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            decoration: InputDecoration(labelText: 'Custo unitário — ${l.productName} (por ${unitLabel(l.unit, '1')})'),
+                          ),
+                        TextField(controller: _freight, keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            decoration: const InputDecoration(labelText: 'Frete de compra autorizado (R\$)',
+                                helperText: 'Rateado pelo valor e incorporado ao custo')),
+                      ],
+                      const SizedBox(height: 8),
+                      OutlinedButton(
+                        onPressed: () async {
+                          final now = DateTime.now();
+                          final d = await showDatePicker(context: context, firstDate: now.subtract(const Duration(days: 30)),
+                              lastDate: now.add(const Duration(days: 365)), initialDate: _due ?? now.add(const Duration(days: 30)));
+                          if (d != null) setState(() => _due = d);
+                        },
+                        child: Text(_due == null ? 'Vencimento da conta a pagar (opcional)'
+                            : 'Vencimento: ${_due!.day.toString().padLeft(2, '0')}/${_due!.month.toString().padLeft(2, '0')}/${_due!.year}'),
+                      ),
                       const SizedBox(height: 8),
                       FilledButton(onPressed: _busy ? null : _confirm, child: Text(_busy ? 'Confirmando…' : 'Confirmar entrada')),
                     ],

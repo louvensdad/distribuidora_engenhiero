@@ -55,9 +55,15 @@ public class ReceiptService {
     private final ProductService products;
     private final SupplierService suppliers;
     private final StockLedger ledger;
+    private final br.com.engenheiro.api.finance.PayableService payables;
+    private final br.com.engenheiro.api.documents.DocumentService documents;
 
     public ReceiptService(JdbcClient jdbc, AuthorizationService authz, AuditService audit, IdempotencyService idem,
-                          ProductService products, SupplierService suppliers, StockLedger ledger) {
+                          ProductService products, SupplierService suppliers, StockLedger ledger,
+                          br.com.engenheiro.api.finance.PayableService payables,
+                          br.com.engenheiro.api.documents.DocumentService documents) {
+        this.payables = payables;
+        this.documents = documents;
         this.jdbc = jdbc;
         this.authz = authz;
         this.audit = audit;
@@ -79,7 +85,7 @@ public class ReceiptService {
     public record LineCost(int line_no, String unit_cost) {
     }
 
-    public record ConfirmCommand(String freight_amount, List<LineCost> lines) {
+    public record ConfirmCommand(String freight_amount, List<LineCost> lines, String payment_due_date) {
     }
 
     public record ReturnCommand(int line_no, String quantity, String reason) {
@@ -208,7 +214,7 @@ public class ReceiptService {
     @Transactional
     public ReceiptView confirm(Actor actor, UUID id, String idemKey, long expectedVersion, ConfirmCommand cmd) {
         Row row = requireRow(actor, id, "confirm");
-        ConfirmCommand body = cmd == null ? new ConfirmCommand(null, List.of()) : cmd;
+        ConfirmCommand body = cmd == null ? new ConfirmCommand(null, List.of(), null) : cmd;
         Map<String, Object> request = new HashMap<>();
         request.put("id", id.toString());
         request.put("version", expectedVersion);
@@ -238,6 +244,14 @@ public class ReceiptService {
         }
         if (cmd.freight_amount() != null && !cmd.freight_amount().isBlank()) {
             freight = Decimals.parseOptional(cmd.freight_amount(), Decimals.MONEY_SCALE, "freight_amount", errors);
+        }
+        java.time.LocalDate dueDate = null;
+        if (cmd.payment_due_date() != null && !cmd.payment_due_date().isBlank()) {
+            try {
+                dueDate = java.time.LocalDate.parse(cmd.payment_due_date().strip());
+            } catch (java.time.format.DateTimeParseException e) {
+                errors.add(new FieldError("payment_due_date", "Data no formato AAAA-MM-DD"));
+            }
         }
         List<LineRow> lines = lines(row.id());
         Map<Integer, BigDecimal> costs = new HashMap<>();
@@ -315,11 +329,14 @@ public class ReceiptService {
         }
         jdbc.sql("""
                         UPDATE inventory_receipts SET status = 'CONFIRMED', freight_amount = :fr, total_cost = :tc,
-                                                      confirmed_by = :by, confirmed_at = now()
+                                                      confirmed_by = :by, confirmed_at = now(), payment_due_date = :due
                          WHERE id = :id
                         """)
                 .param("fr", freightTotal).param("tc", goodsTotal.add(freightTotal)).param("by", actor.userId())
-                .param("id", row.id()).update();
+                .param("due", dueDate).param("id", row.id()).update();
+        // Confirmação cria a obrigação a pagar ao fornecedor (passivo; a compra não é despesa do período).
+        payables.createForReceipt(actor, row.branchId(), row.id(), row.supplierId(), row.supplierName(),
+                row.documentNumber(), goodsTotal.add(freightTotal), dueDate);
         audit.record(entry(actor, "inventory.receipts.confirm", row.id(), Map.of("lines", lines.size(),
                 "freight_informed", freightTotal.signum() > 0))); // valores de custo ficam fora da trilha
         return view(actor, find(row.id()).orElseThrow());
@@ -377,6 +394,33 @@ public class ReceiptService {
         return new ReturnResult(row.id(), line.lineNo(), m.id(), Decimals.str(baseQty),
                 seesCost ? Decimals.moneyStr(m.totalCost().negate()) : null,
                 seesCost ? List.of() : List.of("total_cost"));
+    }
+
+    /** Anexo (nota, romaneio, foto da carga): quem registra ou confere este recebimento. */
+    @Transactional
+    public br.com.engenheiro.api.documents.DocumentService.DocumentView attach(Actor actor, UUID id, String fileName,
+                                                                               byte[] bytes) {
+        Row row = find(id).orElse(null);
+        if (row == null) {
+            authz.require(actor, RESOURCE, "create");
+            throw ApiException.notFound();
+        }
+        RecordRef ref = new RecordRef(row.organizationId(), row.branchId(), null, row.createdBy(), null);
+        Decision create = authz.decide(actor, RESOURCE, "create");
+        boolean ok = create.allowed() && br.com.engenheiro.api.identityaccess.domain.AccessPolicy.recordInScope(
+                actor, create.scopes(), ref);
+        if (!ok) {
+            // Mesma resposta de um ID inexistente para quem tem a capacidade mas não alcança o registro (404).
+            String action = authz.decide(actor, RESOURCE, "confirm").allowed() || !create.allowed() ? "confirm" : "create";
+            authz.requireRecord(actor, RESOURCE, action, "inventory_receipt", id.toString(), ref);
+        }
+        return documents.attach(actor, row.branchId(), "inventory_receipt", row.id(), fileName, bytes);
+    }
+
+    @Transactional(readOnly = true)
+    public List<br.com.engenheiro.api.documents.DocumentService.DocumentView> attachments(Actor actor, UUID id) {
+        Row row = requireRow(actor, id, "view");
+        return documents.list("inventory_receipt", row.id());
     }
 
     @Transactional(readOnly = true)

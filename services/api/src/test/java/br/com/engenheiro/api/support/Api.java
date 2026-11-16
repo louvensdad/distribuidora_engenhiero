@@ -50,6 +50,29 @@ public final class Api {
         return send(b.build());
     }
 
+    /** Envio multipart com um único arquivo no campo "file". */
+    public Res upload(String path, String token, String fileName, String contentType, byte[] bytes) {
+        String boundary = "----engenheiro" + System.nanoTime();
+        var out = new java.io.ByteArrayOutputStream();
+        String head = "--" + boundary + "\r\nContent-Disposition: form-data; name=\"file\"; filename=\"" + fileName
+                + "\"\r\nContent-Type: " + contentType + "\r\n\r\n";
+        out.writeBytes(head.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        out.writeBytes(bytes);
+        out.writeBytes(("\r\n--" + boundary + "--\r\n").getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        return send(req(path, token).header("Content-Type", "multipart/form-data; boundary=" + boundary)
+                .POST(HttpRequest.BodyPublishers.ofByteArray(out.toByteArray())).build());
+    }
+
+    public Res getBytes(String path, String token) {
+        try {
+            HttpResponse<byte[]> res = http.send(req(path, token).GET().build(), HttpResponse.BodyHandlers.ofByteArray());
+            return new Res(res.statusCode(), new String(res.body(), java.nio.charset.StandardCharsets.ISO_8859_1),
+                    res.headers().map());
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     private HttpRequest.Builder req(String path, String token) {
         HttpRequest.Builder b = HttpRequest.newBuilder(URI.create(base + path));
         if (token != null) {

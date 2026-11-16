@@ -8,6 +8,7 @@ import { Field, FormError, Hidden, fieldError } from "../../components/Form";
 import { Icon } from "../../components/Icon";
 import { ConflictState, EmptyState, ErrorState, ForbiddenState, LoadingState } from "../../components/States";
 import { useSession } from "../../session/SessionContext";
+import { AdjustmentsSection, CountForm } from "./Adjustments";
 
 interface Summary { totals: { base_unit: string; physical: string; reserved: string; available: string; lost: string; products: number }[] }
 
@@ -18,7 +19,8 @@ export const LOSS_REASONS: Record<LossReason, string> = {
 const LOSS_STATUS: Record<Loss["status"], string> = { PENDING: "Aguardando aprovação", APPROVED: "Aprovada", REJECTED: "Recusada", REVERSED: "Estornada" };
 export const MOVEMENT_KIND: Record<StockMovement["kind"], string> = {
   RECEIPT: "Entrada de fornecedor", SUPPLIER_RETURN: "Devolução ao fornecedor", LOSS: "Perda", LOSS_REVERSAL: "Estorno de perda",
-  SALE_ISSUE: "Saída por venda", SALE_RETURN: "Devolução de cliente",
+  SALE_ISSUE: "Saída por venda", SALE_RETURN: "Devolução de cliente", ADJUSTMENT_IN: "Ajuste de contagem (sobra)",
+  ADJUSTMENT_OUT: "Ajuste de contagem (falta)",
 };
 
 /** W05 — Estoque, reservas e fornecedores. Totais e saldos vêm do servidor; custo só com acesso a custo. */
@@ -29,6 +31,7 @@ export function StockPage() {
   const [registering, setRegistering] = useState(false);
   const [openProduct, setOpenProduct] = useState<string | null>(null);
   const [lossesVersion, setLossesVersion] = useState(0);
+  const [counting, setCounting] = useState(false);
   const reload = () => { reloadSummary(); reloadBalances(); };
 
   return (
@@ -44,6 +47,9 @@ export function StockPage() {
           )}
           {can("inventory.losses.create") && !registering && (
             <button className="btn" onClick={() => setRegistering(true)}><Icon name="loss" size={16} /> Registrar perda</button>
+          )}
+          {can("inventory.losses.create") && !counting && (
+            <button className="btn" onClick={() => setCounting(true)}><Icon name="inventory" size={16} /> Registrar contagem</button>
           )}
         </div>
       </header>
@@ -61,6 +67,8 @@ export function StockPage() {
       ))}
 
       {registering && <LossForm onDone={(ok) => { setRegistering(false); if (ok) { reload(); setLossesVersion((v) => v + 1); } }} />}
+
+      {counting && <CountForm onDone={(ok) => { setCounting(false); if (ok) setLossesVersion((v) => v + 1); }} />}
 
       <h2 className="h3">Saldo por produto</h2>
       {balances.status === "loading" && <LoadingState />}
@@ -91,6 +99,7 @@ export function StockPage() {
       ))}
 
       {can("inventory.losses.view") && <LossesSection key={lossesVersion} onChange={reload} />}
+      {can("inventory.losses.view") && <AdjustmentsSection key={"a" + lossesVersion} onChange={reload} />}
     </section>
   );
 }

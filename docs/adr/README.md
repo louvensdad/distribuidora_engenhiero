@@ -22,3 +22,4 @@ ou de provedores; mudanças exigem novo ADR com o modelo `docs/especificacao/tem
 | ADR-014 | Acesso a dados com Spring JDBC (sem ORM) na F01 | ADOTADA | Ver `ADR-014.md` |
 | ADR-015 | Site em React + Vite (Node) em vez de Angular | ADOTADA (pedido do responsável) | Ver `ADR-015.md`; substitui a parte web da ADR-002 |
 | ADR-016 | Regras de estoque da F03 (custo médio, frete, reservas, perdas, devoluções) | ADOTADA (validar com contador, D12) | Ver `ADR-016.md` |
+| ADR-017 | Funções sem recurso no contrato (contas a pagar, unidades) só para administrador | ADOTADA (provisória) | Ver `ADR-017.md` |

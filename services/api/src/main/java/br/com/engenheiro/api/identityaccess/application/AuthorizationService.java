@@ -66,6 +66,16 @@ public class AuthorizationService {
         }
     }
 
+    /**
+     * Funções sem recurso próprio no contrato de permissões (ADR-017): só administrador, auditando a negação.
+     */
+    public void requireAdmin(Actor actor, String capability) {
+        if (!actor.admin()) {
+            denied(actor, capability, null, null, "exige administrador (sem recurso no contrato)");
+            throw ApiException.forbidden();
+        }
+    }
+
     public boolean canSeeField(Actor actor, FieldClass field) {
         return AccessPolicy.canSeeField(actor, field);
     }

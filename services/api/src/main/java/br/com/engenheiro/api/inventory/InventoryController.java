@@ -32,8 +32,11 @@ public class InventoryController {
     private final ReceiptService receipts;
     private final LossService losses;
     private final StockQueryService stock;
+    private final AdjustmentService adjustments;
 
-    public InventoryController(ReceiptService receipts, LossService losses, StockQueryService stock) {
+    public InventoryController(ReceiptService receipts, LossService losses, StockQueryService stock,
+                               AdjustmentService adjustments) {
+        this.adjustments = adjustments;
         this.receipts = receipts;
         this.losses = losses;
         this.stock = stock;
@@ -74,6 +77,19 @@ public class InventoryController {
                                                          @RequestHeader(value = IDEM, required = false) String key,
                                                          @RequestBody ReturnCommand body) {
         return noStore(receipts.returnToSupplier(actor, id, key, body));
+    }
+
+    @PostMapping(value = "/receipts/{id}/attachments", consumes = "multipart/form-data")
+    public ResponseEntity<br.com.engenheiro.api.documents.DocumentService.DocumentView> attach(Actor actor,
+            @PathVariable UUID id, @org.springframework.web.bind.annotation.RequestParam("file")
+            org.springframework.web.multipart.MultipartFile file) throws java.io.IOException {
+        var v = receipts.attach(actor, id, file.getOriginalFilename(), file.getBytes());
+        return ResponseEntity.status(201).cacheControl(CacheControl.noStore()).body(v);
+    }
+
+    @GetMapping("/receipts/{id}/attachments")
+    public ResponseEntity<java.util.Map<String, Object>> attachments(Actor actor, @PathVariable UUID id) {
+        return noStore(java.util.Map.of("items", receipts.attachments(actor, id)));
     }
 
     @GetMapping("/balances")
@@ -136,6 +152,36 @@ public class InventoryController {
                                                 @RequestHeader(value = "If-Match", required = false) String ifMatch,
                                                 @RequestBody DecisionCommand body) {
         return loss(losses.reverse(actor, id, key, IfMatch.version(ifMatch), body));
+    }
+
+    @PostMapping("/adjustments")
+    public ResponseEntity<AdjustmentService.AdjustmentView> createAdjustment(Actor actor,
+            @RequestHeader(value = IDEM, required = false) String key, @RequestBody AdjustmentService.CreateCommand body) {
+        AdjustmentService.AdjustmentView v = adjustments.create(actor, key, body);
+        return ResponseEntity.created(URI.create("/api/v1/inventory/adjustments/" + v.id()))
+                .eTag("\"" + v.version() + "\"").cacheControl(CacheControl.noStore()).body(v);
+    }
+
+    @GetMapping("/adjustments")
+    public ResponseEntity<AdjustmentService.Page> listAdjustments(Actor actor, @RequestParam(required = false) String status,
+                                                                  @RequestParam(defaultValue = "25") int limit,
+                                                                  @RequestParam(required = false) String cursor) {
+        return noStore(adjustments.list(actor, status, limit, cursor));
+    }
+
+    @PostMapping("/adjustments/{id}/approve")
+    public ResponseEntity<AdjustmentService.AdjustmentView> approveAdjustment(Actor actor, @PathVariable UUID id,
+            @RequestHeader(value = IDEM, required = false) String key,
+            @RequestHeader(value = "If-Match", required = false) String ifMatch) {
+        return noStore(adjustments.approve(actor, id, key, IfMatch.version(ifMatch)));
+    }
+
+    @PostMapping("/adjustments/{id}/reject")
+    public ResponseEntity<AdjustmentService.AdjustmentView> rejectAdjustment(Actor actor, @PathVariable UUID id,
+            @RequestHeader(value = IDEM, required = false) String key,
+            @RequestHeader(value = "If-Match", required = false) String ifMatch,
+            @RequestBody AdjustmentService.DecisionCommand body) {
+        return noStore(adjustments.reject(actor, id, key, IfMatch.version(ifMatch), body));
     }
 
     private static ResponseEntity<LossView> loss(LossView v) {

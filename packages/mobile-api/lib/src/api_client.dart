@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart' show MediaType;
 import 'api_exception.dart';
 import 'models.dart';
 
@@ -64,8 +65,32 @@ class ApiClient {
         'lines': [for (final l in lines) l.toJson()],
       }, idempotencyKey: idempotencyKey));
 
-  Future<Receipt> confirmReceipt({required String id, required int version, required String idempotencyKey}) async =>
-      Receipt.fromJson(await _post('/api/v1/inventory/receipts/$id/confirm', null, ifMatch: '"$version"', idempotencyKey: idempotencyKey));
+  /// [unitCosts]: linha → custo unitário digitado (só quem vê custo); [dueDate] AAAA-MM-DD da conta a pagar.
+  Future<Receipt> confirmReceipt({required String id, required int version, required String idempotencyKey,
+      Map<int, String> unitCosts = const {}, String? freightAmount, String? dueDate}) async {
+    final costs = {for (final e in unitCosts.entries) if (e.value.trim().isNotEmpty) e.key: decimalText(e.value)};
+    final body = <String, dynamic>{
+      if (costs.isNotEmpty) 'lines': [for (final e in costs.entries) {'line_no': e.key, 'unit_cost': e.value}],
+      if (freightAmount != null && freightAmount.trim().isNotEmpty) 'freight_amount': decimalText(freightAmount),
+      if (dueDate != null && dueDate.isNotEmpty) 'payment_due_date': dueDate,
+    };
+    return Receipt.fromJson(await _post('/api/v1/inventory/receipts/$id/confirm', body.isEmpty ? null : body,
+        ifMatch: '"$version"', idempotencyKey: idempotencyKey));
+  }
+
+  Future<List<DocumentInfo>> receiptAttachments(String id) async {
+    final j = await _get('/api/v1/inventory/receipts/$id/attachments');
+    return [for (final d in j['items'] as List) DocumentInfo.fromJson(d as Map<String, dynamic>)];
+  }
+
+  /// Envia foto/arquivo (JPEG, PNG ou PDF até 10 MB). O servidor valida o conteúdo real e pode recusar.
+  Future<DocumentInfo> uploadReceiptAttachment({required String id, required String fileName, required List<int> bytes,
+          required String contentType}) async =>
+      DocumentInfo.fromJson(await _send(() {
+        final r = http.MultipartRequest('POST', baseUrl.replace(path: '/api/v1/inventory/receipts/$id/attachments'))
+          ..files.add(http.MultipartFile.fromBytes('file', bytes, filename: fileName, contentType: MediaType.parse(contentType)));
+        return r;
+      }));
 
   /// Chave aleatória para um comando (uma por intenção do usuário).
   static String newIdempotencyKey() {
@@ -92,7 +117,7 @@ class ApiClient {
 
   /// Um 401 provoca uma única renovação de token e nova tentativa. Mutações só são repetidas após 401
   /// (servidor recusou antes de processar), nunca após timeout.
-  Future<Map<String, dynamic>> _send(http.Request Function() build, {bool retried = false}) async {
+  Future<Map<String, dynamic>> _send(http.BaseRequest Function() build, {bool retried = false}) async {
     final token = await tokenProvider(forceRefresh: retried);
     if (token == null) throw ApiException(status: 401, code: 'UNAUTHENTICATED', detail: 'Sessão encerrada. Entre novamente.');
     final req = build()

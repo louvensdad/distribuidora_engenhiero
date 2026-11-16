@@ -94,5 +94,27 @@ export const api = {
     request<T>(path, { method: "POST", body, ifMatch, idempotencyKey }),
 };
 
+/** Envio de arquivo (multipart). Sessão por cookie + CSRF, como as demais mutações. */
+export async function uploadFile<T>(path: string, file: File): Promise<T> {
+  const headers: Record<string, string> = { Accept: "application/json" };
+  const csrf = readCookie("XSRF-TOKEN");
+  if (csrf) headers["X-XSRF-TOKEN"] = decodeURIComponent(csrf);
+  const form = new FormData();
+  form.append("file", file);
+  let res: Response;
+  try {
+    res = await fetch(path, { method: "POST", headers, body: form, credentials: "same-origin" });
+  } catch {
+    throw new ApiError({ status: 0, code: "NETWORK_ERROR", detail: "Sem conexão com o servidor." });
+  }
+  const text = await res.text();
+  const json = text ? safeJson(text) : null;
+  if (!res.ok) {
+    if (res.status === 401) window.dispatchEvent(new Event(UNAUTHENTICATED_EVENT));
+    throw new ApiError({ ...((json as Problem | null) ?? { code: "HTTP_" + res.status }), status: res.status } as Problem);
+  }
+  return json as T;
+}
+
 /** Nova chave de idempotência (uma por intenção do usuário; reusar em nova tentativa). */
 export const newIdempotencyKey = () => "web-" + crypto.randomUUID();

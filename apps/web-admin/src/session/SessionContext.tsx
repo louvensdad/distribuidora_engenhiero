@@ -54,7 +54,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     return {
       state,
       me,
-      can: (c) => caps.has(c),
+      // "admin": funções sem recurso no contrato (ADR-017). Só monta menu; o servidor decide.
+      can: (c) => (c === "admin" ? me?.admin === true : caps.has(c)),
       canSeeField: (f) => me?.fields[f] === true,
       reload: () => load(),
       logout: async () => {
