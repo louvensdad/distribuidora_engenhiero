@@ -1,0 +1,20 @@
+# F03 — componentes móveis de estoque (2026-11-16T11:19:15-03:00)
+
+## Análise e testes Dart
+flutter analyze → No issues found!
+packages/mobile-api: +6 · packages/mobile-auth: +6 · packages/mobile-core: +10 · apps owner +3, counter +2, delivery +3, accountant +3
+TOTAL 33 testes Dart, 0 falhas (eram 29 na F02)
+Novos: inventory_test.dart (R07 sem custo com Idempotency-Key; estoque com valor oculto; formatação decimal sem float),
+       api_client_test.dart (confirmação com If-Match + Idempotency-Key).
+Defeito encontrado pelo teste e corrigido: seletor de medida "feixes (= 3 dúzias)" estourava a largura (RenderFlex overflow).
+
+## APKs debug instalados no emulador engenheiro_api36 (adb reverse 8180/8081)
+apps/mobile-counter (br.com.engenheiro.retirada) e apps/mobile-owner (br.com.engenheiro.gestao): flutter build apk --debug → Built; adb install → Success
+
+## Ponta a ponta no emulador com Keycloak 26.8.1 + API real (usuário fictício recebimento, modelo RECEBIMENTO)
+- Login: infra/local/e2e_login_mobile.sh br.com.engenheiro.retirada recebimento → MainActivity em primeiro plano
+- Shell: só "Fornecedores" e "Estoque" (capacidades do vínculo); total dos recebimentos "oculto" (telas-mobile/F03-retirada-recebimento-login.png)
+- R07: fornecedor, produto, medida feixe, prevista 10, aceita 8, lote L-07, sem campos de custo/frete → Salvar rascunho
+  Detalhe: "Rascunho — aguardando conferência", 8 feixes (= 24 dúzias), diferença −2, custo "oculto" (F03-retirada-r07-rascunho.png)
+- Banco (psql): status DRAFT, autor Recebimento Exemplo, base_quantity 24, unit_cost NULL, freight NULL, 0 movimentos de estoque
+- Auditoria: inventory.receipts.create | client_id engenheiro-retirada | SUCCESS | {"lines": 1, "cost_informed": false}

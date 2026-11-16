@@ -109,4 +109,25 @@ void main() {
     expect(me.capabilities.single.maxAmount, '150.00');
     expect(me.canSeeField('personal_document'), isFalse);
   });
+
+  test('confirmação de recebimento envia If-Match e Idempotency-Key, sem corpo', () async {
+    late http.Request seen;
+    final api = ApiClient(
+      baseUrl: base,
+      tokenProvider: ({bool forceRefresh = false}) async => 'tok',
+      httpClient: MockClient((r) async {
+        seen = r;
+        return json(200, {'id': 'r1', 'status': 'CONFIRMED', 'supplier_name': 'Sítio', 'received_at': '2026-11-16T12:00:00Z',
+          'created_by_name': 'Recebimento', 'version': 2, 'lines': [], 'masked_fields': []});
+      }),
+    );
+    final key = ApiClient.newIdempotencyKey();
+    final r = await api.confirmReceipt(id: 'r1', version: 1, idempotencyKey: key);
+    expect(seen.url.path, '/api/v1/inventory/receipts/r1/confirm');
+    expect(seen.headers['If-Match'], '"1"');
+    expect(seen.headers['Idempotency-Key'], key);
+    expect(seen.body, isEmpty);
+    expect(r.isDraft, isFalse);
+    expect(ApiClient.newIdempotencyKey(), isNot(key));
+  });
 }

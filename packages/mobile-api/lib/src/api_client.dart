@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'api_exception.dart';
 import 'models.dart';
@@ -37,16 +38,55 @@ class ApiClient {
           {'limit': '$limit', 'cursor': ?cursor, 'actor_user_id': ?actorUserId, 'client_id': ?clientId}),
       AuditEvent.fromJson);
 
+  // ---- F03: estoque ----
+  Future<ApiPage<Product>> products({int limit = 100}) async =>
+      ApiPage.fromJson(await _get('/api/v1/products', {'limit': '$limit'}), Product.fromJson);
+
+  Future<ApiPage<Supplier>> suppliers({int limit = 100}) async =>
+      ApiPage.fromJson(await _get('/api/v1/suppliers', {'limit': '$limit'}), Supplier.fromJson);
+
+  Future<ApiPage<StockBalance>> balances({String? query, int limit = 100}) async =>
+      ApiPage.fromJson(await _get('/api/v1/inventory/balances', {'limit': '$limit', 'q': ?query}), StockBalance.fromJson);
+
+  Future<ApiPage<Receipt>> receipts({String? status, int limit = 50}) async =>
+      ApiPage.fromJson(await _get('/api/v1/inventory/receipts', {'limit': '$limit', 'status': ?status}), Receipt.fromJson);
+
+  Future<Receipt> receipt(String id) async => Receipt.fromJson(await _get('/api/v1/inventory/receipts/$id'));
+
+  /// [idempotencyKey]: a mesma chave em nova tentativa nunca cria um segundo recebimento.
+  Future<Receipt> createReceipt({required String idempotencyKey, required String supplierId, String? documentNumber,
+          String? notes, String? freightAmount, required List<ReceiptLineInput> lines}) async =>
+      Receipt.fromJson(await _post('/api/v1/inventory/receipts', {
+        'supplier_id': supplierId,
+        if (documentNumber != null && documentNumber.trim().isNotEmpty) 'document_number': documentNumber.trim(),
+        if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
+        if (freightAmount != null && freightAmount.trim().isNotEmpty) 'freight_amount': decimalText(freightAmount),
+        'lines': [for (final l in lines) l.toJson()],
+      }, idempotencyKey: idempotencyKey));
+
+  Future<Receipt> confirmReceipt({required String id, required int version, required String idempotencyKey}) async =>
+      Receipt.fromJson(await _post('/api/v1/inventory/receipts/$id/confirm', null, ifMatch: '"$version"', idempotencyKey: idempotencyKey));
+
+  /// Chave aleatória para um comando (uma por intenção do usuário).
+  static String newIdempotencyKey() {
+    final r = Random.secure();
+    return 'app-${List.generate(16, (_) => r.nextInt(256).toRadixString(16).padLeft(2, '0')).join()}';
+  }
+
   Future<Map<String, dynamic>> _get(String path, [Map<String, String?> query = const {}]) {
     final q = {for (final e in query.entries) if (e.value != null && e.value!.isNotEmpty) e.key: e.value!};
     return _send(() => http.Request('GET', baseUrl.replace(path: path, queryParameters: q.isEmpty ? null : q)));
   }
 
-  Future<Map<String, dynamic>> _post(String path, Object body, {String? ifMatch}) => _send(() {
-        final r = http.Request('POST', baseUrl.replace(path: path))
-          ..headers['Content-Type'] = 'application/json'
-          ..body = jsonEncode(body);
+  Future<Map<String, dynamic>> _post(String path, Object? body, {String? ifMatch, String? idempotencyKey}) => _send(() {
+        final r = http.Request('POST', baseUrl.replace(path: path));
+        if (body != null) {
+          r
+            ..headers['Content-Type'] = 'application/json'
+            ..body = jsonEncode(body);
+        }
         if (ifMatch != null) r.headers['If-Match'] = ifMatch;
+        if (idempotencyKey != null) r.headers['Idempotency-Key'] = idempotencyKey;
         return r;
       });
 

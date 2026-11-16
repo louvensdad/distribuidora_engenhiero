@@ -1,10 +1,10 @@
 # Checkpoint
 
-Data/hora e fuso: 15/11/2026 10:00 America/Sao_Paulo
-Agente e repositório: Claude Code (Opus 5.5) — `/home/louvens/distribuidora-engenheiro`
+Data/hora e fuso: 16/11/2026 11:30 America/Sao_Paulo
+Agente e repositório: Claude Code (Opus 5.5) — `/home/louvens/Ivan/distribuidora-engenheiro` (movido de `~/distribuidora-engenheiro`)
 Branch e commit atual: `main` — ver `git log -1`
-Fase: F02 concluída (web + 4 apps com login ponta a ponta no emulador)
-Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **IN_PROGRESS** (fatia clientes)
+Fase: F03 concluída com limites (estoque na API, site e app Retirada)
+Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS com limites** (ver abaixo) · F04 **NOT_STARTED**
 
 ## Entregue e comprovado
 
@@ -44,6 +44,18 @@ API: `/audit-events?client_id=` (atividades por app de origem, para a Central do
 **Toolchain móvel** — Flutter 3.50.0 + Android SDK 36 instalados em `~/development/flutter` e `~/Android/Sdk`
 (sem sudo, downloads verificados por hash); APK debug de prova gerado. Licenças do Android SDK aceitas via `sdkmanager --licenses`.
 
+**F03** — cadastros, fornecedores e estoque (ADR-016):
+- V4: `products` + `unit_conversions` (fator por produto, vigência), `suppliers`, `inventory_receipts(+lines)`,
+  `inventory_balances` (físico ≥ reservado ≥ 0, valor ≥ 0), `stock_movements` imutável com origem única,
+  `stock_reservations`, `inventory_losses`, `idempotency_keys`.
+- `StockLedger`: custo médio móvel, saída pelo médio, devolução pelo custo histórico, reserva atômica,
+  `fulfillReservation` pronto para o cumprimento da F04.
+- 20 endpoints novos no contrato (produtos, fornecedores, recebimentos, saldos/resumo, movimentos, perdas);
+  `Idempotency-Key` nos comandos, `If-Match` nas transições; custo mascarado sem `purchase_cost`.
+- Site: Operação > Estoque (W05), Recebimentos (W06 + detalhe com conferência e devolução), Produtos, Fornecedores.
+- Apps: telas comuns `StockScreen`, `ReceiptsScreen`, `NewReceiptScreen` (R07), `ReceiptDetailScreen` em `mobile-core`;
+  Retirada ganhou "Fornecedores" e "Estoque"; Patrão abre Estoque e Recebimentos em "Mais".
+
 ## Validação
 
 - `./mvnw verify` → **75 testes, 0 falhas** (`docs/evidence/F01-mvnw-verify.txt`).
@@ -65,9 +77,24 @@ API: `/audit-events?client_id=` (atividades por app de origem, para a Central do
   Sem rota ao IdP: erro de conexão, sem sessão falsa.
 - Backend com filtro `client_id`: `./mvnw verify` → **78 testes, 0 falhas**.
 
+- **F03**: `./mvnw verify` → **90 testes, 0 falhas** (`F03-mvnw-verify.txt`), incluindo os critérios de aceite
+  (reservas concorrentes, 100 recebidas/20 vendidas, perda baixada uma vez); mutação da reserva pega pelo teste
+  (`F03-testes-de-mutacao.txt`). Site: Vitest **24**, Playwright **47** no Chrome real (`F03-web-vitest.txt`,
+  `F03-web-playwright.txt`). Apps: `flutter analyze` limpo, **33** testes Dart; APK Retirada no emulador com o usuário
+  `recebimento` real: rascunho sem custo, diferença registrada, auditoria com app de origem (`F03-mobile.txt`).
+
 Problemas encontrados e corrigidos nesta etapa: seed local como `V1000` impedia novas migrations (agora `R__` idempotente,
 com teste); tabela estourava a largura no celular por texto `visually-hidden` absoluto; matriz de acessos longa demais
 (agora agrupada por área).
+
+## Limites do gate F03 (explícitos)
+
+- **Anexos** do recebimento (foto/nota): o módulo de documentos com objeto privado e quarentena é da F07; hoje o
+  recebimento guarda só o número do documento.
+- **Cadastro de unidades (filiais)** pela interface não existe; as unidades vêm do seed/admin.
+- Obrigação a pagar na confirmação do recebimento: F06. Ajuste de inventário por contagem (sobra): pendente (ADR-016).
+- Venda/cumprimento real (SALE_ISSUE a partir de pedido) chega na F04; o CMV foi provado pelo serviço do livro.
+- App Patrão: Estoque/Recebimentos compilados e com teste de widget, mas não exercitados no emulador.
 
 ## Limites do gate F01 (explícitos)
 
@@ -83,6 +110,11 @@ com teste); tabela estourava a largura no celular por texto `visually-hidden` ab
 - iOS exige macOS + Xcode (não há nesta máquina). Android OK.
 - `PATH` do Flutter não foi gravado no `~/.bashrc` (ação bloqueada pela política de permissões); usar caminho completo ou adicionar manualmente.
 - npm 9.2.0 do sistema falha com Vite 8 (`edgesOut`); usar `npx -y npm@11.21.1`.
+- Ambiente local: o Keycloak foi recriado a partir da nova pasta (o container antigo apontava para o caminho
+  anterior); senha de admin local em `~/.config/engenheiro/kc-admin` (fora do repo). A linha legada `V1000` do
+  histórico do Flyway local foi removida (vinha de um `target/classes` antigo; usar `./mvnw clean package`).
+- `docker start` do container antigo criou, como root, um diretório vazio em `/home/louvens/distribuidora-engenheiro`;
+  pode ser apagado com `sudo rm -r /home/louvens/distribuidora-engenheiro`.
 - Porta 8080 ocupada nesta máquina; local usa `PORT=8081` (redirect 8081 incluído no realm).
 - D01–D15 em `docs/F00_INVENTARIO.md` §4.
 
@@ -100,4 +132,5 @@ ENGENHEIRO_SENHA_LOCAL=... python3 -I ../../infra/local/e2e_login_web.py
 
 ## Próxima ação
 
-1. **F03**: produtos/medidas/conversões, fornecedores, recebimentos e estoque com concorrência (B01, B10, B11).
+1. **F04**: pedidos, retirada, pagamentos e caixa — reservar com `StockLedger.reserve` e baixar com
+   `fulfillReservation` no cumprimento (CMV por item); reverificar escopo por ID em pedidos.

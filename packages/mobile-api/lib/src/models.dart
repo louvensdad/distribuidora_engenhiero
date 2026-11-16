@@ -140,3 +140,167 @@ class AuditEvent {
         reason: j['reason'] as String?,
       );
 }
+
+// ---- F03: catálogo, fornecedores e estoque. Quantidades e dinheiro em texto decimal (nunca double). ----
+
+List<String> _masked(Map<String, dynamic> j) => [for (final f in (j['masked_fields'] as List?) ?? const []) f as String];
+
+class ProductConversion {
+  const ProductConversion({required this.unit, required this.factor});
+  final String unit;
+  final String factor;
+  factory ProductConversion.fromJson(Map<String, dynamic> j) =>
+      ProductConversion(unit: j['unit'] as String, factor: j['factor'] as String);
+}
+
+class Product {
+  const Product({required this.id, required this.sku, required this.name, required this.baseUnit,
+      required this.baseUnitConfirmed, required this.conversions});
+  final String id;
+  final String sku;
+  final String name;
+  final String baseUnit;
+  final bool baseUnitConfirmed;
+  final List<ProductConversion> conversions;
+
+  factory Product.fromJson(Map<String, dynamic> j) => Product(
+        id: j['id'] as String,
+        sku: j['sku'] as String,
+        name: j['name'] as String,
+        baseUnit: j['base_unit'] as String,
+        baseUnitConfirmed: j['base_unit_confirmed'] as bool,
+        conversions: [for (final c in (j['conversions'] as List?) ?? const []) ProductConversion.fromJson(c as Map<String, dynamic>)],
+      );
+}
+
+class Supplier {
+  const Supplier({required this.id, required this.name, this.contact, required this.maskedFields});
+  final String id;
+  final String name;
+  final String? contact;
+  final List<String> maskedFields;
+  factory Supplier.fromJson(Map<String, dynamic> j) =>
+      Supplier(id: j['id'] as String, name: j['name'] as String, contact: j['contact'] as String?, maskedFields: _masked(j));
+}
+
+class StockBalance {
+  const StockBalance({required this.productId, required this.productName, required this.sku, required this.baseUnit,
+      required this.branch, required this.physical, required this.reserved, required this.available, required this.lost,
+      this.value, this.averageCost, required this.maskedFields});
+  final String productId;
+  final String productName;
+  final String sku;
+  final String baseUnit;
+  final String branch;
+  final String physical;
+  final String reserved;
+  final String available;
+  final String lost;
+  final String? value;
+  final String? averageCost;
+  final List<String> maskedFields;
+  bool get costHidden => maskedFields.contains('value');
+
+  factory StockBalance.fromJson(Map<String, dynamic> j) => StockBalance(
+        productId: j['product_id'] as String,
+        productName: j['product_name'] as String,
+        sku: j['sku'] as String,
+        baseUnit: j['base_unit'] as String,
+        branch: j['branch'] as String,
+        physical: j['physical'] as String,
+        reserved: j['reserved'] as String,
+        available: j['available'] as String,
+        lost: (j['lost'] as String?) ?? '0',
+        value: j['value'] as String?,
+        averageCost: j['average_cost'] as String?,
+        maskedFields: _masked(j),
+      );
+}
+
+class ReceiptLine {
+  const ReceiptLine({required this.lineNo, required this.productName, required this.unit, required this.baseUnit,
+      this.quantityExpected, required this.quantityReceived, required this.baseQuantity, this.difference, this.lot, this.unitCost});
+  final int lineNo;
+  final String productName;
+  final String unit;
+  final String baseUnit;
+  final String? quantityExpected;
+  final String quantityReceived;
+  final String baseQuantity;
+  final String? difference;
+  final String? lot;
+  final String? unitCost;
+
+  factory ReceiptLine.fromJson(Map<String, dynamic> j) => ReceiptLine(
+        lineNo: j['line_no'] as int,
+        productName: j['product_name'] as String,
+        unit: j['unit'] as String,
+        baseUnit: j['base_unit'] as String,
+        quantityExpected: j['quantity_expected'] as String?,
+        quantityReceived: j['quantity_received'] as String,
+        baseQuantity: j['base_quantity'] as String,
+        difference: j['difference'] as String?,
+        lot: j['lot'] as String?,
+        unitCost: j['unit_cost'] as String?,
+      );
+}
+
+class Receipt {
+  const Receipt({required this.id, required this.status, required this.supplierName, this.documentNumber, this.totalCost,
+      required this.receivedAt, required this.createdByName, this.confirmedByName, required this.version, required this.lines,
+      required this.maskedFields});
+  final String id;
+  final String status;
+  final String supplierName;
+  final String? documentNumber;
+  final String? totalCost;
+  final DateTime receivedAt;
+  final String createdByName;
+  final String? confirmedByName;
+  final int version;
+  final List<ReceiptLine> lines;
+  final List<String> maskedFields;
+  bool get isDraft => status == 'DRAFT';
+  bool get costHidden => maskedFields.contains('total_cost');
+
+  factory Receipt.fromJson(Map<String, dynamic> j) => Receipt(
+        id: j['id'] as String,
+        status: j['status'] as String,
+        supplierName: j['supplier_name'] as String,
+        documentNumber: j['document_number'] as String?,
+        totalCost: j['total_cost'] as String?,
+        receivedAt: DateTime.parse(j['received_at'] as String),
+        createdByName: j['created_by_name'] as String,
+        confirmedByName: j['confirmed_by_name'] as String?,
+        version: j['version'] as int,
+        lines: [for (final l in j['lines'] as List) ReceiptLine.fromJson(l as Map<String, dynamic>)],
+        maskedFields: _masked(j),
+      );
+}
+
+/// Linha digitada no app. Custo só é enviado por quem vê custo de compra; o servidor recusa o resto.
+class ReceiptLineInput {
+  const ReceiptLineInput({required this.productId, this.unit, this.quantityExpected, required this.quantityReceived, this.lot, this.unitCost});
+  final String productId;
+  final String? unit;
+  final String? quantityExpected;
+  final String quantityReceived;
+  final String? lot;
+  final String? unitCost;
+
+  Map<String, dynamic> toJson() => {
+        'product_id': productId,
+        if (unit != null && unit!.isNotEmpty) 'unit': unit,
+        if (quantityExpected != null && quantityExpected!.trim().isNotEmpty) 'quantity_expected': decimalText(quantityExpected!),
+        'quantity_received': decimalText(quantityReceived),
+        if (lot != null && lot!.trim().isNotEmpty) 'lot': lot!.trim(),
+        if (unitCost != null && unitCost!.trim().isNotEmpty) 'unit_cost': decimalText(unitCost!),
+      };
+}
+
+/// Texto digitado → decimal do contrato, sem conversão numérica: "1.234,5" → "1234.5"; "12,5" → "12.5";
+/// "12.5" fica "12.5" (ponto só é separador de milhar quando há vírgula decimal). O servidor valida o resto.
+String decimalText(String typed) {
+  final t = typed.trim().replaceAll(' ', '');
+  return t.contains(',') ? t.replaceAll('.', '').replaceAll(',', '.') : t;
+}
