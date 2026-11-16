@@ -1,0 +1,12 @@
+# F03 — teste de mutação da reserva concorrente (16/11/2026)
+Mutação aplicada temporariamente em StockLedger.reserve: a atualização condicional atômica
+  UPDATE inventory_balances SET reserved = reserved + :q ... WHERE ... AND physical - reserved >= :q
+foi trocada por "lê o disponível, espera 50 ms, grava reserved = lido + q" (sem bloqueio).
+
+Comando: ./mvnw test -Dtest='InventoryIntegrationTest#duasReservasConcorrentesNaoNegativamEstoque'
+Resultado com a mutação:
+  [ERROR] Tests run: 3, Failures: 2, Errors: 1, Skipped: 0 <<< FAILURE!
+  ERROR: new row for relation "inventory_balances" violates check constraint "inventory_balances_check"
+  (a restrição reserved <= physical do banco barrou a reserva acima do físico; as demais repetições
+   falharam nas asserções de contagem de reservas)
+Código original restaurado; com ele o mesmo teste passa (ver F03-mvnw-verify.txt).

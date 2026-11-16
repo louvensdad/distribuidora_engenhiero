@@ -42,6 +42,14 @@ public final class Api {
         return send(b.build());
     }
 
+    /** POST com cabeçalhos extras (Idempotency-Key, If-Match). */
+    public Res postWith(String path, String token, Object body, Map<String, String> headers) {
+        HttpRequest.Builder b = req(path, token).header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body == null ? "" : JSON.writeValueAsString(body)));
+        headers.forEach(b::header);
+        return send(b.build());
+    }
+
     private HttpRequest.Builder req(String path, String token) {
         HttpRequest.Builder b = HttpRequest.newBuilder(URI.create(base + path));
         if (token != null) {
