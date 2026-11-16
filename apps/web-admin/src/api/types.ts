@@ -251,9 +251,9 @@ export interface Loss {
 }
 
 export interface Payable {
-  id: string; source_type: string; source_id: string; supplier_id: string | null; supplier_name: string | null;
-  description: string; competence: string; amount: string; balance: string; due_date: string | null;
-  state: "OPEN" | "PARTIALLY_PAID" | "PAID" | "CANCELLED"; branch: string; created_at: string;
+  id: string; source_type: string; source_id: string; supplier_id: string | null; supplier_name: string | null; description: string;
+  competence: string; amount: string; balance: string; due_date: string | null; state: "OPEN" | "PARTIALLY_PAID" | "PAID" | "CANCELLED";
+  branch: string; created_at: string; version: number;
 }
 
 export interface BranchView { id: string; name: string; timezone: string; status: "ACTIVE" | "INACTIVE"; active_people: number; created_at: string }
@@ -356,4 +356,43 @@ export interface TripCosts {
   allocated_total: string; unallocated: string; pending_cost: string; distance_km: string | null; cost_per_km: string | null;
   lines: { stop_id: string; order_number: number; customer_name: string; delivered_quantity: string; share: string; allocated_cost: string }[];
   expenses: { id: string; kind: ExpenseKind; amount: string; state: string; paid_with: string }[]; message: string | null;
+}
+
+// ---- F06: financeiro ----
+export interface FinAccount { id: string; code: string; name: string; kind: "CASH_DRAWERS" | "COMPANY_CASH" | "BANK" | "CARD_ACQUIRER"; ledger_account: string; is_default: boolean; status: string; balance: string | null; version: number }
+export interface StatementLine { entry_id: string; entry_date: string; competence: string | null; event_kind: string; memo: string | null; source_type: string; source_id: string; debit: string; credit: string; balance: string; created_by_name: string; reversal: boolean }
+export interface Statement { account: FinAccount; from: string; to: string; opening_balance: string; inflows: string; outflows: string; closing_balance: string; lines: StatementLine[] }
+export interface Transfer { id: string; from_account_id: string; from_name: string; to_account_id: string; to_name: string; amount: string; transfer_date: string; note: string | null; state: "CONFIRMED" | "REVERSED"; created_by_name: string; created_at: string; reverse_reason: string | null }
+export type ExpenseCategory = "FUNCIONARIOS" | "VEICULOS" | "ESTRUTURA" | "IMPOSTOS_TAXAS" | "OUTRAS" | "RETIRADA_SOCIO";
+export interface Expense {
+  id: string; category: ExpenseCategory; subcategory: string; description: string; payee: string | null; supplier_id: string | null;
+  supplier_name: string | null; amount: string; competence: string; due_date: string | null; state: "PENDING" | "APPROVED" | "REJECTED" | "REVERSED";
+  payable_id: string | null; payable_state: string | null; payable_balance: string | null; branch: string; created_by_name: string; created_at: string;
+  decided_by_name: string | null; decided_at: string | null; decided_note: string | null; reverse_reason: string | null; version: number;
+}
+export interface PayableSettlement { id: string; payable_id: string; kind: "PAYMENT" | "SUPPLIER_RETURN" | "CANCELLATION"; amount: string; fin_account_id: string | null; account_name: string | null; paid_on: string; note: string | null; state: "CONFIRMED" | "REVERSED"; created_by_name: string; created_at: string; reverse_reason: string | null }
+export interface PayableDetail { payable: Payable; settlements: PayableSettlement[] }
+export interface Receivable {
+  id: string; kind: "CUSTOMER" | "CARD" | "SUPPLIER_CREDIT"; payment_id: string | null; order_id: string | null; order_number: number | null;
+  customer_name: string | null; supplier_id: string | null; supplier_name: string | null; installment_no: number; installments: number; due_date: string;
+  gross: string; fee: string; amount: string; balance: string; state: "OPEN" | "PARTIALLY_SETTLED" | "SETTLED" | "CANCELLED"; description: string | null;
+  branch: string; version: number;
+}
+export interface ReportItem { key: string; label: string; amount: string; accounts: string[] }
+export interface CashPosition { available: string; accounts: ReportItem[]; receivables_open: string; card_receivables_open: string; payables_open: string; customer_advances: string; note: string }
+export interface FinanceSummary {
+  from: string; to: string; basis: string; gross_revenue: string; discounts: string; returns: string; net_revenue: string; cogs: string;
+  expenses: ReportItem[]; expenses_total: string; losses: string; costs_expenses_losses: string; profit: string; margin_percent: string | null;
+  owner_withdrawals: string; cash: CashPosition; drill: ReportItem[]; note: string;
+}
+export interface LedgerLines {
+  accounts: string[]; from: string; to: string; basis: string; total_debit: string; total_credit: string; net: string;
+  items: { entry_id: string; entry_date: string; competence: string | null; event_kind: string; memo: string | null; source_type: string; source_id: string; account: string; debit: string; credit: string; fin_account: string | null; created_by_name: string; created_at: string; reversal_of: string | null }[];
+}
+export interface FinanceCategories { from: string; to: string; categories: ReportItem[]; subcategories: { category: string; subcategory: string; amount: string; entries: number }[]; total: string }
+export interface Reconciliation { checked_at: string; status: "OK" | "DIVERGENT"; checks: { code: string; label: string; expected: string; actual: string; difference: string; status: "OK" | "ROUNDING" | "DIVERGENT"; explanation: string }[] }
+export interface Period {
+  id: string; month: string; state: "OPEN" | "CLOSED"; closed_at: string | null; closed_by_name: string | null; reopen_pending: boolean;
+  reopen_requested_by: string | null; profit_at_close: string | null; reconciliation_at_close: string | null;
+  events: { action: string; actor_name: string; reason: string | null; state: string | null; occurred_at: string }[]; version: number;
 }

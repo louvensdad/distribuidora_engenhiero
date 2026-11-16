@@ -46,13 +46,21 @@ Requisitos de F02 em diante seguem NOT_STARTED (lista completa em `docs/especifi
 | LOG-06 | Manutenção, pneus, seguro, documentos, pedágio; avisos por veículo | `consumoKm...` (manutenção e aviso), `gastoRateado...` (pedágio), `Fleet.test.tsx` | PASS |
 | LOG-07 | Prestação de contas do motorista e dinheiro recebido; conferência por outra pessoa | `fluxoCompleto...`, `trips.spec.ts`, emulador + conciliação | PASS |
 | LOG-08 | Rateio analítico versionado sem repetir despesa | `gastoRateadoSomaAoOriginalSemDuplicarDespesa` | PASS |
+| FIN-01 | Despesas por categoria/subcategoria com competência, vencimento, situação e comprovante (`ExpenseService`, Financeiro › Despesas) | `pagamentoDeObrigacao...`, `Finance.test.tsx`, `finance.spec.ts` | PASS |
+| FIN-02 | Contas a pagar/receber e saldo/extrato por conta (`PayableService`, `ReceivableService`, `FinAccountService`) | `caixaDisponivelSeparadoDoResultado` (CAIXA-01), `devolucaoAoFornecedor...`, `finance.spec.ts` | PASS |
+| FIN-03 | Cartão: bruto, taxa, líquido, parcelas e conciliação do repasse | `venda100ComTaxa3ReceitaDespesaERecebivel97...` (CARTAO-01), mutação M3 | PASS (provedor/adquirente real: D04) |
+| FIN-04 | Resultado gerencial por competência separado do caixa disponível; drilldown de todo total | `caixaDisponivelSeparadoDoResultado`, `calculoDoResultadoBateComOFixtureDoPacote` (FECHAMENTO-01), app Patrão (`F06-mobile.txt`) | PASS |
+| FIN-05 | Transferência interna não muda o consolidado | `transferenciaNaoMudaSaldoConsolidado`, mutação M2, `finance.spec.ts` | PASS |
+| FIN-06 | Obrigação paga não gera despesa duplicada | `pagamentoDeObrigacaoReconhecidaNaoGeraSegundaDespesa` (OBRIGACAO-01), mutação M1 | PASS (guia/folha reais na F07) |
+| FIN-07 | Fechamento e reabertura aprovada com histórico; livro travado no mês fechado | `periodoFechadoBloqueia...`, `fechamentoBloqueadoComConciliacaoDivergente`, mutação M4 | PASS |
+| FIN-08 | Correção por estorno vinculado, sem exclusão | `pagamentoDeObrigacao...` (estorno de pagamento e de despesa), transferência estornada | PASS |
 
 | UX-01 | `apps/web-admin` abas horizontais + subabas por capacidade | `navigation.test.ts`, `site.spec.ts` (ordem das 7 abas) | PASS (web) |
 | UX-02 | CSS responsivo; tabelas viram cartões ≤720 px | `layout.spec.ts` em 360/768/1440 (sem rolagem horizontal, ações visíveis) | PASS (web); apps em F11–F14 |
 | UX-03 | Ícones/nomes/IDs dos 4 apps | realm + `F00_INVENTARIO.md`; ícones em `docs/especificacao/assets/apps` | PARTIAL — builds dos apps em F11–F14 |
 | UX-04 | Estados carregando/vazio/erro/sem permissão/conflito/offline/pendente | `App.test.tsx` (403, 412, pendente), `States.tsx` | PASS (web) |
 | UX-05 | Skip link, foco visível, labels, aria-live, alvo 44 px, movimento reduzido | `site.spec.ts` (teclado) | PARTIAL — falta auditoria com leitor de tela |
-| WEB-01..03 | Site integrado a serviços reais (sem botões falsos; módulos futuros rotulados por fase) | Playwright 63 testes (`F05-web-playwright.txt`) | PARTIAL — só módulos já existentes no backend |
+| WEB-01..03 | Site integrado a serviços reais (sem botões falsos; módulos futuros rotulados por fase) | Playwright 76 testes (`F06-web-playwright.txt`) | PARTIAL — só módulos já existentes no backend |
 
 Testes adicionais de F01: imutabilidade de `audit_events` (trigger), paginação por cursor, 412 por versão,
 concorrência entre administradores (`ConcurrencyIntegrationTest`, com teste de mutação).

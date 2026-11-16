@@ -399,6 +399,7 @@ public class ReceiptService {
                         br.com.engenheiro.api.finance.Journal.Line.credit("ESTOQUE", back)));
         jdbc.sql("UPDATE inventory_receipt_lines SET returned_base_qty = returned_base_qty + :q WHERE id = :id")
                 .param("q", baseQty).param("id", line.id()).update();
+        payables.supplierReturn(actor, row.branchId(), row.id(), row.supplierId(), returnId, back);
         audit.record(entry(actor, "inventory.receipts.return", row.id(), Map.of("line_no", line.lineNo(),
                 "base_quantity", Decimals.str(baseQty), "movement_id", m.id().toString(), "reason", reason)));
         boolean seesCost = authz.canSeeField(actor, FieldClass.PURCHASE_COST);

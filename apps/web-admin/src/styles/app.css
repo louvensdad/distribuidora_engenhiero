@@ -243,3 +243,5 @@ details.card[open] > summary { margin-bottom: 12px; }
 .stop { border-left: 4px solid var(--eng-cyan, #0aa); }
 .stop-delivered { border-left-color: var(--eng-green, #1a7f37); }
 .stop-failed { border-left-color: var(--eng-red, #c62828); }
+a.kpi { color: inherit; text-decoration: none; }
+a.kpi:hover, a.kpi:focus-visible { border-color: var(--eng-cyan); }

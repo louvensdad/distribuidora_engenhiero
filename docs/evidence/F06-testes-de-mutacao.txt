@@ -1,0 +1,10 @@
+# F06 — testes de mutação (2026-11-16, ./mvnw -o test -Dtest=FinanceIntegrationTest#..., código restaurado após cada uma)
+M1. PayableService.pay lança DESPESAS_IMPOSTOS em vez de baixar FORNECEDORES (pagamento vira 2ª despesa)
+    → pagamentoDeObrigacaoReconhecidaNaoGeraSegundaDespesa FALHA: expected "850.00" but was "1700.00". Pega.
+M2. Transferência credita SALDOS_INICIAIS em vez da conta de origem (dinheiro "aparece")
+    → transferenciaNaoMudaSaldoConsolidado FALHA: expected "1000.00" but was "1400.00". Pega.
+M3. Recebível do cartão gravado pelo bruto (sem descontar a taxa)
+    → venda100ComTaxa3... FALHA: expected 97.00 but was 100.00. Pega.
+M4. Trava de período fechado no serviço desligada (gatilho do banco mantido)
+    → periodoFechado... FALHA: expected 409 but was 201 — o cadastro da despesa não lança no livro (só a aprovação),
+    então o gatilho sozinho não barraria o cadastro. A checagem no serviço é necessária. Pega.

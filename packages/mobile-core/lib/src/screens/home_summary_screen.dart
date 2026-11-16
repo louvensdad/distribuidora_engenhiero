@@ -3,7 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import '../scope.dart';
 import 'activity_screen.dart';
 
-/// Início do patrão: identificação e últimos movimentos reais. Indicadores financeiros só com F06/F09.
+/// Início do patrão: identificação e últimos movimentos reais. Resultado e caixa do mês: Mais › Financeiro.
 class HomeSummaryScreen extends StatelessWidget {
   const HomeSummaryScreen({super.key});
 
@@ -21,8 +21,10 @@ class HomeSummaryScreen extends StatelessWidget {
               Text('Olá, ${me.displayName}', style: t.titleMedium),
               Text('${me.organizationName} · ${me.branchName}', style: const TextStyle(color: EngColors.muted)),
               const SizedBox(height: 12),
-              const Text('Vendas, CMV, despesas, perdas e lucro aparecem aqui quando o financeiro reconciliado (F06/F09) estiver pronto. '
-                  'Nenhum número de exemplo é exibido.', style: TextStyle(color: EngColors.muted, fontSize: 13)),
+              Text(me.can('reports.view')
+                  ? 'Resultado do mês, caixa disponível e conciliação: Mais › Financeiro (os mesmos números do site).'
+                  : 'Indicadores financeiros dependem da permissão de relatórios. Nenhum número de exemplo é exibido.',
+                  style: const TextStyle(color: EngColors.muted, fontSize: 13)),
             ]),
           ),
         ),

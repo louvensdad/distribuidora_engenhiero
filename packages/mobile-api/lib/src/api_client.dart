@@ -226,6 +226,12 @@ class ApiClient {
         'paid_with': paidWith,
       }, idempotencyKey: idempotencyKey));
 
+  // ---- F06: resultado gerencial, caixa e conciliação (os mesmos números do site) ----
+  Future<Map<String, dynamic>> financeSummary({required String from, required String to}) =>
+      _get('/api/v1/reports/summary', {'from': from, 'to': to});
+
+  Future<Map<String, dynamic>> reconciliation() => _get('/api/v1/finance/reconciliation');
+
   /// Chave aleatória para um comando (uma por intenção do usuário).
   static String newIdempotencyKey() {
     final r = Random.secure();

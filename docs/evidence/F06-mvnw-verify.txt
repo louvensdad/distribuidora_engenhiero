@@ -1,0 +1,29 @@
+# F06 — ./mvnw -o clean verify (services/api) — 2026-11-16T17:23:02-03:00
+Java 21 / Spring Boot 4.1.2 / PostgreSQL 18 (Testcontainers)
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.422 s -- in br.com.engenheiro.api.catalogparties.CustomersIntegrationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in br.com.engenheiro.api.documents.DocumentsUnitTest
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.520 s -- in br.com.engenheiro.api.finance.FinanceIntegrationTest
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in br.com.engenheiro.api.identityaccess.AccessPolicyTest
+Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.165 s -- in br.com.engenheiro.api.identityaccess.AuthenticationIntegrationTest
+Tests run: 21, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.615 s -- in br.com.engenheiro.api.identityaccess.AuthorizationIntegrationTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.105 s -- in br.com.engenheiro.api.identityaccess.ConcurrencyIntegrationTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in br.com.engenheiro.api.identityaccess.ContractConsistencyTest
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.394 s -- in br.com.engenheiro.api.identityaccess.LocalSeedIntegrationTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.027 s -- in br.com.engenheiro.api.identityaccess.OpenApiContractTest
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.790 s -- in br.com.engenheiro.api.identityaccess.WebBffIntegrationTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 8.777 s -- in br.com.engenheiro.api.inventory.F03LimitsIntegrationTest
+Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.375 s -- in br.com.engenheiro.api.inventory.InventoryIntegrationTest
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.232 s -- in br.com.engenheiro.api.logistics.LogisticsIntegrationTest
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.390 s -- in br.com.engenheiro.api.orders.OrdersIntegrationTest
+
+Novos na F06 (FinanceIntegrationTest):
+  - "fechamentoBloqueadoComConciliacaoDivergente"
+  - "calculoDoResultadoBateComOFixtureDoPacote"
+  - "caixaDisponivelSeparadoDoResultado"
+  - "transferenciaNaoMudaSaldoConsolidado"
+  - "venda100ComTaxa3ReceitaDespesaERecebivel97EmParcelasConciliadas"
+  - "doisPagamentosSimultaneosDaMesmaContaSoUmBaixa"
+  - "periodoFechadoBloqueiaLancamentoEReaberturaExigeAprovacao"
+  - "devolucaoAoFornecedorAbateContaAPagarEConciliacaoFecha"
+  - "pagamentoDeObrigacaoReconhecidaNaoGeraSegundaDespesa"
+Total: 127 testes, 0 falhas, 0 erros

@@ -17,7 +17,7 @@ final config = AppConfig(
         builder: (_) => const PendingModuleView(title: 'IA da gestão', phase: 'F15')),
     Destination(id: 'mais', label: 'Mais', icon: 'settings',
         anyOf: const ['users.view', 'customers.view', 'audit.view', 'inventory.stock.view', 'inventory.receipts.view',
-          'orders.pickup.view'],
+          'orders.pickup.view', 'reports.view'],
         builder: (_) => const MoreScreen()),
   ],
 );
@@ -51,6 +51,8 @@ class MoreScreen extends StatelessWidget {
     void open(String title, Widget child) => Navigator.of(context).push(MaterialPageRoute<void>(
         builder: (_) => EngScope(config: s.config, session: s.session, child: Scaffold(appBar: AppBar(title: Text(title)), body: child))));
     return ListView(padding: const EdgeInsets.all(16), children: [
+      if (s.me.can('reports.view'))
+        _Item('wallet', 'Financeiro', 'Resultado do mês, caixa disponível e conciliação', () => open('Financeiro', const FinanceSummaryScreen())),
       if (s.me.can('customers.view'))
         _Item('users', 'Clientes', 'Cadastro e busca', () => open('Clientes', const CustomersScreen())),
       if (s.me.can('orders.pickup.view') || s.me.can('orders.delivery.view'))

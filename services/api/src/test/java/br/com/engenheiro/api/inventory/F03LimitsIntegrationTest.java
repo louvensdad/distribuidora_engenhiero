@@ -110,7 +110,7 @@ class F03LimitsIntegrationTest {
         // Sem recurso no contrato: só administrador; tentativa negada auditada.
         assertThat(api.get("/api/v1/payables", recebimento.token()).status()).isEqualTo(403);
         assertThat(jdbc.sql("SELECT count(*) FROM audit_events WHERE action = 'access.denied' AND actor_user_id = :u "
-                + "AND changes->>'capability' = 'payables.view'").param("u", recebimento.userId()).query(Integer.class)
+                + "AND changes->>'capability' = 'expenses.view'").param("u", recebimento.userId()).query(Integer.class)
                 .single()).isEqualTo(1);
         // Data inválida recusa a confirmação inteira.
         JsonNode d2 = draft(patrao, supplier(), p, "1", "1");

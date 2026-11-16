@@ -3,8 +3,8 @@
 Data/hora e fuso: 16/11/2026 16:20 America/Sao_Paulo
 Agente e repositório: Claude Code (Opus 5.5) — `/home/louvens/Ivan/distribuidora-engenheiro` (movido de `~/distribuidora-engenheiro`)
 Branch e commit atual: `main` — ver `git log -1`
-Fase: F05 concluída (frota, viagens e entregas); próxima F06
-Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **PASS** (pendências abaixo) · F06 **NOT_STARTED**
+Fase: F06 concluída (financeiro e reconciliação); próxima F07
+Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **PASS** (pendências abaixo) · F06 **PASS** (pendências abaixo) · F07 **NOT_STARTED**
 
 ## Entregue e comprovado
 
@@ -109,6 +109,31 @@ Pendências F04:
   Patrão com Pedidos/Caixa compilado e com teste de widget, não exercitado no emulador nesta fase.
 - Concessões do balcão no emulador aplicadas direto no banco local (equivalentes ao mapa de acessos).
 
+## F06 — financeiro, competência e reconciliação (16/11/2026)
+
+Entregue (ADR-020), migration V8: contas financeiras (caixas de turno, cofre, bancos, adquirente) com saldo = soma do
+livro e extrato; competência separada da data do lançamento; despesas por categoria/subcategoria com aprovação por
+alçada (despesa uma vez + conta a pagar); pagamento de contas a pagar sem nova despesa, estorno do pagamento e da
+despesa; devolução ao fornecedor abate a conta (excedente = crédito); recebíveis de cartão em parcelas líquidas e a
+prazo, com liquidação/conciliação do repasse; transferências internas (consolidado igual) e estorno; resultado
+gerencial por competência com caixa à parte e drilldown de cada total; despesas por subcategoria; conciliação
+(livro, a pagar, cartões, estoque, caixas de turno); fechamento mensal com retrato, trava no livro (serviço + gatilho)
+e reabertura com solicitação + aprovação por outra pessoa.
+Superfícies: site (Financeiro › Caixa e contas W08, Resultado e fechamento, Despesas, Contas a pagar, Contas a receber;
+Visão geral com os números reais do mês); app Patrão (Mais › Financeiro).
+Validação: `./mvnw clean verify` **127** (`F06-mvnw-verify.txt`), mutação 4/4 pegas (`F06-testes-de-mutacao.txt`),
+Vitest **36** (`F06-web-vitest.txt`), Playwright **76** (`F06-web-playwright.txt`, capturas `telas-web/F06-*.png`),
+Dart **39**, app Patrão no emulador com login TOTP real (`F06-mobile.txt`).
+Fixtures do pacote usados como teste: FECHAMENTO-01, CAIXA-01, CARTAO-01, OBRIGACAO-01, RATEIO-01 (F05).
+
+Pendências F06:
+- Dados locais anteriores ao livro (F03/antes da V6) aparecem como divergência explicada (R$ 1.035,10 a pagar; R$ 1.794,74
+  estoque) — saldos de abertura de legado na implantação (F16). Em banco novo a conciliação fecha.
+- Conciliação bancária por extrato importado (OFX/CNAB), antecipação de recebíveis e chargeback: fora da F06.
+- Acerto do adiantamento de funcionário (gasto de motorista recusado) ainda sem tela própria (fica na conta
+  ADIANTAMENTOS_FUNCIONARIOS); folha/guias reais na F07.
+- Despesas/pagamentos pelo app (Patrão/Contador): F13/F14 (no app Patrão, F06 entrega só a leitura do Financeiro).
+
 ## F05 — frota, viagens e entregas (16/11/2026)
 
 Entregue (ADR-019), migration V7: pedido de entrega com endereço/referência/contato/janela/pagamento combinado (campos
@@ -191,5 +216,5 @@ ENGENHEIRO_SENHA_LOCAL=... python3 -I ../../infra/local/e2e_login_web.py
 
 ## Próxima ação
 
-1. **F06**: financeiro e reconciliação — contas a receber (a prazo), liquidação de contas a pagar (inclui gastos de
-   veículo), acerto de adiantamentos de funcionário, caixa da empresa e reconciliação bancária.
+1. **F07**: contabilidade, folha e documentos — guias e folha como obrigações por competência (mesmo caminho da F06:
+   reconhecer uma vez, pagar sem nova despesa), documentos do contador com quarentena/antivírus NÃO CONFIGURADO explícito.

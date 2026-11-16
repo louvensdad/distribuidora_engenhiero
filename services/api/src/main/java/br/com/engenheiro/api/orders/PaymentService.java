@@ -50,9 +50,12 @@ public class PaymentService {
     private final OrderService orders;
     private final CashService cash;
     private final Journal journal;
+    private final br.com.engenheiro.api.finance.ReceivableService receivables;
 
     public PaymentService(JdbcClient jdbc, AuthorizationService authz, AuditService audit, IdempotencyService idem,
-                          OrderService orders, CashService cash, Journal journal) {
+                          OrderService orders, CashService cash, Journal journal,
+                          br.com.engenheiro.api.finance.ReceivableService receivables) {
+        this.receivables = receivables;
         this.jdbc = jdbc;
         this.authz = authz;
         this.audit = audit;
@@ -243,6 +246,14 @@ public class PaymentService {
             }
             if (confirmed) {
                 postConfirmed(actor, o, id, method, v.amount(), v.fee());
+                // F06: o que ainda não é dinheiro vira conta a receber (parcelas líquidas do cartão; a prazo do cliente).
+                if (method.equals("DEBIT") || method.equals("CREDIT")) {
+                    receivables.createForCard(actor.organizationId(), o.branchId(), id, o.id(), method, v.amount(), v.fee(),
+                            method.equals("CREDIT") && v.p().installments() != null ? v.p().installments() : 1,
+                            Text.trim(v.p().provider_reference()));
+                } else if (method.equals("ON_ACCOUNT")) {
+                    receivables.createForOnAccount(actor.organizationId(), o.branchId(), id, o.id(), v.amount(), v.due());
+                }
             }
             created.add(view(find(id).orElseThrow()));
         }
@@ -327,6 +338,9 @@ public class PaymentService {
             }
             if (p.method().equals("CASH")) {
                 cash.movement(cash.requireOpenSession(actor), "OUT", p.amount(), "payment_reversal", p.id());
+            }
+            if (List.of("DEBIT", "CREDIT", "ON_ACCOUNT").contains(p.method())) {
+                receivables.cancelForPayment(p.id());
             }
             UUID original = jdbc.sql("SELECT id FROM journal_entries WHERE source_type = 'payment' AND source_id = :s")
                     .param("s", p.id()).query(UUID.class).optional().orElse(null);

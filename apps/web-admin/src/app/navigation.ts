@@ -45,10 +45,12 @@ export const TABS: Tab[] = [
   {
     id: "finance", label: "Financeiro", icon: "wallet", path: "/finance",
     subtabs: [
-      { id: "payables", label: "Contas a pagar", path: "/finance/payables", anyOf: ["admin"] },
+      { id: "cash", label: "Caixa e contas", path: "/finance/cash", anyOf: ["company_cash.view"] },
+      { id: "closing", label: "Resultado e fechamento", path: "/finance/closing", anyOf: ["reports.view"] },
+      { id: "expenses", label: "Despesas", path: "/finance/expenses", anyOf: ["expenses.view"] },
+      { id: "payables", label: "Contas a pagar", path: "/finance/payables", anyOf: ["expenses.view"] },
+      { id: "receivables", label: "Contas a receber", path: "/finance/receivables", anyOf: ["payments.view", "expenses.view"] },
       { id: "mycash", label: "Caixa do turno", path: "/finance/my-cash", anyOf: ["own_cash.view", "admin"] },
-      { id: "cash", label: "Caixa e contas", path: "/finance/cash", anyOf: ["company_cash.view"], pendingPhase: "F06" },
-      { id: "expenses", label: "Despesas", path: "/finance/expenses", anyOf: ["expenses.view"], pendingPhase: "F06" },
       { id: "taxes", label: "Guias", path: "/finance/taxes", anyOf: ["taxes.view"], pendingPhase: "F07" },
       { id: "payroll", label: "Folha", path: "/finance/payroll", anyOf: ["payroll.view"], pendingPhase: "F07" },
       { id: "invoices", label: "Notas fiscais", path: "/finance/invoices", anyOf: ["invoices.view"], pendingPhase: "F08" },

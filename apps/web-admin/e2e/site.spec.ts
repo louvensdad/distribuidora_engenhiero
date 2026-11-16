@@ -7,7 +7,14 @@ test.describe("site do patrão — pilha real", () => {
     const nav = page.getByRole("navigation", { name: "Seções principais" });
     await expect(nav.getByRole("link")).toHaveText(["Visão geral", "Vendas", "Operação", "Financeiro", "Relatórios", "Inteligência", "Equipe"]);
     await expect(page.getByRole("heading", { name: "Visão geral" })).toBeVisible();
-    await expect(page.locator(".kpi-value").first()).toHaveText("—");
+    // Indicadores: exatamente o resultado do servidor (F06), nunca número de exemplo.
+    const sum = await (await page.request.get("/api/v1/reports/summary")).json();
+    const brl = (v: string) => {
+      const [i, f] = v.replace("-", "").split(".");
+      return (v.startsWith("-") ? "−" : "") + "R$ " + i!.replace(/\B(?=(\d{3})+(?!\d))/g, ".") + "," + f;
+    };
+    await expect(page.locator(".kpi-value").first()).toHaveText(brl(sum.gross_revenue));
+    await expect(page.locator(".kpi-value").nth(4)).toHaveText(brl(sum.profit));
     await expect(page.getByText("Distribuidora de Cana Engenheiro Ltda").first()).toBeVisible();
     // Nenhum token acessível ao JavaScript da página.
     const cookies = await page.evaluate(() => document.cookie);

@@ -23,10 +23,13 @@ public class DocumentController {
     private final ReceiptService receipts;
     private final br.com.engenheiro.api.logistics.TripService trips;
     private final br.com.engenheiro.api.logistics.VehicleExpenseService expenses;
+    private final br.com.engenheiro.api.finance.ExpenseService finExpenses;
 
     public DocumentController(DocumentService documents, ReceiptService receipts,
                               br.com.engenheiro.api.logistics.TripService trips,
-                              br.com.engenheiro.api.logistics.VehicleExpenseService expenses) {
+                              br.com.engenheiro.api.logistics.VehicleExpenseService expenses,
+                              br.com.engenheiro.api.finance.ExpenseService finExpenses) {
+        this.finExpenses = finExpenses;
         this.documents = documents;
         this.receipts = receipts;
         this.trips = trips;
@@ -41,6 +44,7 @@ public class DocumentController {
             case "inventory_receipt" -> receipts.get(actor, d.ownerId()); // 403/404 conforme a política do recebimento
             case "trip_stop" -> trips.requireStopVisible(actor, d.ownerId());
             case "vehicle_expense" -> expenses.get(actor, d.ownerId());
+            case "expense" -> finExpenses.get(actor, d.ownerId());
             default -> throw ApiException.notFound();
         }
         DocumentService.Content c = documents.read(actor, d);

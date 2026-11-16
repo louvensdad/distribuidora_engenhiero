@@ -1,20 +1,28 @@
 import { Link } from "react-router";
 import { AUDIT_ACTION_LABELS, label } from "../../api/labels";
-import type { AuditEvent, Page, UserView } from "../../api/types";
+import type { AuditEvent, FinanceSummary, Page, UserView } from "../../api/types";
 import { useResource } from "../../api/useResource";
-import { formatDateTime } from "../../app/format";
+import { formatDateTime, formatMoney } from "../../app/format";
 import { Icon } from "../../components/Icon";
 import { LoadingState } from "../../components/States";
 import { useSession } from "../../session/SessionContext";
 
 /**
- * W02 — visão geral. Só mostra dados reais existentes. Indicadores de vendas, CMV, despesas e lucro dependem
- * do financeiro reconciliado (F06/F09) e aparecem como pendentes, nunca com números de exemplo.
+ * W02 — visão geral. Só mostra dados reais existentes. Vendas, CMV, despesas, perdas e lucro do mês vêm do mesmo
+ * resultado gerencial do Financeiro (F06) para quem tem `reports.view`; sem essa permissão, aparecem como bloqueados.
  */
 export function OverviewPage() {
   const { me, can } = useSession();
   const [users] = useResource<Page<UserView>>(can("users.view") ? "/api/v1/users" : null);
   const [audit] = useResource<Page<AuditEvent>>(can("audit.view") ? "/api/v1/audit-events?limit=6" : null);
+  const [sum] = useResource<FinanceSummary>(can("reports.view") ? "/api/v1/reports/summary" : null);
+  const kpis: [string, string | undefined][] = [
+    ["Vendas realizadas", sum.status === "ready" ? sum.data.gross_revenue : undefined],
+    ["CMV", sum.status === "ready" ? sum.data.cogs : undefined],
+    ["Despesas", sum.status === "ready" ? sum.data.expenses_total : undefined],
+    ["Perdas", sum.status === "ready" ? sum.data.losses : undefined],
+    ["Lucro gerencial", sum.status === "ready" ? sum.data.profit : undefined],
+  ];
 
   return (
     <section className="page" aria-labelledby="titulo-visao">
@@ -26,11 +34,17 @@ export function OverviewPage() {
       </header>
 
       <div className="kpis">
-        {["Vendas realizadas", "CMV", "Despesas", "Perdas", "Lucro gerencial"].map((k) => (
+        {kpis.map(([k, v]) => v !== undefined ? (
+          <Link key={k} to="/finance/closing" className="kpi card">
+            <span className="kpi-label">{k} (mês)</span>
+            <span className="kpi-value">{formatMoney(v)}</span>
+            <span className="muted small">Resultado gerencial por competência</span>
+          </Link>
+        ) : (
           <div key={k} className="kpi card kpi-pending">
             <span className="kpi-label">{k}</span>
-            <span className="kpi-value" aria-label="Ainda não disponível">—</span>
-            <span className="muted small">Disponível com o financeiro reconciliado (F06/F09)</span>
+            <span className="kpi-value" aria-label="Não disponível">—</span>
+            <span className="muted small">{can("reports.view") ? "Carregando…" : "Sem acesso ao resultado (permissão de relatórios)"}</span>
           </div>
         ))}
       </div>

@@ -1854,6 +1854,9 @@
           "created_at": {
             "type": "string",
             "format": "date-time"
+          },
+          "version": {
+            "type": "integer"
           }
         },
         "required": [
@@ -4926,6 +4929,1412 @@
             ]
           }
         }
+      },
+      "FinAccount": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "CASH_DRAWERS",
+              "COMPANY_CASH",
+              "BANK",
+              "CARD_ACQUIRER"
+            ]
+          },
+          "ledger_account": {
+            "type": "string"
+          },
+          "is_default": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string"
+          },
+          "balance": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "balance"
+        ]
+      },
+      "FinAccountList": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FinAccount"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "CreateFinAccount": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "BANK",
+              "COMPANY_CASH"
+            ]
+          },
+          "opening_balance": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          }
+        },
+        "required": [
+          "name",
+          "kind"
+        ]
+      },
+      "StatementLine": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "entry_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "entry_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "competence": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "event_kind": {
+            "type": "string"
+          },
+          "memo": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source_type": {
+            "type": "string"
+          },
+          "source_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "debit": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "credit": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "balance": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "created_by_name": {
+            "type": "string"
+          },
+          "reversal": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Statement": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "account": {
+            "$ref": "#/components/schemas/FinAccount"
+          },
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "opening_balance": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "inflows": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "outflows": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "closing_balance": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StatementLine"
+            }
+          }
+        }
+      },
+      "Transfer": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "from_account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "from_name": {
+            "type": "string"
+          },
+          "to_account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "to_name": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "transfer_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "enum": [
+              "CONFIRMED",
+              "REVERSED"
+            ]
+          },
+          "created_by_name": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reverse_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "TransferList": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transfer"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "CreateTransfer": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "from_account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "to_account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "from_account_id",
+          "to_account_id",
+          "amount"
+        ]
+      },
+      "ReasonInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "Expense": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "category": {
+            "enum": [
+              "FUNCIONARIOS",
+              "VEICULOS",
+              "ESTRUTURA",
+              "IMPOSTOS_TAXAS",
+              "OUTRAS",
+              "RETIRADA_SOCIO"
+            ]
+          },
+          "subcategory": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "payee": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "supplier_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "supplier_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "amount": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "competence": {
+            "type": "string",
+            "format": "date"
+          },
+          "due_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "state": {
+            "enum": [
+              "PENDING",
+              "APPROVED",
+              "REJECTED",
+              "REVERSED"
+            ]
+          },
+          "payable_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "payable_state": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "payable_balance": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "branch": {
+            "type": "string"
+          },
+          "created_by_name": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "decided_by_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "decided_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "decided_note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reverse_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "category",
+          "amount",
+          "state",
+          "version"
+        ]
+      },
+      "ExpensePage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Expense"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "CreateExpense": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "enum": [
+              "FUNCIONARIOS",
+              "VEICULOS",
+              "ESTRUTURA",
+              "IMPOSTOS_TAXAS",
+              "OUTRAS",
+              "RETIRADA_SOCIO"
+            ]
+          },
+          "subcategory": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "payee": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "supplier_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "amount": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "competence": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "due_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          }
+        },
+        "required": [
+          "category",
+          "subcategory",
+          "description",
+          "amount"
+        ]
+      },
+      "PayableSettlement": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "payable_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "enum": [
+              "PAYMENT",
+              "SUPPLIER_RETURN",
+              "CANCELLATION"
+            ]
+          },
+          "amount": {
+            "type": "string"
+          },
+          "fin_account_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "account_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "paid_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "type": "string"
+          },
+          "created_by_name": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reverse_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "PayableDetail": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "payable": {
+            "$ref": "#/components/schemas/Payable"
+          },
+          "settlements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayableSettlement"
+            }
+          }
+        }
+      },
+      "PayPayable": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "fin_account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "paid_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "amount",
+          "fin_account_id"
+        ]
+      },
+      "Receivable": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "enum": [
+              "CUSTOMER",
+              "CARD",
+              "SUPPLIER_CREDIT"
+            ]
+          },
+          "payment_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "order_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "order_number": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "customer_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "supplier_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "supplier_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "installment_no": {
+            "type": "integer"
+          },
+          "installments": {
+            "type": "integer"
+          },
+          "due_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "gross": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "fee": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "amount": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "balance": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "state": {
+            "enum": [
+              "OPEN",
+              "PARTIALLY_SETTLED",
+              "SETTLED",
+              "CANCELLED"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "branch": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "amount",
+          "balance",
+          "state"
+        ]
+      },
+      "ReceivableList": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Receivable"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "ReceivableSettlement": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "received": {
+            "type": "string"
+          },
+          "fin_account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "account_name": {
+            "type": "string"
+          },
+          "received_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "type": "string"
+          },
+          "created_by_name": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reverse_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "ReceivableDetail": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "receivable": {
+            "$ref": "#/components/schemas/Receivable"
+          },
+          "settlements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReceivableSettlement"
+            }
+          }
+        }
+      },
+      "SettleReceivable": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "received": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "fin_account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "received_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "fin_account_id"
+        ]
+      },
+      "ReportItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "amount": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "accounts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CashPosition": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "available": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "accounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportItem"
+            }
+          },
+          "receivables_open": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "card_receivables_open": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "payables_open": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "customer_advances": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      },
+      "FinanceSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "basis": {
+            "type": "string"
+          },
+          "gross_revenue": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "discounts": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "returns": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "net_revenue": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "cogs": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "expenses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportItem"
+            }
+          },
+          "expenses_total": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "losses": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "costs_expenses_losses": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "profit": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "margin_percent": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "owner_withdrawals": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "cash": {
+            "$ref": "#/components/schemas/CashPosition"
+          },
+          "drill": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportItem"
+            }
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      },
+      "FinanceCategories": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportItem"
+            }
+          },
+          "subcategories": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "subcategory": {
+                  "type": "string"
+                },
+                "amount": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+                },
+                "entries": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "total": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          }
+        }
+      },
+      "LedgerLines": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "accounts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "basis": {
+            "type": "string"
+          },
+          "total_debit": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "total_credit": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "net": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "entry_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "entry_date": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "competence": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date"
+                },
+                "event_kind": {
+                  "type": "string"
+                },
+                "memo": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "source_type": {
+                  "type": "string"
+                },
+                "source_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "account": {
+                  "type": "string"
+                },
+                "debit": {
+                  "type": "string"
+                },
+                "credit": {
+                  "type": "string"
+                },
+                "fin_account": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "created_by_name": {
+                  "type": "string"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "reversal_of": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Reconciliation": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "checked_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "enum": [
+              "OK",
+              "DIVERGENT"
+            ]
+          },
+          "checks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "expected": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+                },
+                "actual": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+                },
+                "difference": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+                },
+                "status": {
+                  "enum": [
+                    "OK",
+                    "ROUNDING",
+                    "DIVERGENT"
+                  ]
+                },
+                "explanation": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Period": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "month": {
+            "type": "string",
+            "format": "date"
+          },
+          "state": {
+            "enum": [
+              "OPEN",
+              "CLOSED"
+            ]
+          },
+          "closed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "closed_by_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reopen_pending": {
+            "type": "boolean"
+          },
+          "reopen_requested_by": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "profit_at_close": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reconciliation_at_close": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "action": {
+                  "type": "string"
+                },
+                "actor_name": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "state": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "occurred_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "version": {
+            "type": "integer"
+          }
+        }
+      },
+      "PeriodList": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Period"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
       }
     }
   },
@@ -6582,8 +7991,8 @@
     },
     "/api/v1/payables": {
       "get": {
-        "summary": "Obrigações a pagar (só administrador: sem recurso no contrato, ADR-017)",
-        "x-capability": "admin",
+        "summary": "Contas a pagar no escopo (state=PENDING: abertas e parciais)",
+        "x-capability": "expenses.view",
         "parameters": [
           {
             "name": "limit",
@@ -9924,6 +11333,1528 @@
                 "required": [
                   "file"
                 ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/accounts": {
+      "get": {
+        "summary": "Contas financeiras com saldo (soma do livro)",
+        "x-capability": "company_cash.view",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinAccountList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      },
+      "post": {
+        "summary": "Cria banco/caixa da empresa com saldo inicial (SALDOS_INICIAIS)",
+        "x-capability": "admin",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinAccount"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFinAccount"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/accounts/{id}/statement": {
+      "get": {
+        "summary": "Extrato: saldo anterior, entradas, saídas, saldo final",
+        "x-capability": "company_cash.view",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Statement"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/finance/transfers": {
+      "get": {
+        "summary": "Transferências internas",
+        "x-capability": "company_cash.view",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransferList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      },
+      "post": {
+        "summary": "Transferência interna (não muda o consolidado; caixa não fica negativo)",
+        "x-capability": "admin",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transfer"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTransfer"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/transfers/{id}/reverse": {
+      "post": {
+        "summary": "Estorna transferência (lançamento inverso vinculado)",
+        "x-capability": "admin",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transfer"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/expenses": {
+      "get": {
+        "summary": "Despesas no escopo (categoria, competência, situação)",
+        "x-capability": "expenses.view",
+        "parameters": [
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpensePage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      },
+      "post": {
+        "summary": "Cadastra despesa (competência, vencimento); período fechado → 409",
+        "x-capability": "expenses.create",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Expense"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateExpense"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/expenses/{id}": {
+      "get": {
+        "summary": "Despesa",
+        "x-capability": "expenses.view",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Expense"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/expenses/{id}/approve": {
+      "post": {
+        "summary": "Aprova (alçada; não quem cadastrou): despesa uma vez + conta a pagar",
+        "x-capability": "expenses.approve",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Expense"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OptionalNote"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/expenses/{id}/reject": {
+      "post": {
+        "summary": "Recusa despesa pendente (motivo)",
+        "x-capability": "expenses.approve",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Expense"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Note"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/expenses/{id}/reverse": {
+      "post": {
+        "summary": "Estorna despesa aprovada (exige pagamento estornado antes)",
+        "x-capability": "expenses.reverse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Expense"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Note"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/expenses/{id}/attachments": {
+      "get": {
+        "summary": "Comprovantes da despesa",
+        "x-capability": "expenses.view",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      },
+      "post": {
+        "summary": "Anexa comprovante",
+        "x-capability": "autor|expenses.approve",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payables/{id}": {
+      "get": {
+        "summary": "Conta a pagar com liquidações",
+        "x-capability": "expenses.view",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayableDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/payables/{id}/payments": {
+      "post": {
+        "summary": "Paga (baixa o passivo contra caixa/banco; nunca nova despesa)",
+        "x-capability": "expenses.confirm",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayableDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayPayable"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payable-settlements/{id}/reverse": {
+      "post": {
+        "summary": "Estorna pagamento (devolve o saldo)",
+        "x-capability": "expenses.reverse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayableDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/receivables": {
+      "get": {
+        "summary": "Contas a receber (clientes, cartões, crédito de fornecedor)",
+        "x-capability": "payments.view|expenses.view",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivableList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/receivables/{id}": {
+      "get": {
+        "summary": "Recebível com liquidações",
+        "x-capability": "payments.view|expenses.view",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivableDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/receivables/{id}/settlements": {
+      "post": {
+        "summary": "Liquida/concilia recebível (cartão: banco; diferença só com motivo)",
+        "x-capability": "payments.confirm|expenses.confirm",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivableDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettleReceivable"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/receivable-settlements/{id}/reverse": {
+      "post": {
+        "summary": "Estorna liquidação",
+        "x-capability": "payments.confirm|expenses.confirm",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivableDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reports/summary": {
+      "get": {
+        "summary": "Resultado gerencial por competência + posição de caixa separada (com drilldown)",
+        "x-capability": "reports.view",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinanceSummary"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/reports/categories": {
+      "get": {
+        "summary": "Despesas por categoria e subcategoria",
+        "x-capability": "reports.view",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinanceCategories"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/finance/ledger-lines": {
+      "get": {
+        "summary": "Linhas do livro que formam um total (drilldown)",
+        "x-capability": "reports.view",
+        "parameters": [
+          {
+            "name": "accounts",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "basis",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "COMPETENCE",
+                "CASH"
+              ]
+            }
+          },
+          {
+            "name": "fin_account_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LedgerLines"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/finance/reconciliation": {
+      "get": {
+        "summary": "Conciliação: livro × contas a pagar, cartões, estoque e caixas de turno",
+        "x-capability": "reports.view",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reconciliation"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/periods": {
+      "get": {
+        "summary": "Períodos mensais com histórico",
+        "x-capability": "reports.view",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PeriodList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/periods/{id}/close": {
+      "post": {
+        "summary": "Fecha mês encerrado (conciliação OK; retrato gravado; livro travado)",
+        "x-capability": "reports.close_period",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Period"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/periods/{id}/reopen-requests": {
+      "post": {
+        "summary": "Solicita reabertura com motivo",
+        "x-capability": "reports.view",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Period"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/periods/{id}/reopen": {
+      "post": {
+        "summary": "Aprova reabertura (outra pessoa; administrador direto com motivo)",
+        "x-capability": "reports.reopen_period",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Period"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/periods/{id}/reopen-rejections": {
+      "post": {
+        "summary": "Recusa solicitação de reabertura",
+        "x-capability": "reports.reopen_period",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Period"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonInput"
               }
             }
           }

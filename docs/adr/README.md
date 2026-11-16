@@ -25,3 +25,4 @@ ou de provedores; mudanças exigem novo ADR com o modelo `docs/especificacao/tem
 | ADR-017 | Funções sem recurso no contrato (contas a pagar, unidades) só para administrador | ADOTADA (provisória) | Ver `ADR-017.md` |
 | ADR-018 | Regras de pedido, pagamento e caixa da F04 | ADOTADA (validar D04/D12/D15) | Ver `ADR-018.md` |
 | ADR-019 | Regras de frota, viagens, entregas, prestação e rateio da F05 | ADOTADA (validar com dono/contador) | Ver `ADR-019.md` |
+| ADR-020 | Subledger financeiro gerencial da F06 (contas, competência, despesas, a pagar/receber, períodos) | ADOTADA (validar com dono/contador, D12) | Ver `ADR-020.md`; substitui ADR-017 para contas a pagar |

@@ -144,6 +144,21 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   "trips.return": "Registrou retorno e prestação",
   "trips.reconcile": "Conferiu prestação de contas",
   "trips.cancel": "Cancelou viagem",
+  "expenses.create": "Cadastrou despesa",
+  "expenses.approve": "Aprovou despesa",
+  "expenses.reject": "Recusou despesa",
+  "expenses.reverse": "Estornou despesa",
+  "payables.pay": "Pagou conta",
+  "payables.payment_reverse": "Estornou pagamento de conta",
+  "receivables.settle": "Registrou recebimento/repasse",
+  "receivables.settlement_reverse": "Estornou recebimento",
+  "finance.accounts.create": "Criou conta financeira",
+  "finance.transfers.create": "Transferiu entre contas",
+  "finance.transfers.reverse": "Estornou transferência",
+  "periods.close": "Fechou o mês",
+  "periods.reopen_request": "Pediu reabertura do mês",
+  "periods.reopen": "Reabriu o mês",
+  "periods.reopen_reject": "Recusou reabertura do mês",
 };
 
 export const label = (map: Record<string, string>, key: string) => map[key] ?? key;

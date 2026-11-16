@@ -1,0 +1,20 @@
+# F06 — app Engenheiro Patrão: Financeiro (Mais › Financeiro) no emulador com Keycloak 26.8.1 + API real (V8) — 2026-11-16
+flutter analyze: No issues found!
+Dart: 39 testes, 0 falhas (mobile-core 16, mobile-api 6, mobile-auth 6, owner 3, counter 2, delivery 3, accountant 3).
+Novo: packages/mobile-core/test/finance_test.dart — resultado FECHAMENTO-01 (lucro R$ 9.500,00, margem 23,75%), caixa
+R$ 11.000,00 separado ("Saldo em caixa não é lucro."), conciliação divergente com a diferença, mês pedido com
+from=AAAA-MM-01&to=AAAA-MM-01 (fim exclusivo).
+
+Login do patrão no app com senha + TOTP real (código gerado a partir do segredo local fora do git; campo "otp").
+Mais › Financeiro (telas-mobile/F06-patrao-financeiro.png), dados locais reais de novembro/2026:
+  Vendas cumpridas R$ 1.050,00 · CMV R$ 420,00 · Veículos R$ 20,00 · Estrutura R$ 500,00 · Perdas R$ 206,66
+  → Prejuízo do período −R$ 96,66 (margem −9,21%) — mesmos números de /api/v1/reports/summary usados no site.
+  Caixa disponível R$ 2.830,00 · A pagar R$ 6.535,08.
+  Conciliação: há divergência — Contas a pagar × FORNECEDORES −R$ 1.035,10; Estoque × ESTOQUE −R$ 1.794,74.
+
+Investigação da divergência local (psql), sem defeito novo — histórico anterior ao livro:
+  payables sem lançamento (recebimentos confirmados na F03, antes da V6):        4 | R$ 845,08
+  devoluções ao fornecedor antes do abatimento automático da F06:              6 | R$ 190,02   (845,08 + 190,02 = 1.035,10)
+  movimentos de estoque sem lançamento (anteriores à V6):                     16 | R$ 1.794,746663 (≈ 1.794,74)
+Em banco novo (testes de integração e implantação) a conciliação fecha (FinanceIntegrationTest: status OK em todos os
+cenários). Saldos de abertura de dados legados: tratar na implantação (F16).
