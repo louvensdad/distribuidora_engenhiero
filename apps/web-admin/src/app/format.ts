@@ -26,3 +26,14 @@ export function formatMoney(value: string | null | undefined): string {
   const [int, frac = "00"] = value.replace("-", "").split(".");
   return (value.startsWith("-") ? "−" : "") + "R$ " + formatDecimal(int ?? "0") + "," + frac.padEnd(2, "0").slice(0, 2);
 }
+
+/**
+ * Texto digitado → decimal do contrato; vazio → null. Vírgula é sempre o separador decimal (pt-BR, "1.234,5").
+ * Sem vírgula, ponto seguido de grupos de 3 dígitos é milhar ("45.200" = 45200); senão é decimal ("12.5").
+ */
+export function toDecimal(v: string): string | null {
+  const t = v.trim().replace(/\s/g, "");
+  if (!t) return null;
+  if (t.includes(",")) return t.replace(/\./g, "").replace(",", ".");
+  return /^\d{1,3}(\.\d{3})+$/.test(t) ? t.replace(/\./g, "") : t;
+}

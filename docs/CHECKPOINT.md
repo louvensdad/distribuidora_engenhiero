@@ -1,10 +1,10 @@
 # Checkpoint
 
-Data/hora e fuso: 16/11/2026 11:30 America/Sao_Paulo
+Data/hora e fuso: 16/11/2026 16:20 America/Sao_Paulo
 Agente e repositório: Claude Code (Opus 5.5) — `/home/louvens/Ivan/distribuidora-engenheiro` (movido de `~/distribuidora-engenheiro`)
 Branch e commit atual: `main` — ver `git log -1`
-Fase: F04 concluída (pedidos, pagamentos e caixa); próxima F05
-Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **NOT_STARTED**
+Fase: F05 concluída (frota, viagens e entregas); próxima F06
+Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **PASS** (pendências abaixo) · F06 **NOT_STARTED**
 
 ## Entregue e comprovado
 
@@ -109,6 +109,34 @@ Pendências F04:
   Patrão com Pedidos/Caixa compilado e com teste de widget, não exercitado no emulador nesta fase.
 - Concessões do balcão no emulador aplicadas direto no banco local (equivalentes ao mapa de acessos).
 
+## F05 — frota, viagens e entregas (16/11/2026)
+
+Entregue (ADR-019), migration V7: pedido de entrega com endereço/referência/contato/janela/pagamento combinado (campos
+mascarados pela política); veículos com placa, capacidade em medida, licenciamento/seguro, situação; odômetro somente
+inclusão e monotônico (serviço + gatilho; correção só por administrador com motivo); viagem com vários pedidos, veículo e
+motorista autorizados (capacidade por conversão do produto, indisponibilidade, um pedido por viagem aberta); saída,
+entrega total/parcial pelo `OrderService` (com recebimento na parada no caixa do motorista), ocorrências (nunca marca
+entregue), retorno com prestação do dinheiro e conciliação por outra pessoa; gastos (combustível, manutenção, pneus,
+seguro, documentos, pedágio) registrados uma vez — empresa → despesa + conta a pagar na aprovação; dinheiro do motorista →
+adiantamento no registro e despesa na aprovação; km/l só entre tanques cheios; rateio analítico versionado (TRIP_COST v1)
+sem lançamento; históricos por veículo, viagem e pedido (autor e app).
+Superfícies: site (Operação > Frota W07 com detalhe do veículo; Operação > Viagens com despacho, saída, paradas,
+retorno, conferência, gastos e custos; pedido de entrega no formulário e bloco Entrega/viagem no W04); app Entregas
+(Viagens, Veículos/abastecimento, Caixa).
+Validação: `./mvnw clean verify` **118** (`F05-mvnw-verify.txt`), mutação (`F05-testes-de-mutacao.txt`), Vitest **33**
+(`F05-web-vitest.txt`), Playwright **63** (`F05-web-playwright.txt`, capturas `telas-web/F05-*.png`), Dart **38**,
+emulador com `motorista.b` + conferência do patrão e conferência do livro no banco (`F05-mobile.txt`).
+Defeito encontrado e corrigido: "45.200" digitado virava 45,2 (site e app); agora vírgula é decimal e ponto seguido de
+grupos de 3 dígitos é milhar, em todos os formulários.
+
+Pendências F05:
+- Despacho e cadastro de pedido de entrega pelo app (E02–E04) e ocorrência sem parada: F12 (no site já funcionam).
+- Foto da entrega: enviada pelo app (câmera/galeria) e autorizada pela viagem; no site ainda não há botão de anexo da
+  parada nem do comprovante do gasto (endpoints prontos e testados no backend) — F10.
+- Cartão na entrega: manual com NSU (provedor NÃO CONFIGURADO — D04).
+- Concessões extras do `motorista.b` aplicadas direto no banco local (equivalentes ao mapa de acessos).
+- Pedido de teste preso na viagem V2 (local) de uma execução E2E interrompida — sem impacto, só dado fictício local.
+
 ## F03 — limites resolvidos (16/11/2026) e pendências restantes
 
 Resolvidos: conta a pagar criada na confirmação (vencimento opcional; site Financeiro > Contas a pagar); ajuste por
@@ -158,5 +186,5 @@ ENGENHEIRO_SENHA_LOCAL=... python3 -I ../../infra/local/e2e_login_web.py
 
 ## Próxima ação
 
-1. **F05**: frota, viagens e entregas — pedido de entrega atribuído a viagem/motorista (escopo ASSIGNED), saída,
-   entregas parciais por `OrderService.fulfill`, retorno e prestação de contas.
+1. **F06**: financeiro e reconciliação — contas a receber (a prazo), liquidação de contas a pagar (inclui gastos de
+   veículo), acerto de adiantamentos de funcionário, caixa da empresa e reconciliação bancária.

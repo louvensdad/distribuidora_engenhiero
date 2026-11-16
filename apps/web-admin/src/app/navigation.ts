@@ -38,8 +38,8 @@ export const TABS: Tab[] = [
       { id: "receipts", label: "Recebimentos", path: "/operation/receipts", anyOf: ["inventory.receipts.view"] },
       { id: "products", label: "Produtos", path: "/operation/products", anyOf: ["catalog.view"] },
       { id: "suppliers", label: "Fornecedores", path: "/operation/suppliers", anyOf: ["suppliers.view"] },
-      { id: "fleet", label: "Frota", path: "/operation/fleet", anyOf: ["vehicles.view"], pendingPhase: "F05" },
-      { id: "trips", label: "Viagens", path: "/operation/trips", anyOf: ["trips.view"], pendingPhase: "F05" },
+      { id: "fleet", label: "Frota", path: "/operation/fleet", anyOf: ["vehicles.view"] },
+      { id: "trips", label: "Viagens", path: "/operation/trips", anyOf: ["trips.view"] },
     ],
   },
   {

@@ -4,7 +4,7 @@ import { ApiError, api, newIdempotencyKey } from "../../api/http";
 import { AUDIT_ACTION_LABELS, CLIENT_LABELS } from "../../api/labels";
 import type { Order, OrderHistoryItem, Payment, PaymentMethod } from "../../api/types";
 import { useResource } from "../../api/useResource";
-import { formatDateTime, formatDecimal, formatMoney, unitLabel } from "../../app/format";
+import { formatDateTime, formatDecimal, formatMoney, unitLabel, toDecimal } from "../../app/format";
 import { Field, FormError, Hidden, fieldError } from "../../components/Form";
 import { Icon } from "../../components/Icon";
 import { ConflictState, ErrorState, ForbiddenState, LoadingState } from "../../components/States";
@@ -130,7 +130,7 @@ function PaymentForm({ order, onDone }: { order: Order; onDone: (paid: Payment[]
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const set = (i: number, p: Partial<Part>) => setParts(parts.map((x, j) => (j === i ? { ...x, ...p } : x)));
-  const dec = (v: string) => (v.trim() ? v.trim().replace(",", ".") : null);
+  const dec = toDecimal;
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true);
@@ -269,7 +269,7 @@ function Operations({ order, resource, onDone }: { order: Order; resource: strin
       setBusy(false);
     }
   };
-  const lines = () => Object.entries(qty).filter(([, v]) => v.trim()).map(([n, v]) => ({ line_no: Number(n), quantity: v.replace(",", ".") }));
+  const lines = () => Object.entries(qty).filter(([, v]) => v.trim()).map(([n, v]) => ({ line_no: Number(n), quantity: toDecimal(v) }));
   const canConfirm = can(`${resource}.confirm`);
   if (error?.code === "VERSION_CONFLICT") return <ConflictState onReload={() => { setError(null); onDone(); }} />;
   return (

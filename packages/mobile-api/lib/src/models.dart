@@ -301,11 +301,12 @@ class ReceiptLineInput {
       };
 }
 
-/// Texto digitado → decimal do contrato, sem conversão numérica: "1.234,5" → "1234.5"; "12,5" → "12.5";
-/// "12.5" fica "12.5" (ponto só é separador de milhar quando há vírgula decimal). O servidor valida o resto.
+/// Texto digitado → decimal do contrato, sem conversão numérica: "1.234,5" → "1234.5"; "12,5" → "12.5".
+/// Sem vírgula, ponto seguido de grupos de 3 dígitos é milhar ("45.200" → "45200"); senão é decimal ("12.5").
 String decimalText(String typed) {
   final t = typed.trim().replaceAll(' ', '');
-  return t.contains(',') ? t.replaceAll('.', '').replaceAll(',', '.') : t;
+  if (t.contains(',')) return t.replaceAll('.', '').replaceAll(',', '.');
+  return RegExp(r'^\d{1,3}(\.\d{3})+$').hasMatch(t) ? t.replaceAll('.', '') : t;
 }
 
 /// Anexo privado (metadados). Bytes só pelo download autorizado.
@@ -431,5 +432,214 @@ class CashSessionInfo {
         counted: j['counted'] as String?,
         difference: j['difference'] as String?,
         version: j['version'] as int,
+      );
+}
+
+// ---- F05: viagens, entregas e frota ----
+class DeliveryInfo {
+  const DeliveryInfo({this.address, this.reference, this.contact, this.windowStart, this.windowEnd, this.agreedPayment});
+  final String? address;
+  final String? reference;
+  final String? contact;
+  final String? windowStart;
+  final String? windowEnd;
+  final String? agreedPayment;
+  factory DeliveryInfo.fromJson(Map<String, dynamic> j) => DeliveryInfo(
+        address: j['address'] as String?,
+        reference: j['reference'] as String?,
+        contact: j['contact'] as String?,
+        windowStart: j['window_start'] as String?,
+        windowEnd: j['window_end'] as String?,
+        agreedPayment: j['agreed_payment'] as String?,
+      );
+}
+
+class StopOrderInfo {
+  const StopOrderInfo({required this.id, required this.number, required this.customerName, required this.state,
+      required this.paymentState, required this.total, required this.paid, required this.pending, required this.balanceDue,
+      required this.lines, this.delivery, required this.maskedFields});
+  final String id;
+  final int number;
+  final String customerName;
+  final String state;
+  final String paymentState;
+  final String total;
+  final String paid;
+  final String pending;
+  final String balanceDue;
+  final List<OrderLineInfo> lines;
+  final DeliveryInfo? delivery;
+  final List<String> maskedFields;
+  bool get owes => !balanceDue.startsWith('-') && balanceDue != '0.00';
+  factory StopOrderInfo.fromJson(Map<String, dynamic> j) => StopOrderInfo(
+        id: j['id'] as String,
+        number: j['number'] as int,
+        customerName: j['customer_name'] as String,
+        state: j['state'] as String,
+        paymentState: j['payment_state'] as String,
+        total: j['effective_total'] as String,
+        paid: j['paid_amount'] as String,
+        pending: j['pending_amount'] as String,
+        balanceDue: j['balance_due'] as String,
+        lines: [for (final l in j['lines'] as List) OrderLineInfo.fromJson(l as Map<String, dynamic>)],
+        delivery: j['delivery'] == null ? null : DeliveryInfo.fromJson(j['delivery'] as Map<String, dynamic>),
+        maskedFields: [for (final f in (j['masked_fields'] as List?) ?? const []) f as String],
+      );
+}
+
+class TripIncidentInfo {
+  const TripIncidentInfo({required this.kind, required this.description, required this.createdByName, this.stopId});
+  final String kind;
+  final String description;
+  final String createdByName;
+  final String? stopId;
+  factory TripIncidentInfo.fromJson(Map<String, dynamic> j) => TripIncidentInfo(
+        kind: j['kind'] as String,
+        description: j['description'] as String,
+        createdByName: j['created_by_name'] as String,
+        stopId: j['stop_id'] as String?,
+      );
+}
+
+class TripStopInfo {
+  const TripStopInfo({required this.id, required this.seq, required this.state, this.recipientName, required this.order,
+      required this.incidents});
+  final String id;
+  final int seq;
+  final String state;
+  final String? recipientName;
+  final StopOrderInfo order;
+  final List<TripIncidentInfo> incidents;
+  factory TripStopInfo.fromJson(Map<String, dynamic> j) => TripStopInfo(
+        id: j['id'] as String,
+        seq: j['seq'] as int,
+        state: j['state'] as String,
+        recipientName: j['recipient_name'] as String?,
+        order: StopOrderInfo.fromJson(j['order'] as Map<String, dynamic>),
+        incidents: [for (final i in (j['incidents'] as List?) ?? const []) TripIncidentInfo.fromJson(i as Map<String, dynamic>)],
+      );
+}
+
+class TripInfo {
+  const TripInfo({required this.id, required this.number, required this.state, required this.plannedDate, this.vehicleId,
+      this.plate, this.vehicleModel, this.driverName, this.departureOdometer, this.returnOdometer, this.cashExpected,
+      this.cashDeclared, this.cashDifference, this.capacityUnit, this.load, this.capacity, required this.version,
+      required this.stops});
+  final String id;
+  final int number;
+  final String state;
+  final String plannedDate;
+  final String? vehicleId;
+  final String? plate;
+  final String? vehicleModel;
+  final String? driverName;
+  final String? departureOdometer;
+  final String? returnOdometer;
+  final String? cashExpected;
+  final String? cashDeclared;
+  final String? cashDifference;
+  final String? capacityUnit;
+  final String? load;
+  final String? capacity;
+  final int version;
+  final List<TripStopInfo> stops;
+  factory TripInfo.fromJson(Map<String, dynamic> j) => TripInfo(
+        id: j['id'] as String,
+        number: j['number'] as int,
+        state: j['state'] as String,
+        plannedDate: j['planned_date'] as String,
+        vehicleId: j['vehicle_id'] as String?,
+        plate: j['plate'] as String?,
+        vehicleModel: j['vehicle_model'] as String?,
+        driverName: j['driver_name'] as String?,
+        departureOdometer: j['departure_odometer'] as String?,
+        returnOdometer: j['return_odometer'] as String?,
+        cashExpected: j['cash_expected'] as String?,
+        cashDeclared: j['cash_declared'] as String?,
+        cashDifference: j['cash_difference'] as String?,
+        capacityUnit: j['capacity_unit'] as String?,
+        load: j['load'] as String?,
+        capacity: j['capacity_quantity'] as String?,
+        version: j['version'] as int,
+        stops: [for (final s in (j['stops'] as List?) ?? const []) TripStopInfo.fromJson(s as Map<String, dynamic>)],
+      );
+}
+
+class TripSummaryInfo {
+  const TripSummaryInfo({required this.id, required this.number, required this.state, required this.plannedDate, this.plate,
+      this.driverName, required this.stops, required this.delivered});
+  final String id;
+  final int number;
+  final String state;
+  final String plannedDate;
+  final String? plate;
+  final String? driverName;
+  final int stops;
+  final int delivered;
+  factory TripSummaryInfo.fromJson(Map<String, dynamic> j) => TripSummaryInfo(
+        id: j['id'] as String,
+        number: j['number'] as int,
+        state: j['state'] as String,
+        plannedDate: j['planned_date'] as String,
+        plate: j['plate'] as String?,
+        driverName: j['driver_name'] as String?,
+        stops: j['stops'] as int,
+        delivered: j['delivered'] as int,
+      );
+}
+
+class VehicleInfo {
+  const VehicleInfo({required this.id, required this.plate, required this.model, required this.status, required this.odometerKm,
+      this.nextServiceKm, required this.alerts, required this.consumptionState, this.kmPerLiter, this.consumptionMessage,
+      this.currentTripNumber});
+  final String id;
+  final String plate;
+  final String model;
+  final String status;
+  final String odometerKm;
+  final String? nextServiceKm;
+  final List<String> alerts;
+  final String consumptionState;
+  final String? kmPerLiter;
+  final String? consumptionMessage;
+  final int? currentTripNumber;
+  factory VehicleInfo.fromJson(Map<String, dynamic> j) {
+    final c = (j['consumption'] as Map<String, dynamic>?) ?? const {};
+    return VehicleInfo(
+      id: j['id'] as String,
+      plate: j['plate'] as String,
+      model: j['model'] as String,
+      status: j['status'] as String,
+      odometerKm: j['odometer_km'] as String,
+      nextServiceKm: j['next_service_km'] as String?,
+      alerts: [for (final a in (j['alerts'] as List?) ?? const []) (a as Map)['message'] as String],
+      consumptionState: (c['state'] as String?) ?? 'INSUFFICIENT_DATA',
+      kmPerLiter: c['km_per_liter'] as String?,
+      consumptionMessage: c['message'] as String?,
+      currentTripNumber: j['current_trip_number'] as int?,
+    );
+  }
+}
+
+class VehicleExpenseInfo {
+  const VehicleExpenseInfo({required this.id, required this.kind, required this.amount, required this.state, required this.paidWith,
+      this.liters, this.odometer, required this.occurredOn});
+  final String id;
+  final String kind;
+  final String amount;
+  final String state;
+  final String paidWith;
+  final String? liters;
+  final String? odometer;
+  final String occurredOn;
+  factory VehicleExpenseInfo.fromJson(Map<String, dynamic> j) => VehicleExpenseInfo(
+        id: j['id'] as String,
+        kind: j['kind'] as String,
+        amount: j['amount'] as String,
+        state: j['state'] as String,
+        paidWith: j['paid_with'] as String,
+        liters: j['liters'] as String?,
+        odometer: j['odometer'] as String?,
+        occurredOn: j['occurred_on'] as String,
       );
 }

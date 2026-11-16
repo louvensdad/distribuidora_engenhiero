@@ -236,3 +236,10 @@ tbody tr:last-child > * { border-bottom: none; }
 .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: var(--space-3, 12px); margin: 0; }
 .facts dt { font-size: 0.85em; color: var(--text-muted, inherit); }
 .facts dd { margin: 0; overflow-wrap: anywhere; }
+details.card > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; margin: 0; }
+details.card[open] > summary { margin-bottom: 12px; }
+.check-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.check-list label { display: flex; gap: 8px; align-items: flex-start; min-height: 44px; }
+.stop { border-left: 4px solid var(--eng-cyan, #0aa); }
+.stop-delivered { border-left-color: var(--eng-green, #1a7f37); }
+.stop-failed { border-left-color: var(--eng-red, #c62828); }

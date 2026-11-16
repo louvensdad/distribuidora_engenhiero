@@ -1,0 +1,10 @@
+# F05 — testes de mutação (2026-11-16, ./mvnw -o test -Dtest=..., código restaurado após cada mutação; git diff vazio)
+1. TripService.assign: comparação de capacidade desativada (if (false && total > capacidade))
+   → veiculoIncapazOuIndisponivelNaoRecebeAtribuicao FALHA (expected: 422). Pega.
+2. TripService.reconcile: trava "não pelo motorista nem por quem registrou o retorno" desativada
+   → fluxoCompleto... FALHA (expected: 403 but was: 409). Pega.
+3. VehicleService.recordOdometer: checagem regressiva no serviço removida, gatilho do banco mantido
+   → odometroRegressivoRejeitado PASSA: o gatilho trg_odometer_monotonic recusa e a API devolve o mesmo 422.
+   Proteção em duas camadas; o teste não isola a do serviço (documentado, como na F04).
+4. V7: condição do gatilho trocada por IF FALSE (serviço mantido)
+   → odometroRegressivoRejeitado FALHA (inserção direta no banco não é recusada: "Expecting actual not to be null"). Pega.

@@ -3,7 +3,7 @@ import { Link } from "react-router";
 import { ApiError, api, newIdempotencyKey } from "../../api/http";
 import type { Balance, Loss, LossReason, Page, Product, StockMovement } from "../../api/types";
 import { useResource } from "../../api/useResource";
-import { formatDateTime, formatDecimal, formatMoney, formatQty, unitLabel } from "../../app/format";
+import { formatDateTime, formatDecimal, formatMoney, formatQty, unitLabel, toDecimal } from "../../app/format";
 import { Field, FormError, Hidden, fieldError } from "../../components/Form";
 import { Icon } from "../../components/Icon";
 import { ConflictState, EmptyState, ErrorState, ForbiddenState, LoadingState } from "../../components/States";
@@ -172,7 +172,7 @@ function LossForm({ onDone }: { onDone: (ok: boolean) => void }) {
     setError(null);
     try {
       await api.command<Loss>("/api/v1/inventory/losses", {
-        product_id: form.product_id || null, unit: form.unit || null, quantity: form.quantity.replace(",", "."),
+        product_id: form.product_id || null, unit: form.unit || null, quantity: toDecimal(form.quantity),
         reason: form.reason || null, notes: form.notes.trim() || null,
       }, key);
       onDone(true);

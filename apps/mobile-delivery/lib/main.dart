@@ -10,12 +10,13 @@ final config = AppConfig(
   clientId: 'engenheiro-entregas',
   audienceDescription: 'Entregas, motoristas e veículos',
   destinations: [
-    Destination(id: 'viagens', label: 'Viagens', icon: 'route', anyOf: const ['trips.view'], pendingPhase: 'F05',
-        builder: (_) => const PendingModuleView(title: 'Viagens e entregas', phase: 'F05')),
-    Destination(id: 'despacho', label: 'Despacho', icon: 'truck', anyOf: const ['trips.assign'], pendingPhase: 'F05',
-        builder: (_) => const PendingModuleView(title: 'Despacho', phase: 'F05')),
-    Destination(id: 'veiculos', label: 'Veículos', icon: 'car', anyOf: const ['vehicles.view', 'fuel.create'], pendingPhase: 'F05',
-        builder: (_) => const PendingModuleView(title: 'Veículos, abastecimento e manutenção', phase: 'F05')),
+    Destination(id: 'viagens', label: 'Viagens', icon: 'route', anyOf: const ['trips.view'], builder: (_) => const TripsScreen()),
+    Destination(id: 'veiculos', label: 'Veículos', icon: 'car', anyOf: const ['vehicles.view', 'fuel.create'],
+        builder: (_) => const VehiclesScreen()),
+    Destination(id: 'caixa', label: 'Caixa', icon: 'cash', anyOf: const ['own_cash.view'], builder: (_) => const CashScreen()),
+    // Despacho pelo app (E04) é da F12; na F05 o despacho é feito no site (Operação > Viagens).
+    Destination(id: 'despacho', label: 'Despacho', icon: 'truck', anyOf: const ['trips.assign'], pendingPhase: 'F12',
+        builder: (_) => const PendingModuleView(title: 'Despacho pelo app (use o site: Operação > Viagens)', phase: 'F12')),
     Destination(id: 'clientes', label: 'Clientes', icon: 'users', anyOf: const ['customers.view'], builder: (_) => const CustomersScreen()),
   ],
 );

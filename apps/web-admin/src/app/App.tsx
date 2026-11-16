@@ -21,6 +21,10 @@ import { OrdersPage } from "../features/sales/OrdersPage";
 import { OrderFormPage } from "../features/sales/OrderFormPage";
 import { OrderDetailPage } from "../features/sales/OrderDetailPage";
 import { BranchesPage } from "../features/team/BranchesPage";
+import { FleetPage } from "../features/operation/FleetPage";
+import { VehicleDetailPage } from "../features/operation/VehicleDetailPage";
+import { TripsPage } from "../features/operation/TripsPage";
+import { TripDetailPage } from "../features/operation/TripDetailPage";
 import { ForbiddenState, PendingModule } from "../components/States";
 
 const IMPLEMENTED: Record<string, () => React.JSX.Element> = {
@@ -30,6 +34,8 @@ const IMPLEMENTED: Record<string, () => React.JSX.Element> = {
   "/operation/receipts": ReceiptsPage,
   "/operation/products": ProductsPage,
   "/operation/suppliers": SuppliersPage,
+  "/operation/fleet": FleetPage,
+  "/operation/trips": TripsPage,
   "/finance/payables": PayablesPage,
   "/finance/my-cash": MyCashPage,
   "/sales/orders": OrdersPage,
@@ -61,6 +67,8 @@ export function App() {
         <Route path="/sales/orders/new" element={<Guard anyOf={["orders.pickup.create", "orders.delivery.create"]}><OrderFormPage /></Guard>} />
         <Route path="/sales/orders/:id" element={<Guard anyOf={["orders.pickup.view", "orders.delivery.view"]}><OrderDetailPage /></Guard>} />
         <Route path="/operation/receipts/new" element={<Guard anyOf={["inventory.receipts.create"]}><ReceiptFormPage /></Guard>} />
+        <Route path="/operation/fleet/:id" element={<Guard anyOf={["vehicles.view"]}><VehicleDetailPage /></Guard>} />
+        <Route path="/operation/trips/:id" element={<Guard anyOf={["trips.view"]}><TripDetailPage /></Guard>} />
         <Route path="/operation/receipts/:id" element={<Guard anyOf={["inventory.receipts.view"]}><ReceiptDetailPage /></Guard>} />
         {TABS.filter((t) => !t.subtabs.some((s) => s.path === t.path)).map((t) => (
           <Route key={t.path} path={t.path} element={<Navigate to={t.subtabs[0]!.path} replace />} />

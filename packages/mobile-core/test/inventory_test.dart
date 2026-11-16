@@ -153,6 +153,8 @@ void main() {
     expect(decimalText('1.234,5'), '1234.5');
     expect(decimalText('12.5'), '12.5');
     expect(decimalText(' 12,50 '), '12.50');
+    expect(decimalText('45.200'), '45200'); // milhar pt-BR, não 45,2
+    expect(decimalText('1.234.567'), '1234567');
   });
 
   testWidgets('patrão confere pelo app: custo por linha e frete vão na confirmação', (tester) async {

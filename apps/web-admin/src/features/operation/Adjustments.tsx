@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { ApiError, api, newIdempotencyKey } from "../../api/http";
 import type { Adjustment, Page, Product } from "../../api/types";
 import { useResource } from "../../api/useResource";
-import { formatDateTime, formatDecimal, formatMoney, formatQty, unitLabel } from "../../app/format";
+import { formatDateTime, formatDecimal, formatMoney, formatQty, unitLabel, toDecimal } from "../../app/format";
 import { Field, FormError, Hidden, fieldError } from "../../components/Form";
 import { ConflictState, EmptyState, ErrorState, LoadingState } from "../../components/States";
 import { useSession } from "../../session/SessionContext";
@@ -22,8 +22,8 @@ export function CountForm({ onDone }: { onDone: (ok: boolean) => void }) {
     setError(null);
     try {
       await api.command<Adjustment>("/api/v1/inventory/adjustments", {
-        product_id: form.product_id || null, unit: form.unit || null, counted_quantity: form.counted_quantity.replace(",", "."),
-        unit_cost: form.unit_cost.trim() ? form.unit_cost.replace(",", ".") : null, notes: form.notes.trim(),
+        product_id: form.product_id || null, unit: form.unit || null, counted_quantity: toDecimal(form.counted_quantity),
+        unit_cost: toDecimal(form.unit_cost), notes: form.notes.trim(),
       }, key);
       onDone(true);
     } catch (err) {

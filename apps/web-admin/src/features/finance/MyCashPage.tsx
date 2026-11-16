@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { ApiError, api, newIdempotencyKey } from "../../api/http";
 import type { CashSession } from "../../api/types";
 import { useResource } from "../../api/useResource";
-import { formatDateTime, formatMoney } from "../../app/format";
+import { formatDateTime, formatMoney, toDecimal } from "../../app/format";
 import { Field, FormError, fieldError } from "../../components/Form";
 import { ConflictState, EmptyState, ErrorState, LoadingState } from "../../components/States";
 import { useSession } from "../../session/SessionContext";
@@ -58,7 +58,7 @@ function OpenForm({ onDone }: { onDone: () => void }) {
     e.preventDefault();
     setError(null);
     try {
-      await api.command("/api/v1/cash-sessions", { opening_float: fund.replace(",", ".") }, key);
+      await api.command("/api/v1/cash-sessions", { opening_float: toDecimal(fund) }, key);
       onDone();
     } catch (err) {
       setError(err instanceof ApiError ? err : new ApiError({ status: 0, code: "UNKNOWN" }));
@@ -87,7 +87,7 @@ function CurrentSession({ s, onDone }: { s: CashSession; onDone: () => void }) {
     e.preventDefault();
     setError(null);
     try {
-      await api.command(`/api/v1/cash-sessions/${s.id}/close`, { counted: counted.replace(",", "."), justification: just.trim() || null }, key, `"${s.version}"`);
+      await api.command(`/api/v1/cash-sessions/${s.id}/close`, { counted: toDecimal(counted), justification: just.trim() || null }, key, `"${s.version}"`);
       setKey(newIdempotencyKey());
       onDone();
     } catch (err) {
@@ -100,7 +100,7 @@ function CurrentSession({ s, onDone }: { s: CashSession; onDone: () => void }) {
       <div className="kpis kpis-4" aria-label="Caixa aberto">
         <div className="card kpi"><span className="kpi-label">Fundo</span><span className="kpi-value">{formatMoney(s.opening_float)}</span></div>
         <div className="card kpi"><span className="kpi-label">Entradas em dinheiro</span><span className="kpi-value">{formatMoney(s.cash_in)}</span></div>
-        <div className="card kpi"><span className="kpi-label">Saídas (estornos)</span><span className="kpi-value">{formatMoney(s.cash_out)}</span></div>
+        <div className="card kpi"><span className="kpi-label">Saídas (estornos e gastos)</span><span className="kpi-value">{formatMoney(s.cash_out)}</span></div>
         <div className="card kpi kpi-highlight"><span className="kpi-label">Esperado na gaveta</span><span className="kpi-value">{formatMoney(s.expected)}</span></div>
       </div>
       {can("own_cash.close") && (

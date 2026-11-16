@@ -459,7 +459,7 @@ class _CashScreenState extends State<CashScreen> {
       ] else ...[
         _row('Fundo', Text(formatMoney(s.openingFloat))),
         _row('Recebido em dinheiro', Text(formatMoney(s.cashIn))),
-        _row('Devolvido', Text(formatMoney(s.cashOut))),
+        _row('Saídas (devoluções e gastos)', Text(formatMoney(s.cashOut))),
         _row('Esperado', Text(formatMoney(s.expected), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: EngColors.green))),
         const SizedBox(height: 16),
         TextField(controller: _counted, keyboardType: const TextInputType.numberWithOptions(decimal: true),

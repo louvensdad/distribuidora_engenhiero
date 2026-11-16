@@ -1,0 +1,27 @@
+# F05 — ./mvnw -o clean verify (services/api) — 2026-11-16T16:26:26-03:00
+Java 21 / Spring Boot 4.1.2 / PostgreSQL 18 (Testcontainers)
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.402 s -- in br.com.engenheiro.api.catalogparties.CustomersIntegrationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in br.com.engenheiro.api.documents.DocumentsUnitTest
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in br.com.engenheiro.api.identityaccess.AccessPolicyTest
+Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.157 s -- in br.com.engenheiro.api.identityaccess.AuthenticationIntegrationTest
+Tests run: 21, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.598 s -- in br.com.engenheiro.api.identityaccess.AuthorizationIntegrationTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.098 s -- in br.com.engenheiro.api.identityaccess.ConcurrencyIntegrationTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in br.com.engenheiro.api.identityaccess.ContractConsistencyTest
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.219 s -- in br.com.engenheiro.api.identityaccess.LocalSeedIntegrationTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.028 s -- in br.com.engenheiro.api.identityaccess.OpenApiContractTest
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.637 s -- in br.com.engenheiro.api.identityaccess.WebBffIntegrationTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.032 s -- in br.com.engenheiro.api.inventory.F03LimitsIntegrationTest
+Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.339 s -- in br.com.engenheiro.api.inventory.InventoryIntegrationTest
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.198 s -- in br.com.engenheiro.api.logistics.LogisticsIntegrationTest
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.403 s -- in br.com.engenheiro.api.orders.OrdersIntegrationTest
+
+Total: 118 testes, 0 falhas, 0 erros — BUILD SUCCESS
+Novos na F05 (LogisticsIntegrationTest, 8):
+  - "veiculoIncapazOuIndisponivelNaoRecebeAtribuicao"
+  - "odometroRegressivoRejeitado"
+  - "motoristaConsultaSomenteViagensAtribuidas"
+  - "consumoKmPorLitroSoEntreTanquesCheios"
+  - "fluxoCompletoComEntregaParcialOcorrenciaRetornoEPrestacaoDeContas"
+  - "mesmoPedidoEmDuasViagensSimultaneasSoUmaGanha"
+  - "pedidoDeEntregaExigeEnderecoEPagamentoCombinadoEMascaraParaQuemNaoVe"
+  - "gastoRateadoSomaAoOriginalSemDuplicarDespesa"

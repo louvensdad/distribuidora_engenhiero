@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { ApiError, api } from "../../api/http";
 import type { Page, Product } from "../../api/types";
 import { useResource } from "../../api/useResource";
-import { UNITS, formatDateTime, formatDecimal, formatMoney, unitLabel } from "../../app/format";
+import { UNITS, formatDateTime, formatDecimal, formatMoney, unitLabel, toDecimal } from "../../app/format";
 import { Field, FormError, fieldError } from "../../components/Form";
 import { Icon } from "../../components/Icon";
 import { ConflictState, EmptyState, ErrorState, ForbiddenState, LoadingState } from "../../components/States";
@@ -82,7 +82,7 @@ function ProductRow({ p, onChange }: { p: Product; onChange: () => void }) {
       </tr>
       {pricing && (
         <tr className="detail-row"><td colSpan={6}>
-          <form className="inline-form" onSubmit={(e) => { e.preventDefault(); void run(`/api/v1/products/${p.id}/prices`, { unit: price.unit || null, price: price.price.replace(",", ".") }); }}>
+          <form className="inline-form" onSubmit={(e) => { e.preventDefault(); void run(`/api/v1/products/${p.id}/prices`, { unit: price.unit || null, price: toDecimal(price.price) }); }}>
             <label htmlFor={"pr-u-" + p.id}>Preço por</label>
             <select id={"pr-u-" + p.id} value={price.unit} onChange={(e) => setPrice({ ...price, unit: e.target.value })}>
               <option value="">{unitLabel(p.base_unit, "1")}</option>
@@ -98,7 +98,7 @@ function ProductRow({ p, onChange }: { p: Product; onChange: () => void }) {
       {adding && (
         <tr className="detail-row"><td colSpan={6}>
           {error?.code === "VERSION_CONFLICT" ? <ConflictState onReload={onChange} /> : (
-            <form className="inline-form" onSubmit={(e) => { e.preventDefault(); void run(`/api/v1/products/${p.id}/conversions`, { unit: conv.unit, factor: conv.factor.replace(",", ".") }); }}>
+            <form className="inline-form" onSubmit={(e) => { e.preventDefault(); void run(`/api/v1/products/${p.id}/conversions`, { unit: conv.unit, factor: toDecimal(conv.factor) }); }}>
               <span>1</span>
               <label className="visually-hidden" htmlFor={"cv-u-" + p.id}>Medida</label>
               <select id={"cv-u-" + p.id} value={conv.unit} onChange={(e) => setConv({ ...conv, unit: e.target.value })}>
@@ -130,7 +130,7 @@ function CreateProduct({ onDone }: { onDone: (ok: boolean) => void }) {
     setBusy(true);
     setError(null);
     try {
-      await api.post<Product>("/api/v1/products", { ...form, conversions: convs.filter((c) => c.unit).map((c) => ({ unit: c.unit, factor: c.factor.replace(",", ".") })) });
+      await api.post<Product>("/api/v1/products", { ...form, conversions: convs.filter((c) => c.unit).map((c) => ({ unit: c.unit, factor: toDecimal(c.factor) })) });
       onDone(true);
     } catch (err) {
       setError(err instanceof ApiError ? err : new ApiError({ status: 0, code: "UNKNOWN" }));

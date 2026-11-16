@@ -85,6 +85,9 @@ class LogisticsIntegrationTest {
                 "address", "Rua Exemplo, 100"), (String) null).json().path("id").asString();
     }
 
+    static final byte[] PNG = {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 0, 'I', 'E', 'N', 'D',
+            (byte) 0xAE, 0x42, 0x60, (byte) 0x82};
+
     static Map<String, String> key() {
         return Map.of("Idempotency-Key", "teste-" + UUID.randomUUID());
     }
@@ -387,6 +390,19 @@ class LogisticsIntegrationTest {
         JsonNode p1 = api.get("/api/v1/orders/" + o1, coord.token()).json();
         assertThat(p1.path("state").asString()).isEqualTo("FULFILLED");
         assertThat(p1.path("payment_state").asString()).isEqualTo("PAID");
+
+        // Evidência da entrega (LOG-03): foto anexada à parada, visível a quem vê a viagem; outro motorista não alcança.
+        String stop1 = stopOf(t, o1);
+        Api.Res foto = api.upload("/api/v1/trips/" + tid + "/stops/" + stop1 + "/attachments", motoristaA.token(),
+                "canhoto.png", "image/png", PNG);
+        assertThat(foto.status()).as(foto.body()).isEqualTo(201);
+        assertThat(foto.json().path("state").asString()).isEqualTo("AVAILABLE");
+        assertThat(api.get("/api/v1/trips/" + tid + "/stops/" + stop1 + "/attachments", motoristaB.token()).status())
+                .isEqualTo(404);
+        Api.Res baixa = api.getBytes("/api/v1/documents/" + foto.json().path("id").asString() + "/download", coord.token());
+        assertThat(baixa.status()).isEqualTo(200);
+        assertThat(api.getBytes("/api/v1/documents/" + foto.json().path("id").asString() + "/download",
+                motoristaB.token()).status()).isEqualTo(404);
 
         // Parada 2: entrega parcial exige motivo e gera ocorrência.
         Map<String, Object> parcialSemMotivo = Map.of("stop_id", stopOf(t, o2), "recipient_name", "João",

@@ -1,0 +1,47 @@
+# F05 — app Entregas (motorista) no emulador com Keycloak 26.8.1 + API real (V7) — 2026-11-16T16:09–16:15 -03:00
+flutter analyze: No issues found!
+Dart: 38 testes, 0 falhas (por pacote: mobile-core 15, mobile-api 6, mobile-auth 6, owner 3, counter 2, delivery 3, accountant 3).
+Novo: packages/mobile-core/test/delivery_test.dart (3): saída com If-Match e odômetro pt-BR; parada paga "não cobrar";
+endereço oculto pela política; entrega com dinheiro e chave idempotente reaproveitada na nova tentativa; parcial exige motivo;
+ocorrência; abastecimento com dinheiro do motorista. decimalText("45.200") = "45200" (antes virava 45,2 — corrigido no site e no app).
+
+Preparação (sessão web do patrão, script local fora do repo): produto com preço, 100 dúzias, 2 clientes; pedido #22 entrega
+10 dúzias (dinheiro na entrega, R$ 75,00); pedido #23 8 dúzias com Pix conferido pelo patrão (PAID); veículo YWZ2F05
+(Fiorino, 100 dúzias, odômetro 30.000); viagem V6 atribuída a "Motorista B Exemplo" (carga 18 de 100).
+Concessões do dono ao vínculo fictício "Motorista B Exemplo" (equivalentes ao mapa de acessos, aplicadas no banco local):
+  payments.create/confirm (BRANCH), own_cash.view/create/close (OWN), trips.close (ASSIGNED).
+
+Fluxo no app br.com.engenheiro.entregas (usuário motorista.b):
+- Destinos: Viagens, Veículos, Caixa (sem Clientes e sem Despacho — correto para o perfil). Lista mostra só V4, V5, V6
+  (viagens dele); nenhuma do Motorista A. (telas-mobile/F05-entregas-login.png)
+- Caixa aberto com fundo R$ 0,00.
+- V6 atribuída: saída com 29.900 km → "Menor que o último odômetro (30000.0 km)" (F05-entregas-odometro-regressivo.png);
+  saída com 30.012 → Em rota (F05-entregas-em-rota.png). Parada 2 mostra "Pago — não cobrar novamente".
+- Parada 1: quem recebeu "Gerente Ana", dinheiro apresentado R$ 100,00 → Entregue, Pago (F05-entregas-confirmar.png).
+- Parada 2: ocorrência "Cliente ausente — Portao fechado, sem resposta" → Não entregue (pedido segue reservado: CONFIRMED).
+- Veículos: abastecimento 30.050 km, 5 l diesel, R$ 20,00, "Dinheiro que está comigo" (F05-entregas-abastecimento.png).
+- Retorno: 30.080 km, dinheiro entregue R$ 55,00 → Retornou; a prestar R$ 55,00, diferença R$ 0,00
+  (F05-entregas-retorno-preenchido.png, F05-entregas-retornou-topo.png).
+- Caixa do motorista: recebido R$ 75,00, saídas R$ 20,00, esperado R$ 55,00 (F05-entregas-caixa.png).
+Conferência pelo patrão (sessão web): conciliar com gasto pendente → 409 "1 gasto(s) da viagem aguardando aprovação";
+aprovar combustível (registrado pelo motorista) → APPROVED; conciliar → RECONCILED por Patrão Fictício, diferença 0,00;
+custos: R$ 20,00 rateado 100% ao pedido #22 (único entregue), não alocado 0,00.
+
+Banco (psql) — lançamentos da viagem:
+  PAYMENT_CONFIRMED   CAIXA D 75,00 / CLIENTES C 75,00
+  SALE_RECOGNIZED     CLIENTES D 75,00 / RECEITA_VENDAS C 75,00; CMV D 30,00 / ESTOQUE C 30,00   (só o entregue)
+  DRIVER_CASH_ADVANCE ADIANTAMENTOS_FUNCIONARIOS D 20,00 / CAIXA C 20,00
+  EXPENSE_APPROVED    DESPESAS_VEICULOS D 20,00 / ADIANTAMENTOS_FUNCIONARIOS C 20,00          (despesa uma vez)
+Trilha: trips.create, trips.assign (Patrão, engenheiro-web) → trips.depart, trips.deliver, trips.incident, vehicles.fuel,
+  trips.return (Motorista B, engenheiro-entregas) → vehicles.expense.approve, trips.reconcile (Patrão, engenheiro-web).
+Odômetro YWZ2F05: INITIAL 30000.0 → DEPARTURE 30012.0 → FUEL 30050.0 → RETURN 30080.0.
+Pedidos: #22 FULFILLED/PAID; #23 CONFIRMED/PAID (volta para despacho).
+Limite da automação: digitação por adb; um gesto de rolagem caiu no teclado e digitou "ty" no campo Posto — corrigido antes
+de enviar (o valor gravado foi "Posto Exemplo").
+
+Evidência da entrega (LOG-03), 2ª viagem V8 (ECG1G34) do mesmo motorista, 16:2x -03:00:
+- Parada 1 → "Da galeria" (seletor de fotos do Android) → "Anexado: scaled_20.jpg" (telas-mobile/F05-entregas-foto-canhoto.png).
+  Banco: documents trip_stop | scaled_20.jpg | image/jpeg | AVAILABLE | Motorista B Exemplo; auditoria documents.attach
+  via engenheiro-entregas. Download só por quem vê a viagem (teste: outro motorista → 404).
+- Entrega com R$ 75,00, ocorrência "Cliente ausente" na parada 2, retorno 30.040 km com R$ 75,00 → Retornou, diferença R$ 0,00.
+Dart após a evidência: mobile-core 15 testes (delivery_test inclui envio multipart da foto da parada).

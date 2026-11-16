@@ -24,3 +24,4 @@ ou de provedores; mudanças exigem novo ADR com o modelo `docs/especificacao/tem
 | ADR-016 | Regras de estoque da F03 (custo médio, frete, reservas, perdas, devoluções) | ADOTADA (validar com contador, D12) | Ver `ADR-016.md` |
 | ADR-017 | Funções sem recurso no contrato (contas a pagar, unidades) só para administrador | ADOTADA (provisória) | Ver `ADR-017.md` |
 | ADR-018 | Regras de pedido, pagamento e caixa da F04 | ADOTADA (validar D04/D12/D15) | Ver `ADR-018.md` |
+| ADR-019 | Regras de frota, viagens, entregas, prestação e rateio da F05 | ADOTADA (validar com dono/contador) | Ver `ADR-019.md` |

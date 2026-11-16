@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router";
 import { ApiError, api, newIdempotencyKey } from "../../api/http";
 import type { Page, Product, Receipt, Supplier } from "../../api/types";
 import { useResource } from "../../api/useResource";
-import { formatDecimal, unitLabel } from "../../app/format";
+import { formatDecimal, unitLabel, toDecimal } from "../../app/format";
 import { Field, FormError, fieldError } from "../../components/Form";
 import { Icon } from "../../components/Icon";
 import { ErrorState, ForbiddenState, LoadingState } from "../../components/States";
@@ -11,7 +11,7 @@ import { useSession } from "../../session/SessionContext";
 
 interface LineForm { product_id: string; unit: string; quantity_expected: string; quantity_received: string; lot: string; unit_cost: string }
 const emptyLine = (): LineForm => ({ product_id: "", unit: "", quantity_expected: "", quantity_received: "", lot: "", unit_cost: "" });
-const dec = (v: string) => (v.trim() ? v.trim().replace(",", ".") : null);
+const dec = toDecimal;
 
 /** W06 — Conferir recebimento de fornecedor. Campos de custo só aparecem para quem tem acesso a custo. */
 export function ReceiptFormPage() {

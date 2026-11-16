@@ -146,6 +146,86 @@ class ApiClient {
         if (justification != null && justification.trim().isNotEmpty) 'justification': justification.trim(),
       }, ifMatch: '"$version"', idempotencyKey: idempotencyKey));
 
+  // ---- F05: viagens e frota (motorista: só o atribuído; o servidor filtra) ----
+  Future<List<TripSummaryInfo>> trips({int limit = 50}) async {
+    final j = await _get('/api/v1/trips', {'limit': '$limit'});
+    return [for (final t in j['items'] as List) TripSummaryInfo.fromJson(t as Map<String, dynamic>)];
+  }
+
+  Future<TripInfo> trip(String id) async => TripInfo.fromJson(await _get('/api/v1/trips/$id'));
+
+  Future<TripInfo> departTrip({required String id, required int version, required String odometer}) async =>
+      TripInfo.fromJson(await _post('/api/v1/trips/$id/depart', {'odometer': decimalText(odometer)}, ifMatch: '"$version"'));
+
+  /// Entrega total (sem [lines]) ou parcial (com motivo). [payment]: um meio, cobrado junto, no caixa do motorista.
+  Future<TripInfo> deliverStop({required String tripId, required String stopId, required String idempotencyKey,
+      required String recipientName, Map<int, String>? lines, String? partialReason,
+      ({String method, String amount, String? presentedCash, String? reference})? payment}) async =>
+      TripInfo.fromJson(await _post('/api/v1/trips/$tripId/deliveries', {
+        'stop_id': stopId,
+        'recipient_name': recipientName.trim(),
+        if (lines != null) 'lines': [for (final e in lines.entries) {'line_no': e.key, 'quantity': decimalText(e.value)}],
+        if (partialReason != null && partialReason.trim().isNotEmpty) 'partial_reason': partialReason.trim(),
+        if (payment != null)
+          'payment': {
+            'parts': [
+              {
+                'method': payment.method,
+                'amount': payment.amount,
+                if (payment.presentedCash != null) 'presented_cash': decimalText(payment.presentedCash!),
+                if (payment.reference != null && payment.reference!.trim().isNotEmpty) 'provider_reference': payment.reference!.trim(),
+              }
+            ]
+          },
+      }, idempotencyKey: idempotencyKey));
+
+  Future<TripInfo> tripIncident({required String tripId, String? stopId, required String idempotencyKey, required String kind,
+          required String description, String requestedAction = 'NONE'}) async =>
+      TripInfo.fromJson(await _post('/api/v1/trips/$tripId/incidents', {
+        'stop_id': ?stopId,
+        'kind': kind,
+        'description': description.trim(),
+        'requested_action': requestedAction,
+      }, idempotencyKey: idempotencyKey));
+
+  Future<TripInfo> returnTrip({required String id, required int version, required String idempotencyKey,
+          required String odometer, required String cashDeclared, String? justification}) async =>
+      TripInfo.fromJson(await _post('/api/v1/trips/$id/return', {
+        'odometer': decimalText(odometer),
+        'cash_declared': decimalText(cashDeclared),
+        if (justification != null && justification.trim().isNotEmpty) 'justification': justification.trim(),
+      }, ifMatch: '"$version"', idempotencyKey: idempotencyKey));
+
+  /// Evidência da entrega (foto do canhoto/carga) na parada; autorizada pela viagem atribuída.
+  Future<DocumentInfo> uploadStopEvidence({required String tripId, required String stopId, required String fileName,
+          required List<int> bytes, required String contentType}) async =>
+      DocumentInfo.fromJson(await _send(() => http.MultipartRequest(
+          'POST', baseUrl.replace(path: '/api/v1/trips/$tripId/stops/$stopId/attachments'))
+        ..files.add(http.MultipartFile.fromBytes('file', bytes, filename: fileName, contentType: MediaType.parse(contentType)))));
+
+  Future<List<VehicleInfo>> vehicles() async {
+    final j = await _get('/api/v1/vehicles');
+    return [for (final v in j['items'] as List) VehicleInfo.fromJson(v as Map<String, dynamic>)];
+  }
+
+  Future<List<VehicleExpenseInfo>> vehicleExpenses({String? vehicleId}) async {
+    final j = await _get('/api/v1/vehicle-expenses', {'vehicle_id': vehicleId});
+    return [for (final e in j['items'] as List) VehicleExpenseInfo.fromJson(e as Map<String, dynamic>)];
+  }
+
+  Future<VehicleExpenseInfo> registerFuel({required String vehicleId, required String idempotencyKey, required String odometer,
+          required String liters, required String fuelType, required bool fullTank, required String amount, String? station,
+          required String paidWith}) async =>
+      VehicleExpenseInfo.fromJson(await _post('/api/v1/vehicles/$vehicleId/fuel', {
+        'odometer': decimalText(odometer),
+        'liters': decimalText(liters),
+        'fuel_type': fuelType,
+        'full_tank': fullTank,
+        'amount': decimalText(amount),
+        if (station != null && station.trim().isNotEmpty) 'station': station.trim(),
+        'paid_with': paidWith,
+      }, idempotencyKey: idempotencyKey));
+
   /// Chave aleatória para um comando (uma por intenção do usuário).
   static String newIdempotencyKey() {
     final r = Random.secure();

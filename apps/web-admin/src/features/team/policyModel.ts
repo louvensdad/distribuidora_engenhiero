@@ -1,3 +1,4 @@
+import { toDecimal } from "../../app/format";
 import type { CapabilityView, Effect, FieldPolicy, Grant, Policy, Scope } from "../../api/types";
 import { ACTION_LABELS, CLIENT_LABELS, FIELD_LABELS, RESOURCE_LABELS, SCOPE_LABELS, label } from "../../api/labels";
 
@@ -83,7 +84,7 @@ export function toPayload(d: Draft, reason: string): PolicyPayload {
       grants.push({ ...base, scope: "ORGANIZATION", effect: "DENY", max_amount: null });
       continue;
     }
-    const max = c.maxAmount.trim() === "" ? null : c.maxAmount.trim().replace(",", ".");
+    const max = toDecimal(c.maxAmount);
     for (const scope of [c.scope, ...c.extraScopes]) grants.push({ ...base, scope, effect: "ALLOW", max_amount: max });
   }
   const fields = Object.entries(d.fields)

@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router";
 import { ApiError, api, newIdempotencyKey, uploadFile } from "../../api/http";
 import type { DocumentView, Receipt, ReceiptLine } from "../../api/types";
 import { useResource } from "../../api/useResource";
-import { formatDateTime, formatDecimal, formatMoney, formatQty } from "../../app/format";
+import { formatDateTime, formatDecimal, formatMoney, formatQty, toDecimal } from "../../app/format";
 import { Field, FormError, Hidden, fieldError } from "../../components/Form";
 import { ConflictState, ErrorState, ForbiddenState, LoadingState } from "../../components/States";
 import { Icon } from "../../components/Icon";
@@ -87,8 +87,8 @@ function ConfirmForm({ receipt, seesCost, onDone }: { receipt: Receipt; seesCost
     setBusy(true);
     setError(null);
     const body = seesCost ? {
-      freight_amount: freight.trim() ? freight.trim().replace(",", ".") : null,
-      lines: receipt.lines.filter((l) => (costs[l.line_no] ?? "").trim()).map((l) => ({ line_no: l.line_no, unit_cost: costs[l.line_no]!.trim().replace(",", ".") })),
+      freight_amount: toDecimal(freight),
+      lines: receipt.lines.filter((l) => (costs[l.line_no] ?? "").trim()).map((l) => ({ line_no: l.line_no, unit_cost: toDecimal(costs[l.line_no]!) })),
       payment_due_date: due || null,
     } : { payment_due_date: due || null };
     try {
@@ -147,7 +147,7 @@ function ReturnForm({ receipt, onDone }: { receipt: Receipt; onDone: () => void 
     setError(null);
     try {
       const { data } = await api.command<{ total_cost: string | null; base_quantity: string }>(`/api/v1/inventory/receipts/${receipt.id}/returns`,
-        { line_no: Number(form.line_no), quantity: form.quantity.replace(",", "."), reason: form.reason }, key);
+        { line_no: Number(form.line_no), quantity: toDecimal(form.quantity), reason: form.reason }, key);
       setDone(`Devolução registrada${data.total_cost ? `: ${formatMoney(data.total_cost)} ao custo histórico` : ""}.`);
       setKey(newIdempotencyKey());
       setForm({ line_no: "", quantity: "", reason: "" });

@@ -38,13 +38,21 @@ Requisitos de F02 em diante seguem NOT_STARTED (lista completa em `docs/especifi
 | ORD-08 | Adiantamento em CLIENTES; entrega reclassifica sem nova entrada de caixa | `pedidoDe75...` (B04), emulador (`F04-mobile.txt`) | PASS |
 | ORD-09 | Caixa próprio: fundo, esperado, contado, diferença, justificativa, conferente | `pedidoDe75...`, `orders.spec.ts`, emulador | PASS |
 | ORD-10 | Idempotency-Key em pedido, pagamento, conferência, retirada, cancelamento, devolução, estorno | `entregaParcial...` (repetição), `retiradasConcorrentes...` (B05), `pixSoComprovante...` | PASS |
+| LOG-01 | Pedido de entrega com endereço, janela, contato e pagamento combinado (`OrderService`, W03/W04) | `pedidoDeEntregaExigeEnderecoEPagamentoCombinado...`, `trips.spec.ts` | PASS |
+| LOG-02 | Viagem com vários pedidos, placa/veículo, motorista e capacidade (`TripService.assign`, site Operação > Viagens) | `veiculoIncapazOuIndisponivel...`, `mesmoPedidoEmDuasViagens...`, `trips.spec.ts`, `Fleet.test.tsx` | PASS (despacho pelo app: F12) |
+| LOG-03 | Saída/retorno com odômetro, destinatário e evidência (anexo da parada) | `odometroRegressivoRejeitado`, `fluxoCompleto...`, emulador (`F05-mobile.txt`) | PASS |
+| LOG-04 | Ocorrência, ausente, recusa, reagendamento (volta para despacho), parcial | `fluxoCompleto...`, `delivery_test.dart`, emulador | PASS (devolução = cancelamento autorizado do pedido após retorno) |
+| LOG-05 | Combustível: litros, km, posto, comprovante, responsável; km/l só com tanques cheios | `consumoKmPorLitroSoEntreTanquesCheios`, `delivery_test.dart`, emulador | PASS |
+| LOG-06 | Manutenção, pneus, seguro, documentos, pedágio; avisos por veículo | `consumoKm...` (manutenção e aviso), `gastoRateado...` (pedágio), `Fleet.test.tsx` | PASS |
+| LOG-07 | Prestação de contas do motorista e dinheiro recebido; conferência por outra pessoa | `fluxoCompleto...`, `trips.spec.ts`, emulador + conciliação | PASS |
+| LOG-08 | Rateio analítico versionado sem repetir despesa | `gastoRateadoSomaAoOriginalSemDuplicarDespesa` | PASS |
 
 | UX-01 | `apps/web-admin` abas horizontais + subabas por capacidade | `navigation.test.ts`, `site.spec.ts` (ordem das 7 abas) | PASS (web) |
 | UX-02 | CSS responsivo; tabelas viram cartões ≤720 px | `layout.spec.ts` em 360/768/1440 (sem rolagem horizontal, ações visíveis) | PASS (web); apps em F11–F14 |
 | UX-03 | Ícones/nomes/IDs dos 4 apps | realm + `F00_INVENTARIO.md`; ícones em `docs/especificacao/assets/apps` | PARTIAL — builds dos apps em F11–F14 |
 | UX-04 | Estados carregando/vazio/erro/sem permissão/conflito/offline/pendente | `App.test.tsx` (403, 412, pendente), `States.tsx` | PASS (web) |
 | UX-05 | Skip link, foco visível, labels, aria-live, alvo 44 px, movimento reduzido | `site.spec.ts` (teclado) | PARTIAL — falta auditoria com leitor de tela |
-| WEB-01..03 | Site integrado a serviços reais (sem botões falsos; módulos futuros rotulados por fase) | Playwright 56 testes (`F04-web-playwright.txt`) | PARTIAL — só módulos já existentes no backend |
+| WEB-01..03 | Site integrado a serviços reais (sem botões falsos; módulos futuros rotulados por fase) | Playwright 63 testes (`F05-web-playwright.txt`) | PARTIAL — só módulos já existentes no backend |
 
 Testes adicionais de F01: imutabilidade de `audit_events` (trigger), paginação por cursor, 412 por versão,
 concorrência entre administradores (`ConcurrencyIntegrationTest`, com teste de mutação).

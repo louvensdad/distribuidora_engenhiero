@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router";
 import { ApiError, api, newIdempotencyKey } from "../../api/http";
 import type { Customer, Order, Page, Product } from "../../api/types";
 import { useResource } from "../../api/useResource";
-import { formatMoney, unitLabel } from "../../app/format";
+import { formatMoney, unitLabel, toDecimal } from "../../app/format";
 import { Field, FormError, fieldError } from "../../components/Form";
 import { Icon } from "../../components/Icon";
 import { ErrorState, ForbiddenState, LoadingState } from "../../components/States";
@@ -50,8 +50,8 @@ export function OrderFormPage() {
           window_start: dlv.start ? new Date(dlv.start).toISOString() : null, window_end: dlv.end ? new Date(dlv.end).toISOString() : null,
           agreed_payment: dlv.agreed || null,
         } : null,
-        items: items.map((x) => ({ product_id: x.product_id || null, unit: x.unit || null, quantity: x.quantity.replace(",", "."),
-          requested_discount: x.discount.trim() ? x.discount.replace(",", ".") : null })),
+        items: items.map((x) => ({ product_id: x.product_id || null, unit: x.unit || null, quantity: toDecimal(x.quantity),
+          requested_discount: toDecimal(x.discount) })),
       }, key);
       navigate(`/sales/orders/${data.id}`);
     } catch (err) {
