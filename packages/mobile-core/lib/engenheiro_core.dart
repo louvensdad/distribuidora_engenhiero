@@ -12,3 +12,4 @@ export 'src/screens/activity_screen.dart';
 export 'src/screens/people_screen.dart';
 export 'src/screens/home_summary_screen.dart';
 export 'src/screens/inventory_screens.dart';
+export 'src/screens/orders_screens.dart';

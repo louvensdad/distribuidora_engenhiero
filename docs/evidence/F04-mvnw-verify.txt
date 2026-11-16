@@ -1,0 +1,17 @@
+# F04 — ./mvnw verify (2026-11-16T12:20:15-03:00)
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.024 s -- in br.com.engenheiro.api.inventory.F03LimitsIntegrationTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.320 s -- in br.com.engenheiro.api.inventory.InventoryIntegrationTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in br.com.engenheiro.api.documents.DocumentsUnitTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.668 s -- in br.com.engenheiro.api.orders.OrdersIntegrationTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.427 s -- in br.com.engenheiro.api.catalogparties.CustomersIntegrationTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.117 s -- in br.com.engenheiro.api.identityaccess.ConcurrencyIntegrationTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.026 s -- in br.com.engenheiro.api.identityaccess.OpenApiContractTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in br.com.engenheiro.api.identityaccess.AccessPolicyTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in br.com.engenheiro.api.identityaccess.ContractConsistencyTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.111 s -- in br.com.engenheiro.api.identityaccess.LocalSeedIntegrationTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.577 s -- in br.com.engenheiro.api.identityaccess.WebBffIntegrationTest
+[INFO] Tests run: 21, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.706 s -- in br.com.engenheiro.api.identityaccess.AuthorizationIntegrationTest
+[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.183 s -- in br.com.engenheiro.api.identityaccess.AuthenticationIntegrationTest
+[INFO] Tests run: 110, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+[INFO] Total time:  23.737 s

@@ -3,8 +3,8 @@
 Data/hora e fuso: 16/11/2026 11:30 America/Sao_Paulo
 Agente e repositório: Claude Code (Opus 5.5) — `/home/louvens/Ivan/distribuidora-engenheiro` (movido de `~/distribuidora-engenheiro`)
 Branch e commit atual: `main` — ver `git log -1`
-Fase: F03 concluída (limites resolvidos em 16/11/2026); próxima F04
-Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** (pendências externas abaixo) · F04 **NOT_STARTED**
+Fase: F04 concluída (pedidos, pagamentos e caixa); próxima F05
+Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **NOT_STARTED**
 
 ## Entregue e comprovado
 
@@ -87,6 +87,28 @@ Problemas encontrados e corrigidos nesta etapa: seed local como `V1000` impedia 
 com teste); tabela estourava a largura no celular por texto `visually-hidden` absoluto; matriz de acessos longa demais
 (agora agrupada por área).
 
+## F04 — pedidos, retirada, pagamentos e caixa (16/11/2026)
+
+Entregue (ADR-018): preço de venda com vigência; pedido com reserva atômica e número por unidade; desconto por alçada
+explícita; retirada total/parcial só do que está pago ou a prazo autorizado; receita e CMV do entregue; cancelamento e
+devolução pelo custo histórico; pagamentos (dinheiro com troco no caixa aberto, Pix pendente até conferência manual,
+cartão com NSU/taxa/líquido, dividido = saldo devedor, a prazo só administrador), estorno com alçada; caixa do turno com
+esperado/contado/diferença/justificativa e conferente; livro financeiro balanceado e imutável (também para recebimento,
+perda, ajuste e devolução ao fornecedor); histórico do pedido com autor e app.
+Superfícies: site (Vendas > Pedidos W03/W04, Financeiro > Caixa do turno, preço em Produtos); app Retirada (Pedidos,
+Caixa) e Patrão (Mais > Pedidos, Meu caixa).
+Validação: `./mvnw verify` **110** (`F04-mvnw-verify.txt`), Vitest **27**, Playwright **56** (`F04-web-playwright.txt`),
+Dart **35**, emulador com usuário `balcao` (`F04-mobile.txt`); mutação da retirada concorrente em `F03-testes-de-mutacao.txt`.
+
+Pendências F04:
+- Provedor Pix/webhook (assinatura, repetição): NÃO CONFIGURADO (D04) → 503; conferência manual autorizada funciona.
+- Solicitação/aprovação de desconto fora da alçada: hoje só bloqueia (quem tem alçada faz o pedido).
+- Anexo de comprovante no pedido: o pagamento aceita `document_id` do pedido, mas ainda não há envio de anexo no pedido.
+- A prazo: registrado com vencimento; contas a receber/cobrança e liquidação na F06.
+- App: Pix pendente é registrado, mas conferir Pix, retirada parcial, cancelamento e devolução estão só no site; app
+  Patrão com Pedidos/Caixa compilado e com teste de widget, não exercitado no emulador nesta fase.
+- Concessões do balcão no emulador aplicadas direto no banco local (equivalentes ao mapa de acessos).
+
 ## F03 — limites resolvidos (16/11/2026) e pendências restantes
 
 Resolvidos: conta a pagar criada na confirmação (vencimento opcional; site Financeiro > Contas a pagar); ajuste por
@@ -136,5 +158,5 @@ ENGENHEIRO_SENHA_LOCAL=... python3 -I ../../infra/local/e2e_login_web.py
 
 ## Próxima ação
 
-1. **F04**: pedidos, retirada, pagamentos e caixa — reservar com `StockLedger.reserve` e baixar com
-   `fulfillReservation` no cumprimento (CMV por item); reverificar escopo por ID em pedidos.
+1. **F05**: frota, viagens e entregas — pedido de entrega atribuído a viagem/motorista (escopo ASSIGNED), saída,
+   entregas parciais por `OrderService.fulfill`, retorno e prestação de contas.

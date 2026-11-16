@@ -155,7 +155,9 @@ class ProductConversion {
 
 class Product {
   const Product({required this.id, required this.sku, required this.name, required this.baseUnit,
-      required this.baseUnitConfirmed, required this.conversions});
+      required this.baseUnitConfirmed, required this.conversions, this.prices = const {}});
+  /// Preço vigente por medida (texto decimal do servidor).
+  final Map<String, String> prices;
   final String id;
   final String sku;
   final String name;
@@ -170,6 +172,7 @@ class Product {
         baseUnit: j['base_unit'] as String,
         baseUnitConfirmed: j['base_unit_confirmed'] as bool,
         conversions: [for (final c in (j['conversions'] as List?) ?? const []) ProductConversion.fromJson(c as Map<String, dynamic>)],
+        prices: {for (final p in (j['prices'] as List?) ?? const []) (p as Map)['unit'] as String: p['price'] as String},
       );
 }
 
@@ -326,5 +329,107 @@ class DocumentInfo {
         state: j['state'] as String,
         rejection: j['rejection'] as String?,
         createdByName: j['created_by_name'] as String,
+      );
+}
+
+// ---- F04: pedidos, pagamentos e caixa ----
+class OrderLineInfo {
+  const OrderLineInfo({required this.lineNo, required this.productName, required this.unit, required this.quantity,
+      required this.unitPrice, required this.net, required this.fulfilled, required this.remaining});
+  final int lineNo;
+  final String productName;
+  final String unit;
+  final String quantity;
+  final String unitPrice;
+  final String net;
+  final String fulfilled;
+  final String remaining;
+  factory OrderLineInfo.fromJson(Map<String, dynamic> j) => OrderLineInfo(
+        lineNo: j['line_no'] as int,
+        productName: j['product_name'] as String,
+        unit: j['unit'] as String,
+        quantity: j['quantity'] as String,
+        unitPrice: j['unit_price'] as String,
+        net: j['net'] as String,
+        fulfilled: j['fulfilled_quantity'] as String,
+        remaining: j['remaining_quantity'] as String,
+      );
+}
+
+class OrderInfo {
+  const OrderInfo({required this.id, required this.number, required this.type, required this.state, required this.paymentState,
+      required this.customerName, required this.total, required this.paid, required this.pending, required this.balanceDue,
+      required this.createdByName, required this.version, required this.lines});
+  final String id;
+  final int number;
+  final String type;
+  final String state;
+  final String paymentState;
+  final String customerName;
+  final String total;
+  final String paid;
+  final String pending;
+  final String balanceDue;
+  final String createdByName;
+  final int version;
+  final List<OrderLineInfo> lines;
+  bool get open => state == 'CONFIRMED' || state == 'READY' || state == 'PARTIALLY_FULFILLED';
+  bool get owes => !balanceDue.startsWith('-') && balanceDue != '0.00';
+
+  factory OrderInfo.fromJson(Map<String, dynamic> j) => OrderInfo(
+        id: j['id'] as String,
+        number: j['number'] as int,
+        type: j['type'] as String,
+        state: j['state'] as String,
+        paymentState: j['payment_state'] as String,
+        customerName: j['customer_name'] as String,
+        total: j['effective_total'] as String,
+        paid: j['paid_amount'] as String,
+        pending: j['pending_amount'] as String,
+        balanceDue: j['balance_due'] as String,
+        createdByName: j['created_by_name'] as String,
+        version: j['version'] as int,
+        lines: [for (final l in j['lines'] as List) OrderLineInfo.fromJson(l as Map<String, dynamic>)],
+      );
+}
+
+class PaymentInfo {
+  const PaymentInfo({required this.id, required this.method, required this.state, required this.amount, this.changeGiven});
+  final String id;
+  final String method;
+  final String state;
+  final String amount;
+  final String? changeGiven;
+  factory PaymentInfo.fromJson(Map<String, dynamic> j) => PaymentInfo(
+        id: j['id'] as String,
+        method: j['method'] as String,
+        state: j['state'] as String,
+        amount: j['amount'] as String,
+        changeGiven: j['change_given'] as String?,
+      );
+}
+
+class CashSessionInfo {
+  const CashSessionInfo({required this.id, required this.state, required this.openingFloat, required this.cashIn,
+      required this.cashOut, required this.expected, this.counted, this.difference, required this.version});
+  final String id;
+  final String state;
+  final String openingFloat;
+  final String cashIn;
+  final String cashOut;
+  final String expected;
+  final String? counted;
+  final String? difference;
+  final int version;
+  factory CashSessionInfo.fromJson(Map<String, dynamic> j) => CashSessionInfo(
+        id: j['id'] as String,
+        state: j['state'] as String,
+        openingFloat: j['opening_float'] as String,
+        cashIn: j['cash_in'] as String,
+        cashOut: j['cash_out'] as String,
+        expected: j['expected'] as String,
+        counted: j['counted'] as String?,
+        difference: j['difference'] as String?,
+        version: j['version'] as int,
       );
 }

@@ -16,7 +16,8 @@ final config = AppConfig(
     Destination(id: 'ia', label: 'IA', icon: 'ai', anyOf: const ['ai.view'], pendingPhase: 'F15',
         builder: (_) => const PendingModuleView(title: 'IA da gestão', phase: 'F15')),
     Destination(id: 'mais', label: 'Mais', icon: 'settings',
-        anyOf: const ['users.view', 'customers.view', 'audit.view', 'inventory.stock.view', 'inventory.receipts.view'],
+        anyOf: const ['users.view', 'customers.view', 'audit.view', 'inventory.stock.view', 'inventory.receipts.view',
+          'orders.pickup.view'],
         builder: (_) => const MoreScreen()),
   ],
 );
@@ -52,6 +53,10 @@ class MoreScreen extends StatelessWidget {
     return ListView(padding: const EdgeInsets.all(16), children: [
       if (s.me.can('customers.view'))
         _Item('users', 'Clientes', 'Cadastro e busca', () => open('Clientes', const CustomersScreen())),
+      if (s.me.can('orders.pickup.view') || s.me.can('orders.delivery.view'))
+        _Item('order', 'Pedidos', 'Reserva, pagamento e retirada com autor', () => open('Pedidos', const OrdersScreen())),
+      if (s.me.can('own_cash.view'))
+        _Item('cash', 'Meu caixa', 'Fundo, recebimentos em dinheiro e fechamento', () => open('Meu caixa', const CashScreen())),
       if (s.me.can('inventory.stock.view'))
         _Item('inventory', 'Estoque', 'Físico, reservado, disponível e perdas', () => open('Estoque', const StockScreen())),
       if (s.me.can('inventory.receipts.view'))

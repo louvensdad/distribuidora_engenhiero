@@ -1,0 +1,21 @@
+# F04 — app Retirada (balcão) no emulador com Keycloak 26.8.1 + API real (2026-11-16T12:20:40-03:00)
+Dart: 35 testes, 0 falhas (No issues found! (ran in 4.1s)). Novo: orders_test.dart (R$ 75 pagos com R$ 100 → troco R$ 25 do servidor; retirada).
+Concessões do dono ao vínculo fictício "Balcão Exemplo" (equivalentes ao mapa de acessos, aplicadas no banco local):
+  payments.create/confirm/view (BRANCH), own_cash.view/create/close (OWN), orders.pickup.confirm/cancel (OWN).
+Observação: o emulador encerrou uma vez durante o login (sem erro no log); religado com -memory 3072 e o fluxo foi refeito.
+
+Fluxo (usuário balcao, app br.com.engenheiro.retirada):
+- Destinos visíveis: Atendimento, Pedidos, Estoque, Caixa (sem Fornecedores — correto para o perfil)
+- Caixa: fundo R$ 50,00 → esperado R$ 50,00
+- Novo pedido: cliente Ana E2E MWJEHLLM, produto com preço vigente "R$ 7,50 por dúzia" (do servidor), 10 dúzias
+  → Pedido #14, Reservado, Não pago, total R$ 75,00
+- Recebimento em dinheiro: apresentado R$ 100,00 → "Troco a entregar R$ 25,00", Pago (telas-mobile/F04-retirada-troco.png)
+- Registrar retirada → Concluído, pendente 0 (F04-retirada-concluido.png)
+- Caixa: recebido R$ 75,00, esperado R$ 125,00; contado R$ 125,00 → diferença R$ 0,00, enviado para conferência
+  (F04-retirada-caixa-fechado.png)
+
+Banco (psql):
+  PAYMENT_CONFIRMED: CAIXA D 75,00 / CLIENTES C 75,00   (adiantamento; troco não entra)
+  SALE_RECOGNIZED:   CLIENTES D 75,00 / RECEITA_VENDAS C 75,00; CMV D 30,00 / ESTOQUE C 30,00  (sem nova entrada de caixa)
+  Trilha: orders.create → payments.register → orders.fulfill, todos "Balcão Exemplo" via engenheiro-retirada
+  Caixa: CLOSED | fundo 50,00 | esperado 125,00 | contado 125,00 | diferença 0,00

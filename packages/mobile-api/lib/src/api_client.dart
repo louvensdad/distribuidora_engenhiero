@@ -92,6 +92,60 @@ class ApiClient {
         return r;
       }));
 
+  // ---- F04 ----
+  Future<ApiPage<Customer>> customersAll() async => ApiPage.fromJson(await _get('/api/v1/customers', {'limit': '100'}), Customer.fromJson);
+
+  Future<ApiPage<OrderInfo>> orders({int limit = 50}) async =>
+      ApiPage.fromJson(await _get('/api/v1/orders', {'limit': '$limit'}), OrderInfo.fromJson);
+
+  Future<OrderInfo> order(String id) async => OrderInfo.fromJson(await _get('/api/v1/orders/$id'));
+
+  /// Preço e total vêm do servidor; a chave evita pedido duplicado em nova tentativa.
+  Future<OrderInfo> createOrder({required String idempotencyKey, required String customerId,
+          required List<({String productId, String? unit, String quantity})> items}) async =>
+      OrderInfo.fromJson(await _post('/api/v1/orders', {
+        'type': 'PICKUP',
+        'customer_id': customerId,
+        'items': [
+          for (final i in items)
+            {'product_id': i.productId, if (i.unit != null && i.unit!.isNotEmpty) 'unit': i.unit, 'quantity': decimalText(i.quantity)}
+        ],
+      }, idempotencyKey: idempotencyKey));
+
+  /// Um meio por vez no app de balcão: dinheiro (com valor apresentado) ou Pix (fica aguardando conferência).
+  Future<({List<PaymentInfo> payments, OrderInfo order})> payOrder({required String orderId, required String idempotencyKey,
+      required String method, required String amount, String? presentedCash}) async {
+    final j = await _post('/api/v1/orders/$orderId/payments', {
+      'parts': [
+        {'method': method, 'amount': amount, if (presentedCash != null) 'presented_cash': decimalText(presentedCash)}
+      ],
+    }, idempotencyKey: idempotencyKey);
+    return (
+      payments: [for (final p in j['payments'] as List) PaymentInfo.fromJson(p as Map<String, dynamic>)],
+      order: OrderInfo.fromJson(j['order'] as Map<String, dynamic>),
+    );
+  }
+
+  Future<OrderInfo> fulfillOrder({required String orderId, required String idempotencyKey}) async =>
+      OrderInfo.fromJson(await _post('/api/v1/orders/$orderId/fulfillments', null, idempotencyKey: idempotencyKey));
+
+  Future<CashSessionInfo?> currentCash() async {
+    final j = await _get('/api/v1/cash-sessions/current');
+    final s = j['session'];
+    return s == null ? null : CashSessionInfo.fromJson(s as Map<String, dynamic>);
+  }
+
+  Future<CashSessionInfo> openCash({required String idempotencyKey, required String openingFloat}) async =>
+      CashSessionInfo.fromJson(await _post('/api/v1/cash-sessions', {'opening_float': decimalText(openingFloat)},
+          idempotencyKey: idempotencyKey));
+
+  Future<CashSessionInfo> closeCash({required String id, required int version, required String idempotencyKey,
+          required String counted, String? justification}) async =>
+      CashSessionInfo.fromJson(await _post('/api/v1/cash-sessions/$id/close', {
+        'counted': decimalText(counted),
+        if (justification != null && justification.trim().isNotEmpty) 'justification': justification.trim(),
+      }, ifMatch: '"$version"', idempotencyKey: idempotencyKey));
+
   /// Chave aleatória para um comando (uma por intenção do usuário).
   static String newIdempotencyKey() {
     final r = Random.secure();
