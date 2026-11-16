@@ -165,6 +165,11 @@ public class ExpenseService {
                     UUID payable = payables.createForSource(actor, x.branchId(), "expense", x.id(), x.supplierId(),
                             (x.payee() != null ? x.payee() + " — " : "") + memo, x.competence(), x.amount(), x.dueDate());
                     jdbc.sql("UPDATE expenses SET payable_id = :p WHERE id = :id").param("p", payable).param("id", x.id()).update();
+                    UUID bankTx = jdbc.sql("SELECT bank_transaction_id FROM expenses WHERE id = :id").param("id", x.id())
+                            .query(UUID.class).optional().orElse(null);
+                    if (bankTx != null) {
+                        payables.settleFromBank(actor, payable, bankTx); // o débito já aconteceu no banco
+                    }
                     audit.record(PayableService.entry(actor, "expenses.approve", "expense", x.id(),
                             Map.of("amount", x.amount().toPlainString())));
                     return view(find(x.id()).orElseThrow());
@@ -180,6 +185,11 @@ public class ExpenseService {
                     List.of(new FieldError("note", "Motivo obrigatório")));
         }
         decide(actor, x, expectedVersion, "REJECTED", note);
+        // Sugestão do extrato recusada: a transação do banco volta para conferência (pode ser ignorada ou conciliada).
+        jdbc.sql("""
+                        UPDATE bank_transactions SET state = 'UNMATCHED', decided_note = :n, version = version + 1
+                         WHERE suggested_expense_id = :e AND state = 'SUGGESTED'
+                        """).param("n", "Sugestão recusada: " + note).param("e", x.id()).update();
         audit.record(PayableService.entry(actor, "expenses.reject", "expense", x.id(), Map.of("reason", note)));
         return view(find(x.id()).orElseThrow());
     }

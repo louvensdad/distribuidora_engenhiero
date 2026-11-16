@@ -21,6 +21,8 @@ import { CashAccountsPage } from "../features/finance/CashAccountsPage";
 import { ClosingPage } from "../features/finance/ClosingPage";
 import { ExpensesPage } from "../features/finance/ExpensesPage";
 import { ReceivablesPage } from "../features/finance/ReceivablesPage";
+import { OpenFinancePage } from "../features/finance/OpenFinancePage";
+import { EmployeesPage } from "../features/team/EmployeesPage";
 import { OrdersPage } from "../features/sales/OrdersPage";
 import { OrderFormPage } from "../features/sales/OrderFormPage";
 import { OrderDetailPage } from "../features/sales/OrderDetailPage";
@@ -46,6 +48,8 @@ const IMPLEMENTED: Record<string, () => React.JSX.Element> = {
   "/finance/closing": ClosingPage,
   "/finance/expenses": ExpensesPage,
   "/finance/receivables": ReceivablesPage,
+  "/finance/open-finance": OpenFinancePage,
+  "/team/employees": EmployeesPage,
   "/sales/orders": OrdersPage,
   "/team/branches": BranchesPage,
   "/team/people": PeoplePage,

@@ -159,6 +159,14 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   "periods.reopen_request": "Pediu reabertura do mês",
   "periods.reopen": "Reabriu o mês",
   "periods.reopen_reject": "Recusou reabertura do mês",
+  "team.absence.create": "Registrou folga/férias",
+  "team.absence.approve": "Aprovou folga/férias",
+  "team.absence.reject": "Recusou folga/férias",
+  "team.absence.cancel": "Cancelou folga/férias",
+  "open_finance.connect": "Conectou conta bancária (Open Finance)",
+  "open_finance.sync": "Leu extrato do banco",
+  "open_finance.revoke": "Revogou conexão bancária",
+  "open_finance.ignore": "Ignorou transação do extrato",
 };
 
 export const label = (map: Record<string, string>, key: string) => map[key] ?? key;

@@ -245,3 +245,6 @@ details.card[open] > summary { margin-bottom: 12px; }
 .stop-failed { border-left-color: var(--eng-red, #c62828); }
 a.kpi { color: inherit; text-decoration: none; }
 a.kpi:hover, a.kpi:focus-visible { border-color: var(--eng-cyan); }
+.calendar td, .calendar th { padding: 6px 8px; vertical-align: top; }
+.cell-warn { background: color-mix(in srgb, var(--eng-warning, #e8be75) 12%, transparent); }
+.cell-alert { background: color-mix(in srgb, var(--eng-error, #fa9a9a) 18%, transparent); }

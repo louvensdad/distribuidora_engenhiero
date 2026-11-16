@@ -50,6 +50,7 @@ export const TABS: Tab[] = [
       { id: "expenses", label: "Despesas", path: "/finance/expenses", anyOf: ["expenses.view"] },
       { id: "payables", label: "Contas a pagar", path: "/finance/payables", anyOf: ["expenses.view"] },
       { id: "receivables", label: "Contas a receber", path: "/finance/receivables", anyOf: ["payments.view", "expenses.view"] },
+      { id: "openfinance", label: "Open Finance", path: "/finance/open-finance", anyOf: ["company_cash.view"] },
       { id: "mycash", label: "Caixa do turno", path: "/finance/my-cash", anyOf: ["own_cash.view", "admin"] },
       { id: "taxes", label: "Guias", path: "/finance/taxes", anyOf: ["taxes.view"], pendingPhase: "F07" },
       { id: "payroll", label: "Folha", path: "/finance/payroll", anyOf: ["payroll.view"], pendingPhase: "F07" },
@@ -69,6 +70,7 @@ export const TABS: Tab[] = [
     id: "team", label: "Equipe", icon: "users", path: "/team",
     subtabs: [
       { id: "people", label: "Pessoas", path: "/team/people", anyOf: ["users.view"] },
+      { id: "employees", label: "Funcionários", path: "/team/employees", anyOf: ["users.view"] },
       { id: "access", label: "Mapa de acessos", path: "/team/access", anyOf: ["permissions.view"] },
       { id: "audit", label: "Histórico", path: "/team/audit", anyOf: ["audit.view"] },
       { id: "branches", label: "Unidades", path: "/team/branches", anyOf: ["admin"] },

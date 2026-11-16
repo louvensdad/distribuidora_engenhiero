@@ -297,6 +297,21 @@ public class FinanceReportService {
         FinAccountService.Acc dr = accounts.find(org, drawers).orElseThrow();
         checks.add(check("CASH_DRAWERS", "Caixas de turno: movimentos dos caixas ± transferências × conta", movements.add(transfers),
                 accounts.balance(dr, null), "Fundo de troco não é lançamento (é o mesmo dinheiro do turno)."));
+        // Open Finance: saldo informado pelo banco × saldo da conta no livro (só conexões ativas com saldo lido).
+        record Bank(String name, BigDecimal providerBalance, UUID accountId) {
+        }
+        for (Bank b : jdbc.sql("""
+                        SELECT a.name, c.provider_balance, a.id AS account_id FROM bank_connections c
+                          JOIN fin_accounts a ON a.id = c.fin_account_id
+                         WHERE c.organization_id = :o AND c.state = 'ACTIVE' AND c.provider_balance IS NOT NULL
+                        """).param("o", org).query(Bank.class).list()) {
+            BigDecimal ledger = accounts.balance(accounts.find(org, b.accountId()).orElseThrow(), null);
+            int pending = jdbc.sql("SELECT count(*) FROM bank_transactions WHERE fin_account_id = :a AND state IN ('SUGGESTED', 'UNMATCHED')")
+                    .param("a", b.accountId()).query(Integer.class).single();
+            checks.add(check("BANK_" + b.accountId().toString().substring(0, 8).toUpperCase(),
+                    "Saldo no banco (Open Finance) × livro — " + b.name(), b.providerBalance(), ledger,
+                    pending == 0 ? "Extrato importado e conciliado." : pending + " transação(ões) do extrato aguardando conferência."));
+        }
         String status = checks.stream().allMatch(c -> Set.of("OK", "ROUNDING").contains(c.status())) ? "OK" : "DIVERGENT";
         return new Reconciliation(OffsetDateTime.now(), status, checks);
     }

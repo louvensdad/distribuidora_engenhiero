@@ -396,3 +396,23 @@ export interface Period {
   reopen_requested_by: string | null; profit_at_close: string | null; reconciliation_at_close: string | null;
   events: { action: string; actor_name: string; reason: string | null; state: string | null; occurred_at: string }[]; version: number;
 }
+
+// ---- ADR-021: funcionários (folgas/férias, desempenho) e Open Finance ----
+export interface Absence {
+  id: string; membership_id: string; user_id: string; person: string; sector: string; branch: string; kind: "VACATION" | "DAY_OFF" | "LEAVE";
+  start_date: string; end_date: string; days: number; state: "REQUESTED" | "APPROVED" | "REJECTED" | "CANCELLED"; notes: string | null;
+  created_by_name: string; created_at: string; decided_by_name: string | null; decided_note: string | null; version: number; warnings: string[];
+}
+export interface TeamCalendar {
+  from: string; to: string;
+  members: { membership_id: string; user_id: string; person: string; sector: string; role_template: string; branch: string; vacation_days_last_12m: number }[];
+  days: { date: string; sectors: { sector: string; total: number; available: number; absent: string[]; uncovered: boolean }[] }[];
+  absences: Absence[];
+}
+export interface PerformanceReport {
+  from: string; to: string; rule: string;
+  measures: { code: string; function: string; label: string; formula: string; unit: string; higher_is_better: boolean; values: { user_id: string; person: string; value: string }[]; leader: string | null; note: string | null }[];
+}
+export interface BankConnection { id: string; fin_account_id: string; account_name: string; provider: string; institution: string; company_document: string; state: string; consent_url: string | null; last_sync_at: string | null; last_error: string | null; provider_balance: string | null; ledger_balance: string | null; created_by_name: string; created_at: string }
+export interface OpenFinanceStatus { state: "CONFIGURADO" | "NAO_CONFIGURADO"; provider: string | null; message: string; connections: BankConnection[] }
+export interface BankTransaction { id: string; fin_account_id: string; account_name: string; booked_on: string; amount: string; direction: "IN" | "OUT"; description: string; counterpart: string | null; state: "MATCHED" | "SUGGESTED" | "UNMATCHED" | "IGNORED"; matched_type: string | null; matched_id: string | null; suggested_expense_id: string | null; suggested_category: string | null; expense_state: string | null; decided_note: string | null }

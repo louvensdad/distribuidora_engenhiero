@@ -109,6 +109,21 @@ Pendências F04:
   Patrão com Pedidos/Caixa compilado e com teste de widget, não exercitado no emulador nesta fase.
 - Concessões do balcão no emulador aplicadas direto no banco local (equivalentes ao mapa de acessos).
 
+## Pedido do responsável após a F06 — funcionários e Open Finance (16/11/2026, ADR-021)
+
+Entregue (migration V9): Equipe › Funcionários com folgas/férias/afastamentos (registro, aprovação por outra pessoa,
+sem sobreposição, aviso de setor sem ninguém), calendário de disponíveis por dia e setor, dias de férias no ano e
+desempenho por função (medidas separadas com fórmula pública, sem nota única — antecipa parte de REP-08).
+Financeiro › Open Finance: conexão por conta bancária com CNPJ e consentimento, leitura do extrato, conciliação com
+pagamentos/transferências/recebimentos já registrados, saída nova como despesa sugerida (aprovação já paga pelo banco),
+entrada sem par para conferência, saldo do banco × livro na conciliação. Sem agregador contratado: NÃO CONFIGURADO
+(503), nada importado ou simulado.
+Validação: `./mvnw clean verify` **131** (`ADR021-mvnw-verify.txt`), Vitest **39** (`ADR021-web-vitest.txt`),
+Playwright **84** (`ADR021-web-playwright.txt`, capturas `telas-web/ADR021-*.png`). O fluxo com agregador é provado
+com um agregador falso que existe só no código de teste.
+Pendente: contratar agregador e implementar o `OpenFinanceProvider` real; funcionários no app Patrão (F14); pedido de
+férias pelo próprio funcionário nos apps (F11–F13); regras da CLT de férias com o contador (F07).
+
 ## F06 — financeiro, competência e reconciliação (16/11/2026)
 
 Entregue (ADR-020), migration V8: contas financeiras (caixas de turno, cofre, bancos, adquirente) com saldo = soma do

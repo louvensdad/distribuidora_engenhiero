@@ -1,0 +1,24 @@
+# ADR-021 (funcionários + Open Finance) — ./mvnw -o clean verify — 2026-11-16T17:43:29-03:00
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.409 s -- in br.com.engenheiro.api.catalogparties.CustomersIntegrationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in br.com.engenheiro.api.documents.DocumentsUnitTest
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.437 s -- in br.com.engenheiro.api.finance.FinanceIntegrationTest
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in br.com.engenheiro.api.identityaccess.AccessPolicyTest
+Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.170 s -- in br.com.engenheiro.api.identityaccess.AuthenticationIntegrationTest
+Tests run: 21, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.583 s -- in br.com.engenheiro.api.identityaccess.AuthorizationIntegrationTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.109 s -- in br.com.engenheiro.api.identityaccess.ConcurrencyIntegrationTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in br.com.engenheiro.api.identityaccess.ContractConsistencyTest
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.450 s -- in br.com.engenheiro.api.identityaccess.LocalSeedIntegrationTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.030 s -- in br.com.engenheiro.api.identityaccess.OpenApiContractTest
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.822 s -- in br.com.engenheiro.api.identityaccess.WebBffIntegrationTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.356 s -- in br.com.engenheiro.api.inventory.F03LimitsIntegrationTest
+Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.473 s -- in br.com.engenheiro.api.inventory.InventoryIntegrationTest
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.287 s -- in br.com.engenheiro.api.logistics.LogisticsIntegrationTest
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.391 s -- in br.com.engenheiro.api.orders.OrdersIntegrationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.428 s -- in br.com.engenheiro.api.team.TeamAndOpenFinanceIntegrationTest
+
+Novos (TeamAndOpenFinanceIntegrationTest):
+  - "openFinanceSemAgregadorFicaNaoConfigurado"
+  - "extratoImportadoConciliaSugereDespesaENaoDuplica"
+  - "feriasEFolgasComCalendarioPorSetorESemSobreposicao"
+  - "desempenhoPorFuncaoComMedidasSeparadasEFormula"
+Total: 131 testes, 0 falhas, 0 erros

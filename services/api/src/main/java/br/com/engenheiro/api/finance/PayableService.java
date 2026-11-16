@@ -192,9 +192,43 @@ public class PayableService {
                         """).param("by", actor.userId()).param("r", reason).param("id", s.id()).update();
         journal.reverse(actor, "payable_payment", s.id(), "PAYABLE_PAYMENT", "PAYABLE_PAYMENT_REVERSED", reason);
         applyBalance(p.id(), s.amount());
+        // Se esse pagamento estava conciliado com o extrato, a transação do banco volta para conferência.
+        jdbc.sql("""
+                        UPDATE bank_transactions SET state = 'UNMATCHED', matched_type = NULL, matched_id = NULL,
+                               decided_note = 'Pagamento conciliado foi estornado', version = version + 1
+                         WHERE matched_type = 'payable_settlement' AND matched_id = :s
+                        """).param("s", s.id()).update();
         audit.record(entry(actor, "payables.payment_reverse", "payable", p.id(), Map.of("amount", s.amount().toPlainString(),
                 "reason", reason)));
         return detail(p.id());
+    }
+
+    /**
+     * Despesa que veio do extrato bancário (Open Finance): o dinheiro já saiu daquela conta na data do banco. A
+     * aprovação registra o pagamento junto, e a transação do banco fica conciliada com ele (uma única baixa).
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void settleFromBank(Actor actor, UUID payableId, UUID bankTransactionId) {
+        record T(UUID finAccountId, BigDecimal amount, LocalDate bookedOn, String ledger) {
+        }
+        T t = jdbc.sql("""
+                        SELECT b.fin_account_id, b.amount, b.booked_on, a.ledger_account AS ledger FROM bank_transactions b
+                          JOIN fin_accounts a ON a.id = b.fin_account_id WHERE b.id = :id FOR UPDATE OF b
+                        """).param("id", bankTransactionId).query(T.class).single();
+        PRow p = jdbc.sql(SELECT + " WHERE p.id = :id FOR UPDATE OF p").param("id", payableId).query(PRow.class).single();
+        UUID sid = Ids.newId();
+        jdbc.sql("""
+                        INSERT INTO payable_settlements (id, payable_id, kind, amount, fin_account_id, paid_on, note, source_id, created_by)
+                        VALUES (:id, :p, 'PAYMENT', :a, :f, :d, 'Débito no banco (Open Finance)', :src, :by)
+                        """).param("id", sid).param("p", p.id()).param("a", t.amount()).param("f", t.finAccountId())
+                .param("d", t.bookedOn()).param("src", bankTransactionId).param("by", actor.userId()).update();
+        journal.post(actor, p.branchId(), "payable_payment", sid, "PAYABLE_PAYMENT", p.description(), null,
+                List.of(Line.debit("FORNECEDORES", t.amount()), Line.credit(t.ledger(), t.amount()).at(t.finAccountId())));
+        applyBalance(p.id(), t.amount().negate());
+        jdbc.sql("""
+                        UPDATE bank_transactions SET state = 'MATCHED', matched_type = 'payable_settlement', matched_id = :s,
+                               decided_by = :by, version = version + 1 WHERE id = :id
+                        """).param("s", sid).param("by", actor.userId()).param("id", bankTransactionId).update();
     }
 
     // ---------------- abatimentos (chamados pelos fatos de origem) ----------------

@@ -6335,6 +6335,539 @@
         "required": [
           "items"
         ]
+      },
+      "Absence": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "membership_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "person": {
+            "type": "string"
+          },
+          "sector": {
+            "type": "string"
+          },
+          "branch": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "VACATION",
+              "DAY_OFF",
+              "LEAVE"
+            ]
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "days": {
+            "type": "integer"
+          },
+          "state": {
+            "enum": [
+              "REQUESTED",
+              "APPROVED",
+              "REJECTED",
+              "CANCELLED"
+            ]
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_by_name": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "decided_by_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "decided_note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "version": {
+            "type": "integer"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CreateAbsence": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "membership_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "enum": [
+              "VACATION",
+              "DAY_OFF",
+              "LEAVE"
+            ]
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "membership_id",
+          "kind",
+          "start_date",
+          "end_date"
+        ]
+      },
+      "TeamCalendar": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "membership_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "user_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "person": {
+                  "type": "string"
+                },
+                "sector": {
+                  "type": "string"
+                },
+                "role_template": {
+                  "type": "string"
+                },
+                "branch": {
+                  "type": "string"
+                },
+                "vacation_days_last_12m": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "date": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "sectors": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "sector": {
+                        "type": "string"
+                      },
+                      "total": {
+                        "type": "integer"
+                      },
+                      "available": {
+                        "type": "integer"
+                      },
+                      "absent": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "uncovered": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "absences": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Absence"
+            }
+          }
+        }
+      },
+      "Performance": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "rule": {
+            "type": "string"
+          },
+          "measures": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "function": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "formula": {
+                  "type": "string"
+                },
+                "unit": {
+                  "type": "string"
+                },
+                "higher_is_better": {
+                  "type": "boolean"
+                },
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "user_id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "person": {
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "leader": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "note": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "BankConnection": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fin_account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "account_name": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "institution": {
+            "type": "string"
+          },
+          "company_document": {
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "PENDING_CONSENT",
+              "ACTIVE",
+              "REVOKED",
+              "EXPIRED",
+              "ERROR"
+            ]
+          },
+          "consent_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "last_sync_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "last_error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "provider_balance": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ledger_balance": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_by_name": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "OpenFinanceStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "state": {
+            "enum": [
+              "CONFIGURADO",
+              "NAO_CONFIGURADO"
+            ]
+          },
+          "provider": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "connections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BankConnection"
+            }
+          }
+        }
+      },
+      "ConnectBank": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "fin_account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "institution": {
+            "type": "string"
+          },
+          "company_document": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "fin_account_id",
+          "institution",
+          "company_document"
+        ]
+      },
+      "BankTransaction": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fin_account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "account_name": {
+            "type": "string"
+          },
+          "booked_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "direction": {
+            "enum": [
+              "IN",
+              "OUT"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "counterpart": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "enum": [
+              "MATCHED",
+              "SUGGESTED",
+              "UNMATCHED",
+              "IGNORED"
+            ]
+          },
+          "matched_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "matched_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "suggested_expense_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "suggested_category": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "expense_state": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "decided_note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "BankTransactionList": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BankTransaction"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "BankSync": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "connection": {
+            "$ref": "#/components/schemas/BankConnection"
+          },
+          "imported": {
+            "type": "integer"
+          },
+          "matched": {
+            "type": "integer"
+          },
+          "suggested": {
+            "type": "integer"
+          },
+          "unmatched": {
+            "type": "integer"
+          }
+        }
       }
     }
   },
@@ -12843,6 +13376,591 @@
             "$ref": "#/components/responses/Problem"
           },
           "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/team/calendar": {
+      "get": {
+        "summary": "Calendário de folgas/férias: disponíveis por dia e setor",
+        "x-capability": "users.view",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamCalendar"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/team/absences": {
+      "post": {
+        "summary": "Registra férias/folga/afastamento",
+        "x-capability": "users.edit_draft",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Absence"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAbsence"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/team/absences/{id}/approve": {
+      "post": {
+        "summary": "Aprova (sem sobreposição; aviso de setor descoberto; não a própria)",
+        "x-capability": "users.edit_draft",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Absence"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OptionalNote"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/team/absences/{id}/reject": {
+      "post": {
+        "summary": "Recusa (motivo)",
+        "x-capability": "users.edit_draft",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Absence"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Note"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/team/absences/{id}/cancel": {
+      "post": {
+        "summary": "Cancela (motivo)",
+        "x-capability": "users.edit_draft",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Absence"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Note"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/team/performance": {
+      "get": {
+        "summary": "Desempenho por função: medidas separadas com fórmula, sem nota única (REP-08)",
+        "x-capability": "reports.view",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Performance"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/finance/open-finance": {
+      "get": {
+        "summary": "Estado do agregador (NÃO CONFIGURADO sem contrato) e conexões",
+        "x-capability": "company_cash.view",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenFinanceStatus"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/finance/open-finance/connections": {
+      "post": {
+        "summary": "Inicia consentimento da empresa (CNPJ) numa conta bancária; 503 sem agregador",
+        "x-capability": "admin",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankConnection"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectBank"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/open-finance/connections/{id}/sync": {
+      "post": {
+        "summary": "Importa extrato e concilia (pagamentos/transferências existentes; saída nova = despesa sugerida)",
+        "x-capability": "admin",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankSync"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "202": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/finance/open-finance/connections/{id}/revoke": {
+      "post": {
+        "summary": "Revoga a conexão",
+        "x-capability": "admin",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankConnection"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/open-finance/transactions": {
+      "get": {
+        "summary": "Transações importadas e situação de conciliação",
+        "x-capability": "company_cash.view",
+        "parameters": [
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankTransactionList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/finance/open-finance/transactions/{id}/ignore": {
+      "post": {
+        "summary": "Ignora transação sem par (motivo)",
+        "x-capability": "expenses.confirm",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankTransaction"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
             "$ref": "#/components/responses/Problem"
           },
           "422": {
