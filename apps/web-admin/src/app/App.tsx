@@ -9,11 +9,21 @@ import { CustomersPage } from "../features/sales/CustomersPage";
 import { PeoplePage } from "../features/team/PeoplePage";
 import { AccessMapPage } from "../features/team/AccessMapPage";
 import { AuditPage } from "../features/team/AuditPage";
+import { StockPage } from "../features/operation/StockPage";
+import { ReceiptsPage } from "../features/operation/ReceiptsPage";
+import { ReceiptFormPage } from "../features/operation/ReceiptFormPage";
+import { ReceiptDetailPage } from "../features/operation/ReceiptDetailPage";
+import { ProductsPage } from "../features/operation/ProductsPage";
+import { SuppliersPage } from "../features/operation/SuppliersPage";
 import { ForbiddenState, PendingModule } from "../components/States";
 
 const IMPLEMENTED: Record<string, () => React.JSX.Element> = {
   "/overview": OverviewPage,
   "/sales/customers": CustomersPage,
+  "/operation/stock": StockPage,
+  "/operation/receipts": ReceiptsPage,
+  "/operation/products": ProductsPage,
+  "/operation/suppliers": SuppliersPage,
   "/team/people": PeoplePage,
   "/team/access": AccessMapPage,
   "/team/audit": AuditPage,
@@ -38,6 +48,8 @@ export function App() {
             } />
           );
         })}
+        <Route path="/operation/receipts/new" element={<Guard anyOf={["inventory.receipts.create"]}><ReceiptFormPage /></Guard>} />
+        <Route path="/operation/receipts/:id" element={<Guard anyOf={["inventory.receipts.view"]}><ReceiptDetailPage /></Guard>} />
         {TABS.filter((t) => !t.subtabs.some((s) => s.path === t.path)).map((t) => (
           <Route key={t.path} path={t.path} element={<Navigate to={t.subtabs[0]!.path} replace />} />
         ))}

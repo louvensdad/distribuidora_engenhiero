@@ -1315,6 +1315,14 @@
             "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
             "description": "físico − reservado"
           },
+          "lost": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+            "description": "Perdas aprovadas líquidas de estornos, na unidade-base"
+          },
           "value": {
             "type": [
               "string",
@@ -1707,6 +1715,57 @@
         "required": [
           "items",
           "next_cursor"
+        ]
+      },
+      "StockTotal": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "base_unit": {
+            "type": "string"
+          },
+          "physical": {
+            "type": "string",
+            "pattern": "^-?[0-9]+(\\.[0-9]+)?$"
+          },
+          "reserved": {
+            "type": "string",
+            "pattern": "^-?[0-9]+(\\.[0-9]+)?$"
+          },
+          "available": {
+            "type": "string",
+            "pattern": "^-?[0-9]+(\\.[0-9]+)?$"
+          },
+          "lost": {
+            "type": "string",
+            "pattern": "^-?[0-9]+(\\.[0-9]+)?$"
+          },
+          "products": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "base_unit",
+          "physical",
+          "reserved",
+          "available",
+          "lost",
+          "products"
+        ]
+      },
+      "StockSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "totals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockTotal"
+            }
+          }
+        },
+        "required": [
+          "totals"
         ]
       }
     }
@@ -3333,6 +3392,30 @@
             "$ref": "#/components/responses/Problem"
           },
           "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/balances/summary": {
+      "get": {
+        "summary": "Totais de físico, reservado, disponível e perdas por unidade-base",
+        "x-capability": "inventory.stock.view",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockSummary"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
             "$ref": "#/components/responses/Problem"
           }
         }

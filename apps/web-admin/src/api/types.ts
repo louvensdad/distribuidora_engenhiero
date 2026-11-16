@@ -113,3 +113,138 @@ export interface Problem {
   detail?: string;
   errors?: { field: string; message: string }[];
 }
+
+// ---- F03: catálogo, fornecedores e estoque (decimais chegam como texto) ----
+export type Unit = "UNIDADE" | "DUZIA" | "FEIXE" | "MACO" | "CAIXA" | "SACO" | "KG" | "TONELADA";
+
+export interface Conversion { unit: Unit; factor: string; valid_from: string }
+
+export interface Product {
+  id: string;
+  sku: string;
+  name: string;
+  base_unit: Unit;
+  base_unit_confirmed: boolean;
+  unit_confirmed_at: string | null;
+  status: string;
+  version: number;
+  conversions: Conversion[];
+  created_at: string;
+}
+
+export interface Supplier {
+  id: string;
+  name: string;
+  contact: string | null;
+  personal_document: string | null;
+  status: string;
+  version: number;
+  created_at: string;
+  masked_fields: string[];
+}
+
+export interface ReceiptLine {
+  line_no: number;
+  product_id: string;
+  sku: string;
+  product_name: string;
+  unit: Unit;
+  factor: string;
+  quantity_expected: string | null;
+  quantity_received: string;
+  base_quantity: string;
+  base_unit: Unit;
+  difference: string | null;
+  lot: string | null;
+  unit_cost: string | null;
+  goods_cost: string | null;
+  freight_share: string | null;
+  returned_base_quantity: string;
+}
+
+export interface Receipt {
+  id: string;
+  status: "DRAFT" | "CONFIRMED";
+  supplier_id: string;
+  supplier_name: string;
+  branch: string;
+  document_number: string | null;
+  notes: string | null;
+  freight_amount: string | null;
+  total_cost: string | null;
+  received_at: string;
+  created_by_name: string;
+  confirmed_at: string | null;
+  confirmed_by_name: string | null;
+  version: number;
+  lines: ReceiptLine[];
+  masked_fields: string[];
+}
+
+export interface Balance {
+  product_id: string;
+  sku: string;
+  product_name: string;
+  base_unit: Unit;
+  branch_id: string;
+  branch: string;
+  physical: string;
+  reserved: string;
+  available: string;
+  lost: string;
+  value: string | null;
+  average_cost: string | null;
+  version: number;
+  updated_at: string;
+  masked_fields: string[];
+}
+
+export type MovementKind = "RECEIPT" | "SUPPLIER_RETURN" | "LOSS" | "LOSS_REVERSAL" | "SALE_ISSUE" | "SALE_RETURN";
+
+export interface StockMovement {
+  id: string;
+  kind: MovementKind;
+  product_id: string;
+  sku: string;
+  product_name: string;
+  base_unit: Unit;
+  branch: string;
+  quantity: string;
+  balance_after: string;
+  unit_cost: string | null;
+  total_cost: string | null;
+  source_type: string;
+  source_id: string;
+  source_line: number;
+  reversal_of: string | null;
+  reason: string | null;
+  created_by_name: string;
+  occurred_at: string;
+  masked_fields: string[];
+}
+
+export type LossReason = "QUEBRA" | "DETERIORACAO" | "AVARIA_TRANSPORTE" | "FURTO" | "ERRO_CONTAGEM" | "OUTRO";
+
+export interface Loss {
+  id: string;
+  status: "PENDING" | "APPROVED" | "REJECTED" | "REVERSED";
+  product_id: string;
+  sku: string;
+  product_name: string;
+  unit: Unit;
+  quantity: string;
+  base_quantity: string;
+  base_unit: Unit;
+  reason: LossReason;
+  notes: string | null;
+  total_cost: string | null;
+  branch: string;
+  created_by_name: string;
+  created_at: string;
+  decided_by_name: string | null;
+  decided_at: string | null;
+  decision_reason: string | null;
+  movement_id: string | null;
+  version: number;
+  masked_fields: string[];
+}

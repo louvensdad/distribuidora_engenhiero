@@ -1,0 +1,3 @@
+# Site — Vitest 2026-11-16T11:10:29-03:00
+ Test Files  5 passed (5)
+      Tests  24 passed (24)

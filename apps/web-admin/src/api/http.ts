@@ -30,6 +30,8 @@ export interface RequestOptions {
   method?: "GET" | "POST";
   body?: unknown;
   ifMatch?: string;
+  /** Comandos de estoque/financeiros: a mesma chave em nova tentativa nunca duplica o efeito. */
+  idempotencyKey?: string;
   signal?: AbortSignal;
 }
 
@@ -47,6 +49,7 @@ export async function request<T>(path: string, opts: RequestOptions = {}): Promi
   const headers: Record<string, string> = { Accept: "application/json" };
   if (opts.body !== undefined) headers["Content-Type"] = "application/json";
   if (opts.ifMatch) headers["If-Match"] = opts.ifMatch;
+  if (opts.idempotencyKey) headers["Idempotency-Key"] = opts.idempotencyKey;
   if (!SAFE.has(method)) {
     const csrf = readCookie("XSRF-TOKEN");
     if (csrf) headers["X-XSRF-TOKEN"] = decodeURIComponent(csrf);
@@ -87,4 +90,9 @@ function safeJson(text: string): unknown {
 export const api = {
   get: <T,>(path: string, signal?: AbortSignal) => request<T>(path, { signal }),
   post: <T,>(path: string, body: unknown, ifMatch?: string) => request<T>(path, { method: "POST", body, ifMatch }),
+  command: <T,>(path: string, body: unknown, idempotencyKey: string, ifMatch?: string) =>
+    request<T>(path, { method: "POST", body, ifMatch, idempotencyKey }),
 };
+
+/** Nova chave de idempotência (uma por intenção do usuário; reusar em nova tentativa). */
+export const newIdempotencyKey = () => "web-" + crypto.randomUUID();

@@ -83,6 +83,11 @@ public class InventoryController {
         return noStore(stock.balances(actor, q, limit, cursor));
     }
 
+    @GetMapping("/balances/summary")
+    public ResponseEntity<StockQueryService.Summary> balanceSummary(Actor actor) {
+        return noStore(stock.summary(actor));
+    }
+
     @GetMapping("/movements")
     public ResponseEntity<MovementPage> movements(Actor actor, @RequestParam(required = false) UUID product_id,
                                                   @RequestParam(defaultValue = "25") int limit,

@@ -32,7 +32,7 @@ public class StockQueryService {
     }
 
     public record BalanceView(UUID product_id, String sku, String product_name, String base_unit, UUID branch_id,
-                              String branch, String physical, String reserved, String available, String value,
+                              String branch, String physical, String reserved, String available, String lost, String value,
                               String average_cost, long version, OffsetDateTime updated_at,
                               List<String> masked_fields) {
     }
@@ -50,8 +50,40 @@ public class StockQueryService {
     public record MovementPage(List<MovementView> items, String next_cursor) {
     }
 
+    public record TotalView(String base_unit, String physical, String reserved, String available, String lost,
+                            int products) {
+    }
+
+    public record Summary(List<TotalView> totals) {
+    }
+
+    record TotalRow(String baseUnit, BigDecimal physical, BigDecimal reserved, BigDecimal lost, int products) {
+    }
+
+    /** Totais por unidade-base (não se somam dúzias com quilos), no mesmo escopo da lista de saldos. */
+    @Transactional(readOnly = true)
+    public Summary summary(Actor actor) {
+        Decision d = authz.require(actor, RESOURCE, "view");
+        ScopeSql.Predicate scope = ScopeSql.of(actor, d.scopes(),
+                new ScopeSql.Columns("ib.organization_id", "ib.branch_id", null, null, null));
+        var spec = jdbc.sql("""
+                        SELECT p.base_unit, sum(ib.physical) AS physical, sum(ib.reserved) AS reserved,
+                               coalesce(sum((SELECT -sum(m.quantity) FROM stock_movements m
+                                              WHERE m.branch_id = ib.branch_id AND m.product_id = ib.product_id
+                                                AND m.kind IN ('LOSS', 'LOSS_REVERSAL'))), 0) AS lost,
+                               count(DISTINCT ib.product_id) AS products
+                          FROM inventory_balances ib JOIN products p ON p.id = ib.product_id
+                         WHERE """ + scope.sql() + " GROUP BY p.base_unit ORDER BY p.base_unit");
+        for (Map.Entry<String, Object> p : scope.params().entrySet()) {
+            spec = spec.param(p.getKey(), p.getValue());
+        }
+        return new Summary(spec.query(TotalRow.class).list().stream().map(t -> new TotalView(t.baseUnit(),
+                Decimals.str(t.physical()), Decimals.str(t.reserved()),
+                Decimals.str(t.physical().subtract(t.reserved())), Decimals.str(t.lost()), t.products())).toList());
+    }
+
     record BalanceRow(UUID productId, String sku, String productName, String baseUnit, UUID branchId,
-                      String branchName, BigDecimal physical, BigDecimal reserved, BigDecimal value, long version,
+                      String branchName, BigDecimal physical, BigDecimal reserved, BigDecimal lost, BigDecimal value, long version,
                       OffsetDateTime updatedAt) {
     }
 
@@ -70,7 +102,11 @@ public class StockQueryService {
         Cursor.Key c = Cursor.decode(cursor);
         var spec = jdbc.sql("""
                         SELECT ib.product_id, p.sku, p.name AS product_name, p.base_unit, ib.branch_id,
-                               b.name AS branch_name, ib.physical, ib.reserved, ib.value, ib.version, ib.updated_at
+                               b.name AS branch_name, ib.physical, ib.reserved,
+                               (SELECT coalesce(-sum(m.quantity), 0) FROM stock_movements m
+                                 WHERE m.branch_id = ib.branch_id AND m.product_id = ib.product_id
+                                   AND m.kind IN ('LOSS', 'LOSS_REVERSAL')) AS lost,
+                               ib.value, ib.version, ib.updated_at
                           FROM inventory_balances ib
                           JOIN products p ON p.id = ib.product_id
                           JOIN branches b ON b.id = ib.branch_id
@@ -114,7 +150,7 @@ public class StockQueryService {
         boolean cost = authz.canSeeField(actor, FieldClass.PURCHASE_COST);
         return new BalancePage(rows.stream().map(r -> new BalanceView(r.productId(), r.sku(), r.productName(),
                 r.baseUnit(), r.branchId(), r.branchName(), Decimals.str(r.physical()), Decimals.str(r.reserved()),
-                Decimals.str(r.physical().subtract(r.reserved())), cost ? Decimals.moneyStr(r.value()) : null,
+                Decimals.str(r.physical().subtract(r.reserved())), Decimals.str(r.lost()), cost ? Decimals.moneyStr(r.value()) : null,
                 cost && r.physical().signum() > 0
                         ? Decimals.str(r.value().divide(r.physical(), 6, RoundingMode.HALF_UP)) : null,
                 r.version(), r.updatedAt(), cost ? List.of() : List.of("value", "average_cost"))).toList(), next);

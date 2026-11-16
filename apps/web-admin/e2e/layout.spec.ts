@@ -4,7 +4,8 @@ import { expect, test } from "@playwright/test";
 // Usuário fictício do seed local (Balcão Exemplo) para abrir o editor do mapa de acessos.
 const BALCAO = "0193a000-0000-7000-8000-000000000a02";
 
-for (const path of ["/overview", "/sales/customers", "/team/people", "/team/access", `/team/access?user=${BALCAO}`, "/team/audit"]) {
+for (const path of ["/overview", "/sales/customers", "/operation/stock", "/operation/receipts", "/operation/receipts/new",
+  "/operation/products", "/operation/suppliers", "/team/people", "/team/access", `/team/access?user=${BALCAO}`, "/team/audit"]) {
   test(`sem rolagem horizontal em ${path}`, async ({ page }, info) => {
     await page.goto(path);
     await page.locator("main h1").first().waitFor();

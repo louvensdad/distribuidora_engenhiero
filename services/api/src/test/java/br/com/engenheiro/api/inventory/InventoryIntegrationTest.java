@@ -419,6 +419,13 @@ class InventoryIntegrationTest {
         JsonNode b = balance(patrao, p);
         assertThat(b.path("physical").asString()).isEqualTo("95");
         assertThat(b.path("value").asString()).isEqualTo("1140.00");
+        assertThat(b.path("lost").asString()).isEqualTo("5");
+        JsonNode tot = api.get("/api/v1/inventory/balances/summary", patrao.token()).json().path("totals").get(0);
+        assertThat(tot.path("base_unit").asString()).isEqualTo("DUZIA");
+        assertThat(tot.path("physical").asString()).isEqualTo("95");
+        assertThat(tot.path("lost").asString()).isEqualTo("5");
+        assertThat(api.get("/api/v1/inventory/balances/summary", recebimentoUnidade2.token()).json().path("totals")
+                .size()).isZero(); // escopo da unidade
         assertThat(sumMovements(p, "LOSS")).isEqualByComparingTo("-60");
         assertThat(sumMovements(p, "SALE_ISSUE")).isEqualByComparingTo("0"); // perda não entra no CMV
         assertThat(jdbc.sql("SELECT count(*) FROM stock_movements WHERE kind = 'LOSS' AND source_id = :id")
@@ -486,6 +493,7 @@ class InventoryIntegrationTest {
         JsonNode after = balance(patrao, p);
         assertThat(after.path("physical").asString()).isEqualTo("16");
         assertThat(after.path("value").asString()).isEqualTo("266.00");
+        assertThat(after.path("lost").asString()).isEqualTo("0"); // perda estornada não conta
         assertThat(sumMovements(p, "LOSS").add(sumMovements(p, "LOSS_REVERSAL"))).isEqualByComparingTo("0");
         assertThat(jdbc.sql("SELECT reversal_of FROM stock_movements WHERE kind = 'LOSS_REVERSAL' AND source_id = :s")
                 .param("s", UUID.fromString(lid)).query(UUID.class).single())
