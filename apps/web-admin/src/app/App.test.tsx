@@ -70,8 +70,8 @@ describe("site do patrão", () => {
 
   it("módulo de fase futura é rotulado como pendente, sem números de exemplo", async () => {
     mockFetch({ "GET /bff/session": session, "GET /api/v1/me/capabilities": { body: me() } });
-    renderAt("/sales/orders");
-    expect(await screen.findByText(/Pedidos: em implementação/)).toBeInTheDocument();
+    renderAt("/reports");
+    expect(await screen.findByText(/Relatórios: em implementação/)).toBeInTheDocument();
     expect(screen.queryByText(/R\$/)).not.toBeInTheDocument();
   });
 

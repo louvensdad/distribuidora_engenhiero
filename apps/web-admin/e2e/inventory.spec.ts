@@ -91,6 +91,6 @@ test.describe("estoque — pilha real", () => {
 
     // Trilha
     await page.goto("/team/audit");
-    await expect(page.getByText("inventory.receipts.confirm").first()).toBeVisible();
+    await expect(page.getByText("Conferiu e confirmou recebimento").first()).toBeVisible();
   });
 });

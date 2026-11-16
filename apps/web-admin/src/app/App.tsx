@@ -16,6 +16,10 @@ import { ReceiptDetailPage } from "../features/operation/ReceiptDetailPage";
 import { ProductsPage } from "../features/operation/ProductsPage";
 import { SuppliersPage } from "../features/operation/SuppliersPage";
 import { PayablesPage } from "../features/finance/PayablesPage";
+import { MyCashPage } from "../features/finance/MyCashPage";
+import { OrdersPage } from "../features/sales/OrdersPage";
+import { OrderFormPage } from "../features/sales/OrderFormPage";
+import { OrderDetailPage } from "../features/sales/OrderDetailPage";
 import { BranchesPage } from "../features/team/BranchesPage";
 import { ForbiddenState, PendingModule } from "../components/States";
 
@@ -27,6 +31,8 @@ const IMPLEMENTED: Record<string, () => React.JSX.Element> = {
   "/operation/products": ProductsPage,
   "/operation/suppliers": SuppliersPage,
   "/finance/payables": PayablesPage,
+  "/finance/my-cash": MyCashPage,
+  "/sales/orders": OrdersPage,
   "/team/branches": BranchesPage,
   "/team/people": PeoplePage,
   "/team/access": AccessMapPage,
@@ -52,6 +58,8 @@ export function App() {
             } />
           );
         })}
+        <Route path="/sales/orders/new" element={<Guard anyOf={["orders.pickup.create", "orders.delivery.create"]}><OrderFormPage /></Guard>} />
+        <Route path="/sales/orders/:id" element={<Guard anyOf={["orders.pickup.view", "orders.delivery.view"]}><OrderDetailPage /></Guard>} />
         <Route path="/operation/receipts/new" element={<Guard anyOf={["inventory.receipts.create"]}><ReceiptFormPage /></Guard>} />
         <Route path="/operation/receipts/:id" element={<Guard anyOf={["inventory.receipts.view"]}><ReceiptDetailPage /></Guard>} />
         {TABS.filter((t) => !t.subtabs.some((s) => s.path === t.path)).map((t) => (

@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { ApiError, api } from "../../api/http";
 import type { Page, Product } from "../../api/types";
 import { useResource } from "../../api/useResource";
-import { UNITS, formatDateTime, formatDecimal, unitLabel } from "../../app/format";
+import { UNITS, formatDateTime, formatDecimal, formatMoney, unitLabel } from "../../app/format";
 import { Field, FormError, fieldError } from "../../components/Form";
 import { Icon } from "../../components/Icon";
 import { ConflictState, EmptyState, ErrorState, ForbiddenState, LoadingState } from "../../components/States";
@@ -29,7 +29,7 @@ export function ProductsPage() {
       {res.status === "ready" && (res.data.items.length === 0 ? <EmptyState title="Nenhum produto cadastrado" /> : (
         <div className="table-wrap card">
           <table className="stack">
-            <thead><tr><th scope="col">Produto</th><th scope="col">Código</th><th scope="col">Unidade-base</th><th scope="col">Conversões vigentes</th><th scope="col"><span className="visually-hidden">Ações</span></th></tr></thead>
+            <thead><tr><th scope="col">Produto</th><th scope="col">Código</th><th scope="col">Unidade-base</th><th scope="col">Conversões vigentes</th><th scope="col">Preço de venda</th><th scope="col"><span className="visually-hidden">Ações</span></th></tr></thead>
             <tbody>{res.data.items.map((p) => <ProductRow key={p.id} p={p} onChange={reload} />)}</tbody>
           </table>
         </div>
@@ -41,6 +41,8 @@ export function ProductsPage() {
 function ProductRow({ p, onChange }: { p: Product; onChange: () => void }) {
   const { can } = useSession();
   const [adding, setAdding] = useState(false);
+  const [pricing, setPricing] = useState(false);
+  const [price, setPrice] = useState({ unit: "", price: "" });
   const [conv, setConv] = useState({ unit: "", factor: "" });
   const [error, setError] = useState<ApiError | null>(null);
   const [busy, setBusy] = useState(false);
@@ -50,6 +52,7 @@ function ProductRow({ p, onChange }: { p: Product; onChange: () => void }) {
     try {
       await api.post<Product>(path, body, `"${p.version}"`);
       setAdding(false);
+      setPricing(false);
       onChange();
     } catch (err) {
       setError(err instanceof ApiError ? err : new ApiError({ status: 0, code: "UNKNOWN" }));
@@ -66,17 +69,34 @@ function ProductRow({ p, onChange }: { p: Product; onChange: () => void }) {
           ? <span className="badge badge-ok" title={p.unit_confirmed_at ? `Confirmada em ${formatDateTime(p.unit_confirmed_at)}` : undefined}>confirmada</span>
           : <span className="badge badge-error">não confirmada — não movimenta estoque</span>}</td>
         <td data-label="Conversões">{p.conversions.length === 0 ? "—" : p.conversions.map((c) => `1 ${unitLabel(c.unit, "1")} = ${formatDecimal(c.factor)} ${unitLabel(p.base_unit, c.factor)}`).join(" · ")}</td>
+        <td data-label="Preço de venda">{p.prices?.length ? p.prices.map((x) => `${formatMoney(x.price)} / ${unitLabel(x.unit, "1")}`).join(" · ") : "sem preço"}</td>
         <td>
           {can("catalog.edit_draft") && (
             <div className="row-actions">
+              <button className="btn btn-small" onClick={() => setPricing(!pricing)} aria-expanded={pricing}>Preço</button>
               {!p.base_unit_confirmed && <button className="btn btn-small btn-primary" disabled={busy} onClick={() => void run(`/api/v1/products/${p.id}/unit-confirmation`)}>Confirmar unidade</button>}
               <button className="btn btn-small" onClick={() => setAdding(!adding)} aria-expanded={adding}>Conversão</button>
             </div>
           )}
         </td>
       </tr>
+      {pricing && (
+        <tr className="detail-row"><td colSpan={6}>
+          <form className="inline-form" onSubmit={(e) => { e.preventDefault(); void run(`/api/v1/products/${p.id}/prices`, { unit: price.unit || null, price: price.price.replace(",", ".") }); }}>
+            <label htmlFor={"pr-u-" + p.id}>Preço por</label>
+            <select id={"pr-u-" + p.id} value={price.unit} onChange={(e) => setPrice({ ...price, unit: e.target.value })}>
+              <option value="">{unitLabel(p.base_unit, "1")}</option>
+              {p.conversions.map((c) => <option key={c.unit} value={c.unit}>{unitLabel(c.unit, "1")}</option>)}
+            </select>
+            <label className="visually-hidden" htmlFor={"pr-v-" + p.id}>Valor</label>
+            <input id={"pr-v-" + p.id} className="money" inputMode="decimal" placeholder="R$" value={price.price} onChange={(e) => setPrice({ ...price, price: e.target.value })} />
+            <button className="btn btn-small btn-primary" disabled={busy || !price.price}>Salvar nova vigência</button>
+            {error && <span className="field-error" role="alert">{error.fieldErrors[0]?.message ?? error.message}</span>}
+          </form>
+        </td></tr>
+      )}
       {adding && (
-        <tr className="detail-row"><td colSpan={5}>
+        <tr className="detail-row"><td colSpan={6}>
           {error?.code === "VERSION_CONFLICT" ? <ConflictState onReload={onChange} /> : (
             <form className="inline-form" onSubmit={(e) => { e.preventDefault(); void run(`/api/v1/products/${p.id}/conversions`, { unit: conv.unit, factor: conv.factor.replace(",", ".") }); }}>
               <span>1</span>

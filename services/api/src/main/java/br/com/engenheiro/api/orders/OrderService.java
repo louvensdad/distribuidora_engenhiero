@@ -563,6 +563,24 @@ public class OrderService {
         return new Page(rows.stream().map(this::view).toList(), next);
     }
 
+    public record HistoryItem(OffsetDateTime occurred_at, String action, String actor_name, String client_id,
+                              String entity_type) {
+    }
+
+    /** Etapas do pedido e dos pagamentos dele, com autor e app de origem; visível a quem vê o pedido. */
+    @Transactional(readOnly = true)
+    public List<HistoryItem> history(Actor actor, UUID id) {
+        get(actor, id); // autoriza pelo pedido
+        return jdbc.sql("""
+                        SELECT a.occurred_at, a.action, u.display_name AS actor_name, a.client_id, a.entity_type
+                          FROM audit_events a LEFT JOIN app_users u ON u.id = a.actor_user_id
+                         WHERE a.organization_id = :org AND a.result = 'SUCCESS'
+                           AND (a.entity_id = :oid OR a.entity_id IN (SELECT id::text FROM payments WHERE order_id = :o))
+                         ORDER BY a.occurred_at, a.id
+                        """).param("org", actor.organizationId()).param("oid", id.toString()).param("o", id)
+                .query(HistoryItem.class).list();
+    }
+
     // ---------------- apoio (também usado por pagamentos) ----------------
     /** Bloqueia o pedido e verifica capacidade + escopo do tipo do pedido. */
     Row lockRow(Actor actor, UUID id, String action) {

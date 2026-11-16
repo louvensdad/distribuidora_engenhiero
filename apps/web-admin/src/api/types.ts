@@ -129,6 +129,7 @@ export interface Product {
   status: string;
   version: number;
   conversions: Conversion[];
+  prices?: { unit: Unit; price: string; valid_from: string }[];
   created_at: string;
 }
 
@@ -269,3 +270,33 @@ export interface DocumentView {
   state: "UPLOADING" | "QUARANTINED" | "AVAILABLE" | "REJECTED" | "SUPERSEDED" | "ARCHIVED";
   scan_state: string; rejection: string | null; created_by_name: string; created_at: string;
 }
+
+// ---- F04: pedidos, pagamentos e caixa ----
+export interface OrderLine {
+  line_no: number; product_id: string; sku: string; product_name: string; unit: Unit; factor: string; quantity: string;
+  base_quantity: string; base_unit: Unit; unit_price: string; gross: string; discount: string; net: string;
+  fulfilled_quantity: string; cancelled_quantity: string; returned_quantity: string; remaining_quantity: string;
+}
+export type OrderState = "CONFIRMED" | "READY" | "PARTIALLY_FULFILLED" | "FULFILLED" | "CANCELLED";
+export type PaymentState = "UNPAID" | "PARTIALLY_PAID" | "PAID" | "ON_ACCOUNT" | "REFUND_DUE";
+export interface Order {
+  id: string; number: number; type: "PICKUP" | "DELIVERY"; state: OrderState; payment_state: PaymentState;
+  customer_id: string; customer_name: string; branch: string; gross_total: string; discount_total: string; total: string;
+  effective_total: string; paid_amount: string; pending_amount: string; on_account: string; balance_due: string;
+  notes: string | null; created_by_name: string; created_at: string; cancel_reason: string | null; version: number; lines: OrderLine[];
+}
+export type PaymentMethod = "CASH" | "PIX" | "DEBIT" | "CREDIT" | "BANK_TRANSFER" | "ON_ACCOUNT";
+export interface Payment {
+  id: string; order_id: string; method: PaymentMethod; state: "PENDING" | "CONFIRMED" | "REJECTED" | "REVERSED";
+  confirmation_kind: string; amount: string; fee: string; net: string; presented_cash: string | null; change_given: string | null;
+  installments: number | null; provider_reference: string | null; document_id: string | null; due_date: string | null;
+  created_by_name: string; created_at: string; confirmed_by_name: string | null; confirmed_at: string | null;
+  decided_note: string | null; version: number;
+}
+export interface CashSession {
+  id: string; state: "OPEN" | "CLOSED" | "REVIEWED"; operator_name: string; branch: string; opening_float: string;
+  cash_in: string; cash_out: string; expected: string; counted: string | null; difference: string | null;
+  justification: string | null; opened_at: string; closed_at: string | null; reviewed_by_name: string | null;
+  reviewed_at: string | null; review_note: string | null; version: number;
+}
+export interface OrderHistoryItem { occurred_at: string; action: string; actor_name: string | null; client_id: string | null; entity_type: string | null }

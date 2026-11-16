@@ -51,6 +51,11 @@ public class OrderController {
         return ok(orders.get(actor, id));
     }
 
+    @GetMapping("/{id}/history")
+    public ResponseEntity<Map<String, List<OrderService.HistoryItem>>> history(Actor actor, @PathVariable UUID id) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(Map.of("items", orders.history(actor, id)));
+    }
+
     @PostMapping("/{id}/ready")
     public ResponseEntity<OrderView> ready(Actor actor, @PathVariable UUID id,
                                            @RequestHeader(value = "If-Match", required = false) String ifMatch) {

@@ -176,6 +176,12 @@ class OrdersIntegrationTest {
                 Map.of("note", "Conferido"), ok.header("ETag"));
         assertThat(rev.json().path("reviewed_by_name").asString()).isEqualTo("Patrão");
         assertThat(rev.json().path("state").asString()).isEqualTo("REVIEWED");
+        // Histórico do pedido para quem vê o pedido (sem precisar de audit.view).
+        List<String> etapas = api.get("/api/v1/orders/" + o.path("id").asString() + "/history", balcao.token()).json()
+                .path("items").valueStream().map(n -> n.path("action").asString()).toList();
+        assertThat(etapas).containsSubsequence("orders.create", "payments.register", "orders.fulfill");
+        assertThat(api.get("/api/v1/orders/" + o.path("id").asString() + "/history", balcao2.token()).status())
+                .isEqualTo(404);
     }
 
     @Test

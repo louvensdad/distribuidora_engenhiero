@@ -28,7 +28,7 @@ export const TABS: Tab[] = [
     id: "sales", label: "Vendas", icon: "order", path: "/sales",
     subtabs: [
       { id: "customers", label: "Clientes", path: "/sales/customers", anyOf: ["customers.view"] },
-      { id: "orders", label: "Pedidos", path: "/sales/orders", anyOf: ["orders.pickup.view", "orders.delivery.view"], pendingPhase: "F04" },
+      { id: "orders", label: "Pedidos", path: "/sales/orders", anyOf: ["orders.pickup.view", "orders.delivery.view"] },
     ],
   },
   {
@@ -46,6 +46,7 @@ export const TABS: Tab[] = [
     id: "finance", label: "Financeiro", icon: "wallet", path: "/finance",
     subtabs: [
       { id: "payables", label: "Contas a pagar", path: "/finance/payables", anyOf: ["admin"] },
+      { id: "mycash", label: "Caixa do turno", path: "/finance/my-cash", anyOf: ["own_cash.view", "admin"] },
       { id: "cash", label: "Caixa e contas", path: "/finance/cash", anyOf: ["company_cash.view"], pendingPhase: "F06" },
       { id: "expenses", label: "Despesas", path: "/finance/expenses", anyOf: ["expenses.view"], pendingPhase: "F06" },
       { id: "taxes", label: "Guias", path: "/finance/taxes", anyOf: ["taxes.view"], pendingPhase: "F07" },
