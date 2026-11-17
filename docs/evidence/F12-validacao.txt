@@ -1,0 +1,40 @@
+F12 — validação do app Entregas
+Data: 17/11/2026, 11:28–15:02 America/Sao_Paulo
+Repositório/branch: /home/louvens/Ivan/distribuidora-engenheiro, main (alterações locais não commitadas)
+
+Verificações:
+- `flutter analyze apps/mobile-delivery packages/mobile-core packages/mobile-api`
+  Resultado: No issues found.
+- `flutter test --no-pub` em `apps/mobile-delivery`: 6 testes, todos passaram.
+- `flutter test --no-pub` em `packages/mobile-core`: 29 testes, todos passaram.
+- `./mvnw -Dtest=EntregasAppIntegrationTest test` em `services/api`: BUILD SUCCESS; 4 testes, 0 falhas/erros/pulados;
+  PostgreSQL 18.6 via Testcontainers. A primeira tentativa no sandbox foi impedida de acessar Docker e a execução
+  aprovada fora do sandbox passou.
+- `flutter build apk --debug --no-pub` em `apps/mobile-delivery`: APK compilado em
+  `apps/mobile-delivery/build/app/outputs/flutter-apk/app-debug.apk`; instalado no AVD `engenheiro_api36` e aberto.
+
+Fluxo autenticado real no AVD, Keycloak local + API local, com duas contas individuais e sem seletor de função:
+- `coordenador`: criou pedido #76 (DELIVERY) para 1 dúzia, total R$ 7,50; endereço/contato sugeridos do cadastro do
+  cliente; autor exibido como Coordenação Entregas Exemplo.
+- `coordenador`: criou e atribuiu V23 ao Motorista B, veículo AAG0S52 (capacidade 5 dúzias), carga 1 dúzia.
+- `motorista.b`: viu V23 atribuída, registrou saída 1.001 km; confirmou recebimento por “Gerente teste”, R$ 10,00
+  apresentados para cobrança de R$ 7,50; retorno em 1.002 km e R$ 7,50 entregues. O app mostrou “Pago — não cobrar
+  novamente”, diferença da prestação R$ 0,00, viagem RETURNED e pedido FULFILLED/PAID.
+- `coordenador`: registrou manutenção preventiva de R$ 50,00 no veículo AAG0S52; banco registrou MAINTENANCE,
+  PENDING, COMPANY.
+- Consultas somente leitura ao banco local confirmaram pedido #76, viagem V23, gasto de manutenção e 10 eventos de
+  auditoria SUCCESS com `client_id=engenheiro-entregas`; `orders.create`, `trips.assign`, `trips.depart`,
+  `payments.register`, `orders.fulfill`, `trips.deliver`, `trips.return`, `vehicles.expense` preservam o ator real.
+
+Evidências visuais em `docs/evidence/telas-mobile/`:
+- `F12-entregas-coordenador.png`, `F12-entregas-motorista.png` — navegação por capacidade/conta individual.
+- `F12-entregas-pedido-criado.png`, `F12-entregas-viagem-atribuida.png`, `F12-entregas-entregue.png`,
+  `F12-entregas-retornada.png`, `F12-entregas-manutencao-registrada.png` — fluxo coordenador/motorista.
+- `F12-entregas-aberto.png` — tela inicial do binário instalado.
+
+Teste de integração da API também provou que motorista não abre outra viagem por ID/deep link, não recebe cadastro
+completo do cliente, Pix confirmado não é cobrado outra vez e quatro reenvios concorrentes da mesma entrega não
+duplicam pagamento nem baixa de estoque.
+
+Gate F12: PASS para Android. iOS exige macOS/Xcode. APK desta validação é debug; HTTPS de homologação e chave de
+assinatura de produção são itens F16.

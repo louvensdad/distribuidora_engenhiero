@@ -19,5 +19,8 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  http: 1.6.0
+  engenheiro_auth:
+    path: ../../packages/mobile-auth
 flutter:
   uses-material-design: true

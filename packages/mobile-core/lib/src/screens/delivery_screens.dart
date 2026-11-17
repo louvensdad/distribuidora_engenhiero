@@ -80,13 +80,37 @@ class _TripsScreenState extends State<TripsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final me = EngScope.of(context).me;
+    final dispatch = me.can('trips.assign') && me.can('trips.create');
+    return Scaffold(
+      floatingActionButton: dispatch
+          ? FloatingActionButton.extended(
+              onPressed: () async {
+                final id = await Navigator.of(context).push<String>(MaterialPageRoute(builder: (_) {
+                  final s = EngScope.of(context);
+                  return EngScope(config: s.config, session: s.session, child: const DispatchScreen());
+                }));
+                if (id != null && context.mounted) {
+                  await _push(context, TripDetailScreen(id: id));
+                }
+                _load();
+              },
+              icon: const EngIcon('plus', color: EngColors.background),
+              label: const Text('Organizar viagem'),
+            )
+          : null,
+      body: _body(dispatch),
+    );
+  }
+
+  Widget _body(bool dispatch) {
     if (_error != null) {
       return _error!.isForbidden
           ? const ForbiddenStateView()
           : ErrorStateView(message: _error!.message, requestId: _error!.requestId, offline: _error!.isNetwork, onRetry: _load);
     }
     if (_items == null) return const LoadingState();
-    if (_items!.isEmpty) return const EmptyState(title: 'Nenhuma viagem atribuída a você');
+    if (_items!.isEmpty) return EmptyState(title: dispatch ? 'Nenhuma viagem ainda' : 'Nenhuma viagem atribuída a você');
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView.separated(
@@ -542,6 +566,17 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
                 _row('Consumo', Text(v.consumptionState == 'OK' ? '${formatDecimal(v.kmPerLiter)} km/l' : 'Dados insuficientes')),
                 if (v.currentTripNumber != null) _row('Viagem', Text('V${v.currentTripNumber}')),
                 for (final a in v.alerts) Text(a, style: const TextStyle(color: EngColors.warning)),
+                if (me.can('vehicles.edit_draft') && v.status != 'INACTIVE')
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: OutlinedButton(
+                      onPressed: () async {
+                        final done = await _push(context, MaintenanceScreen(vehicle: v));
+                        if (done == true) _load();
+                      },
+                      child: const Text('Registrar manutenção ou outro gasto'),
+                    ),
+                  ),
                 if (me.can('fuel.create') && v.status != 'INACTIVE')
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
@@ -642,6 +677,248 @@ class _FuelScreenState extends State<FuelScreen> {
         const SizedBox(height: 16),
         FilledButton(onPressed: _busy ? null : _save, child: Text(_busy ? 'Registrando…' : 'Registrar gasto')),
         _formError(_error),
+      ]),
+    );
+  }
+}
+
+
+/// E04 — despacho pelo app (coordenação): escolhe pedidos de entrega abertos, veículo e motorista. Capacidade,
+/// documentos, disponibilidade e escopo são validados pelo SERVIDOR; o app só mostra o resultado. Se a atribuição
+/// falhar, a viagem já criada é reaproveitada na nova tentativa (sem viagem duplicada).
+class DispatchScreen extends StatefulWidget {
+  const DispatchScreen({super.key});
+  @override
+  State<DispatchScreen> createState() => _DispatchScreenState();
+}
+
+class _DispatchScreenState extends State<DispatchScreen> {
+  List<OrderInfo>? _orders;
+  List<VehicleInfo>? _vehicles;
+  List<({String id, String name, bool busy})>? _drivers;
+  ApiException? _loadError;
+  final Set<String> _selected = {};
+  String? _vehicle;
+  String? _driver;
+  TripInfo? _trip; // criada e ainda não atribuída (reaproveitada)
+  final _key = ApiClient.newIdempotencyKey();
+  bool _busy = false;
+  ApiException? _error;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_orders == null && _loadError == null) _load();
+  }
+
+  Future<void> _load() async {
+    final api = EngScope.of(context).api;
+    setState(() => _loadError = null);
+    try {
+      final o = await api.orders(limit: 100, type: 'DELIVERY');
+      final v = await api.vehicles();
+      final d = await api.eligibleDrivers();
+      if (mounted) {
+        setState(() {
+          _orders = o.items.where((x) => x.open).toList();
+          _vehicles = v.where((x) => x.status == 'ACTIVE' && x.currentTripNumber == null).toList();
+          _drivers = d;
+        });
+      }
+    } on ApiException catch (e) {
+      if (mounted) setState(() => _loadError = e);
+    }
+  }
+
+  String? _fe(String prefix) =>
+      _error?.fieldErrors.where((e) => e.field.startsWith(prefix)).map((e) => e.message).join(' · ').ifEmptyNull();
+
+  Future<void> _save() async {
+    final api = EngScope.of(context).api;
+    final nav = Navigator.of(context);
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      _trip ??= await api.createTrip(idempotencyKey: _key);
+      final t = await api.assignTrip(id: _trip!.id, version: _trip!.version, vehicleId: _vehicle ?? '', driverId: _driver ?? '',
+          orderIds: _selected.toList());
+      nav.pop(t.id);
+    } on ApiException catch (e) {
+      if (mounted) setState(() => _error = e);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Widget body;
+    if (_loadError != null) {
+      body = _loadError!.isForbidden
+          ? const ForbiddenStateView()
+          : ErrorStateView(message: _loadError!.message, requestId: _loadError!.requestId, offline: _loadError!.isNetwork, onRetry: _load);
+    } else if (_orders == null) {
+      body = const LoadingState();
+    } else {
+      body = ListView(padding: const EdgeInsets.all(16), children: [
+        Text('Pedidos de entrega (${_selected.length} selecionado(s))', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+        if (_orders!.isEmpty) const Padding(padding: EdgeInsets.all(8), child: Text('Nenhum pedido de entrega aberto.', style: TextStyle(color: EngColors.muted))),
+        for (final o in _orders!)
+          CheckboxListTile(
+            value: _selected.contains(o.id),
+            onChanged: (v) => setState(() => v == true ? _selected.add(o.id) : _selected.remove(o.id)),
+            title: Text('#${o.number} ${o.customerName}'),
+            subtitle: Text('${o.lines.isEmpty ? '' : formatQty(o.lines.first.quantity, o.lines.first.unit)} · ${formatMoney(o.total)} · '
+                '${o.paymentState == 'PAID' ? 'Pago — não cobrar' : 'cobrar ${formatMoney(o.balanceDue)}'}'),
+          ),
+        if (_fe('order_ids') != null) Text(_fe('order_ids')!, style: const TextStyle(color: EngColors.error)),
+        const SizedBox(height: 12),
+        DropdownButtonFormField<String>(
+          initialValue: _vehicle,
+          isExpanded: true,
+          decoration: InputDecoration(labelText: 'Veículo *', errorText: _fe('vehicle_id')),
+          items: [
+            for (final v in _vehicles!)
+              DropdownMenuItem(value: v.id, child: Text('${v.plate} · ${v.model}'
+                  '${v.capacityQuantity == null ? '' : ' · até ${formatQty(v.capacityQuantity!, v.capacityUnit ?? '')}'}', overflow: TextOverflow.ellipsis)),
+          ],
+          onChanged: (v) => setState(() => _vehicle = v),
+        ),
+        DropdownButtonFormField<String>(
+          initialValue: _driver,
+          isExpanded: true,
+          decoration: InputDecoration(labelText: 'Motorista *', errorText: _fe('driver_id')),
+          items: [
+            for (final d in _drivers!)
+              DropdownMenuItem(value: d.id, enabled: !d.busy, child: Text(d.busy ? '${d.name} (em viagem)' : d.name)),
+          ],
+          onChanged: (v) => setState(() => _driver = v),
+        ),
+        if (_error != null && _error!.fieldErrors.isEmpty)
+          Padding(padding: const EdgeInsets.only(top: 8),
+              child: Text(_error!.isNetwork ? 'Sem conexão. Toque de novo: a viagem não é criada duas vezes.' : _error!.message,
+                  style: const TextStyle(color: EngColors.error))),
+        if (_trip != null)
+          Padding(padding: const EdgeInsets.only(top: 8),
+              child: Text('Viagem V${_trip!.number} criada em rascunho; ajuste e toque de novo para atribuir.',
+                  style: const TextStyle(color: EngColors.warning))),
+        const SizedBox(height: 16),
+        FilledButton(onPressed: _busy || _selected.isEmpty ? null : _save, child: Text(_busy ? 'Atribuindo…' : 'Criar e atribuir viagem')),
+        const SizedBox(height: 8),
+        const Text('Capacidade, documentos do veículo e disponibilidade do motorista são conferidos pelo servidor.',
+            style: TextStyle(color: EngColors.muted, fontSize: 12)),
+      ]);
+    }
+    return Scaffold(appBar: AppBar(title: const Text('Organizar viagem')), body: body);
+  }
+}
+
+extension on String {
+  String? ifEmptyNull() => isEmpty ? null : this;
+}
+
+const _expenseKinds = {
+  'MAINTENANCE': 'Manutenção', 'TIRES': 'Pneus', 'INSURANCE': 'Seguro', 'DOCUMENTS': 'Documentos', 'TOLL': 'Pedágio', 'OTHER': 'Outro',
+};
+
+/// E11 — manutenção e outros gastos do veículo: entra pendente; aprovação e conta a pagar seguem no site/central.
+class MaintenanceScreen extends StatefulWidget {
+  const MaintenanceScreen({super.key, required this.vehicle});
+  final VehicleInfo vehicle;
+  @override
+  State<MaintenanceScreen> createState() => _MaintenanceScreenState();
+}
+
+class _MaintenanceScreenState extends State<MaintenanceScreen> {
+  String _kind = 'MAINTENANCE';
+  String _type = 'PREVENTIVE';
+  String _paidWith = 'COMPANY';
+  final _odo = TextEditingController();
+  final _amount = TextEditingController();
+  final _workshop = TextEditingController();
+  final _parts = TextEditingController();
+  final _next = TextEditingController();
+  final _desc = TextEditingController();
+  final _key = ApiClient.newIdempotencyKey();
+  bool _busy = false;
+  ApiException? _error;
+
+  String? _fe(String f) => _error?.fieldErrors.where((e) => e.field == f).map((e) => e.message).firstOrNull;
+
+  Future<void> _save() async {
+    final api = EngScope.of(context).api;
+    final nav = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await api.registerMaintenance(vehicleId: widget.vehicle.id, idempotencyKey: _key, kind: _kind,
+          maintenanceType: _kind == 'MAINTENANCE' ? _type : null, odometer: _odo.text, amount: _amount.text, workshop: _workshop.text,
+          parts: _parts.text, nextServiceKm: _next.text, paidWith: _paidWith, description: _desc.text);
+      messenger.showSnackBar(const SnackBar(content: Text('Gasto registrado — aguardando aprovação.')));
+      nav.pop(true);
+    } on ApiException catch (e) {
+      setState(() => _error = e);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final maint = _kind == 'MAINTENANCE';
+    return Scaffold(
+      appBar: AppBar(title: Text('Gasto · ${widget.vehicle.plate}')),
+      body: ListView(padding: const EdgeInsets.all(16), children: [
+        DropdownButtonFormField<String>(
+          initialValue: _kind,
+          isExpanded: true,
+          decoration: InputDecoration(labelText: 'Tipo *', errorText: _fe('kind')),
+          items: [for (final e in _expenseKinds.entries) DropdownMenuItem(value: e.key, child: Text(e.value))],
+          onChanged: (v) => setState(() => _kind = v ?? 'MAINTENANCE'),
+        ),
+        if (maint)
+          DropdownButtonFormField<String>(
+            initialValue: _type,
+            isExpanded: true,
+            decoration: InputDecoration(labelText: 'Manutenção *', errorText: _fe('maintenance_type')),
+            items: const [
+              DropdownMenuItem(value: 'PREVENTIVE', child: Text('Preventiva (revisão)')),
+              DropdownMenuItem(value: 'CORRECTIVE', child: Text('Corretiva (conserto)')),
+            ],
+            onChanged: (v) => setState(() => _type = v ?? 'PREVENTIVE'),
+          ),
+        TextField(controller: _amount, keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(labelText: 'Valor (R\$) *', errorText: _fe('amount'))),
+        TextField(controller: _odo, keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(labelText: 'Odômetro (km)', helperText: 'Atual: ${formatDecimal(widget.vehicle.odometerKm)} km', errorText: _fe('odometer'))),
+        if (maint) ...[
+          TextField(controller: _workshop, decoration: InputDecoration(labelText: 'Oficina', errorText: _fe('workshop'))),
+          TextField(controller: _parts, decoration: InputDecoration(labelText: 'Peças/serviços', errorText: _fe('parts'))),
+          TextField(controller: _next, keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(labelText: 'Próxima revisão (km)', errorText: _fe('next_service_km'))),
+        ],
+        TextField(controller: _desc, decoration: InputDecoration(labelText: maint ? 'Observação' : 'Descrição *', errorText: _fe('description'))),
+        DropdownButtonFormField<String>(
+          initialValue: _paidWith,
+          isExpanded: true,
+          decoration: InputDecoration(labelText: 'Quem pagou *', errorText: _fe('paid_with')),
+          items: const [
+            DropdownMenuItem(value: 'COMPANY', child: Text('Empresa (vira conta a pagar)')),
+            DropdownMenuItem(value: 'DRIVER_CASH', child: Text('Dinheiro que está comigo (sai do meu caixa)')),
+          ],
+          onChanged: (v) => setState(() => _paidWith = v ?? 'COMPANY'),
+        ),
+        if (_error != null && _error!.fieldErrors.isEmpty)
+          Padding(padding: const EdgeInsets.only(top: 8),
+              child: Text(_error!.isNetwork ? 'Sem conexão. Nada foi salvo; tente de novo — não duplica.' : _error!.message,
+                  style: const TextStyle(color: EngColors.error))),
+        const SizedBox(height: 16),
+        FilledButton(onPressed: _busy ? null : _save, child: Text(_busy ? 'Salvando…' : 'Registrar gasto')),
       ]),
     );
   }

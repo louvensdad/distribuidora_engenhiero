@@ -1,10 +1,36 @@
 # Checkpoint
 
-Data/hora e fuso: 17/11/2026 10:15 America/Sao_Paulo
-Agente e repositório: Claude Code (Opus 5.5) — `/home/louvens/Ivan/distribuidora-engenheiro` (movido de `~/distribuidora-engenheiro`)
-Branch e commit atual: `main` — ver `git log -1`
-Fase: F11 concluída + cadastro de funcionários e cargos (pedido do responsável, ADR-027); próxima F12
-Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **PASS** (pendências abaixo) · F06 **PASS** (pendências abaixo) · F07 **PASS** (pendências abaixo) · F08 **PASS** (critérios provados; integração real BLOCKED: D02/D03/D04) · F09 **PASS** (IA depende da F15) · F10 **PASS** (IA real: F15) · F11 **PASS** (homologação HTTPS: F16)
+Data/hora e fuso: 17/11/2026 15:02 America/Sao_Paulo
+Agente e repositório: Codex — `/home/louvens/Ivan/distribuidora-engenheiro`
+Branch e commit atual: `main` — alterações locais não commitadas; ver `git status`
+Fase: F12 concluída; próxima F13
+Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **PASS** (pendências abaixo) · F06 **PASS** (pendências abaixo) · F07 **PASS** (pendências abaixo) · F08 **PASS** (critérios provados; integração real BLOCKED: D02/D03/D04) · F09 **PASS** (IA depende da F15) · F10 **PASS** (IA real: F15) · F11 **PASS** (homologação HTTPS: F16) · F12 **PASS** (Android; ponta a ponta real em Keycloak/API local, widget/API e APK aberto)
+
+## F12 — app Entregas (17/11/2026)
+
+Ligados ao app Entregas os pedidos de entrega (busca de cliente/produto, endereço e pagamento combinado) e o despacho pelo
+app (pedidos abertos, veículo e motorista elegíveis, criação/atribuição da viagem). O erro de capacidade conserva a
+viagem em rascunho e a nova tentativa reaproveita a mesma viagem/chave; o servidor segue autoridade para capacidade,
+documentação, escopo e disponibilidade. Adicionado registro de manutenção e outros gastos de veículo, com aprovação
+financeira posterior. Os fluxos existentes de motorista, parada, entrega, ocorrência, abastecimento, retorno e caixa são
+reutilizados; APIs continuam compartilhadas com site e App Patrão.
+
+Validação observada nesta retomada: `flutter analyze apps/mobile-delivery packages/mobile-core packages/mobile-api` limpo;
+suíte do app Entregas passou (6 testes); suíte `mobile-core` passou (29 testes); `./mvnw -Dtest=EntregasAppIntegrationTest
+test` passou (4 testes com PostgreSQL/Testcontainers), cobrindo motorista sem acesso a outra viagem, Pix já pago,
+reenvio concorrente da entrega sem baixa dupla e dados mínimos. APK debug compilado, instalado e aberto no AVD
+`engenheiro_api36`. Login real pelo Keycloak local com contas individuais `coordenador` e `motorista.b`: pedido #76 criado
+pelo coordenador; viagem V23 atribuída a Motorista B, saída 1.001 km, entrega com R$ 10,00 apresentados para total de
+R$ 7,50 (troco calculado pelo servidor), retorno em 1.002 km e prestação de R$ 7,50 (diferença zero). O pedido ficou
+FULFILLED/PAID; a tela do motorista mostrou “Pago — não cobrar novamente”. Manutenção preventiva de R$ 50,00 gravada
+como PENDING/COMPANY pelo coordenador. Consulta do banco confirmou os atores e `client_id=engenheiro-entregas` em
+`orders.create`, `trips.assign`, `trips.depart`, `payments.register`, `orders.fulfill`, `trips.deliver`, `trips.return` e
+`vehicles.expense` (todos SUCCESS); trilha disponível à central de auditoria existente. Capturas: `docs/evidence/telas-mobile/F12-entregas-pedido-criado.png`,
+`F12-entregas-viagem-atribuida.png`, `F12-entregas-motorista.png`, `F12-entregas-entregue.png`,
+`F12-entregas-retornada.png` e `F12-entregas-manutencao-registrada.png`; comandos e resultados em
+`docs/evidence/F12-validacao.txt`.
+
+Gate **PASS (Android)**. iOS requer macOS/Xcode; HTTPS de homologação e chave de assinatura de produção continuam em F16.
 
 ## Entregue e comprovado
 
@@ -309,7 +335,7 @@ Defeito encontrado e corrigido: "45.200" digitado virava 45,2 (site e app); agor
 grupos de 3 dígitos é milhar, em todos os formulários.
 
 Pendências F05:
-- Despacho e cadastro de pedido de entrega pelo app (E02–E04) e ocorrência sem parada: F12 (no site já funcionam).
+- Despacho e cadastro de pedido de entrega pelo app (E02–E04): resolvidos na F12 (pedido e despacho pelo app Entregas).
 - Foto da entrega: enviada pelo app (câmera/galeria) e autorizada pela viagem; no site ainda não há botão de anexo da
   parada nem do comprovante do gasto (endpoints prontos e testados no backend) — F10.
 - Cartão na entrega: manual com NSU (provedor NÃO CONFIGURADO — D04).
@@ -370,5 +396,5 @@ ENGENHEIRO_SENHA_LOCAL=... python3 -I ../../infra/local/e2e_login_web.py
 
 ## Próxima ação
 
-1. **F12**: aplicativo Entregas (pedidos, despacho, motoristas e veículos).
+1. **F13**: aplicativo independente do contador (guias, folha, documentos e fluxos autorizados).
 2. Validar com o dono/contador os cargos e campos de RH (ADR-027).

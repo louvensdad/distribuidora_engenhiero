@@ -40,8 +40,8 @@ class ApiClient {
       AuditEvent.fromJson);
 
   // ---- F03: estoque ----
-  Future<ApiPage<Product>> products({int limit = 100}) async =>
-      ApiPage.fromJson(await _get('/api/v1/products', {'limit': '$limit'}), Product.fromJson);
+  Future<ApiPage<Product>> products({int limit = 100, String? query}) async =>
+      ApiPage.fromJson(await _get('/api/v1/products', {'limit': '$limit', 'q': ?query}), Product.fromJson);
 
   Future<ApiPage<Supplier>> suppliers({int limit = 100}) async =>
       ApiPage.fromJson(await _get('/api/v1/suppliers', {'limit': '$limit'}), Supplier.fromJson);
@@ -96,9 +96,11 @@ class ApiClient {
   Future<ApiPage<Customer>> customersAll() async => ApiPage.fromJson(await _get('/api/v1/customers', {'limit': '100'}), Customer.fromJson);
 
   /// Pedidos no escopo do usuário. [query]: número ou nome do cliente; [from]/[to]: dia civil de São Paulo, fim exclusivo.
-  Future<ApiPage<OrderInfo>> orders({int limit = 50, String? query, String? from, String? to, String? cursor}) async =>
+  Future<ApiPage<OrderInfo>> orders({int limit = 50, String? query, String? from, String? to, String? cursor, String? type,
+          String? state}) async =>
       ApiPage.fromJson(
-          await _get('/api/v1/orders', {'limit': '$limit', 'q': ?query, 'from': ?from, 'to': ?to, 'cursor': ?cursor}),
+          await _get('/api/v1/orders', {'limit': '$limit', 'q': ?query, 'from': ?from, 'to': ?to, 'cursor': ?cursor,
+            'type': ?type, 'state': ?state}),
           OrderInfo.fromJson);
 
   /// Pagamentos do pedido (para o comprovante). Exige ver pagamentos.
@@ -110,11 +112,20 @@ class ApiClient {
   Future<OrderInfo> order(String id) async => OrderInfo.fromJson(await _get('/api/v1/orders/$id'));
 
   /// Preço e total vêm do servidor; a chave evita pedido duplicado em nova tentativa.
+  /// [type] PICKUP (balcão) ou DELIVERY (entregas, exige [delivery] com endereço e pagamento combinado).
   Future<OrderInfo> createOrder({required String idempotencyKey, required String customerId,
-          required List<({String productId, String? unit, String quantity})> items}) async =>
+          required List<({String productId, String? unit, String quantity})> items, String type = 'PICKUP',
+          ({String? address, String? reference, String? contact, String? agreedPayment})? delivery}) async =>
       OrderInfo.fromJson(await _post('/api/v1/orders', {
-        'type': 'PICKUP',
+        'type': type,
         'customer_id': customerId,
+        if (delivery != null)
+          'delivery': {
+            if (delivery.address != null && delivery.address!.trim().isNotEmpty) 'address': delivery.address!.trim(),
+            if (delivery.reference != null && delivery.reference!.trim().isNotEmpty) 'reference': delivery.reference!.trim(),
+            if (delivery.contact != null && delivery.contact!.trim().isNotEmpty) 'contact': delivery.contact!.trim(),
+            'agreed_payment': ?delivery.agreedPayment,
+          },
         'items': [
           for (final i in items)
             {'product_id': i.productId, if (i.unit != null && i.unit!.isNotEmpty) 'unit': i.unit, 'quantity': decimalText(i.quantity)}
@@ -234,6 +245,37 @@ class ApiClient {
         if (station != null && station.trim().isNotEmpty) 'station': station.trim(),
         'paid_with': paidWith,
       }, idempotencyKey: idempotencyKey));
+
+  /// Manutenção, pneus, seguro, documentos ou pedágio do veículo (exige vehicles.edit_draft; aprovação à parte).
+  Future<VehicleExpenseInfo> registerMaintenance({required String vehicleId, required String idempotencyKey, required String kind,
+          String? maintenanceType, String? odometer, required String amount, String? workshop, String? parts, String? nextServiceKm,
+          required String paidWith, String? description}) async =>
+      VehicleExpenseInfo.fromJson(await _post('/api/v1/vehicles/$vehicleId/maintenance', {
+        'kind': kind,
+        'maintenance_type': ?maintenanceType,
+        if (odometer != null && odometer.trim().isNotEmpty) 'odometer': decimalText(odometer),
+        'amount': decimalText(amount),
+        if (workshop != null && workshop.trim().isNotEmpty) 'workshop': workshop.trim(),
+        if (parts != null && parts.trim().isNotEmpty) 'parts': parts.trim(),
+        if (nextServiceKm != null && nextServiceKm.trim().isNotEmpty) 'next_service_km': decimalText(nextServiceKm),
+        'paid_with': paidWith,
+        if (description != null && description.trim().isNotEmpty) 'description': description.trim(),
+      }, idempotencyKey: idempotencyKey));
+
+  // ---- F12: despacho pelo app (coordenação) ----
+  Future<TripInfo> createTrip({required String idempotencyKey}) async =>
+      TripInfo.fromJson(await _post('/api/v1/trips', <String, dynamic>{}, idempotencyKey: idempotencyKey));
+
+  Future<List<({String id, String name, bool busy})>> eligibleDrivers() async {
+    final j = await _get('/api/v1/trips/eligible-drivers');
+    return [for (final d in j['items'] as List) (id: d['id'] as String, name: d['name'] as String, busy: d['busy'] as bool)];
+  }
+
+  /// Veículo, motorista e pedidos; o servidor valida capacidade, documentos, disponibilidade e escopo.
+  Future<TripInfo> assignTrip({required String id, required int version, required String vehicleId, required String driverId,
+          required List<String> orderIds}) async =>
+      TripInfo.fromJson(await _post('/api/v1/trips/$id/assignments',
+          {'vehicle_id': vehicleId, 'driver_id': driverId, 'order_ids': orderIds}, ifMatch: '"$version"'));
 
   // ---- F06: resultado gerencial, caixa e conciliação (os mesmos números do site) ----
   Future<Map<String, dynamic>> financeSummary({required String from, required String to}) =>

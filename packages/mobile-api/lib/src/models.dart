@@ -603,7 +603,9 @@ class TripSummaryInfo {
 class VehicleInfo {
   const VehicleInfo({required this.id, required this.plate, required this.model, required this.status, required this.odometerKm,
       this.nextServiceKm, required this.alerts, required this.consumptionState, this.kmPerLiter, this.consumptionMessage,
-      this.currentTripNumber});
+      this.currentTripNumber, this.capacityQuantity, this.capacityUnit});
+  final String? capacityQuantity;
+  final String? capacityUnit;
   final String id;
   final String plate;
   final String model;
@@ -629,6 +631,8 @@ class VehicleInfo {
       kmPerLiter: c['km_per_liter'] as String?,
       consumptionMessage: c['message'] as String?,
       currentTripNumber: j['current_trip_number'] as int?,
+      capacityQuantity: j['capacity_quantity'] as String?,
+      capacityUnit: j['capacity_unit'] as String?,
     );
   }
 }

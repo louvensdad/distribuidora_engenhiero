@@ -46,6 +46,9 @@ Requisitos de F02 em diante seguem NOT_STARTED (lista completa em `docs/especifi
 | LOG-06 | Manutenção, pneus, seguro, documentos, pedágio; avisos por veículo | `consumoKm...` (manutenção e aviso), `gastoRateado...` (pedágio), `Fleet.test.tsx` | PASS |
 | LOG-07 | Prestação de contas do motorista e dinheiro recebido; conferência por outra pessoa | `fluxoCompleto...`, `trips.spec.ts`, emulador + conciliação | PASS |
 | LOG-08 | Rateio analítico versionado sem repetir despesa | `gastoRateadoSomaAoOriginalSemDuplicarDespesa` | PASS |
+| APP-E-01 | App Entregas independente: pedidos, despacho, viagens e veículos por capacidade | `apps/mobile-delivery`; `delivery_test.dart`; `entregas_test.dart`; fluxo Keycloak/API no AVD; `F12-validacao.txt` | PASS (Android; iOS indisponível sem macOS) |
+| APP-E-02 | Motorista restrito às viagens atribuídas e aos dados mínimos | `EntregasAppIntegrationTest.motoristaNaoAbreViagemAlheiaPorIdNemPelosRecursosDela`; login `motorista.b`; capturas F12 | PASS |
+| APP-E-03 | Entrega, combustível e ocorrência compartilhados com a central do patrão | `EntregasAppIntegrationTest`; trilha de auditoria com client/ator real; fluxos F05; `F12-validacao.txt` | PASS (serviço/auditoria compartilhados; evidência em F05/F12) |
 | FIN-01 | Despesas por categoria/subcategoria com competência, vencimento, situação e comprovante (`ExpenseService`, Financeiro › Despesas) | `pagamentoDeObrigacao...`, `Finance.test.tsx`, `finance.spec.ts` | PASS |
 | FIN-02 | Contas a pagar/receber e saldo/extrato por conta (`PayableService`, `ReceivableService`, `FinAccountService`) | `caixaDisponivelSeparadoDoResultado` (CAIXA-01), `devolucaoAoFornecedor...`, `finance.spec.ts` | PASS |
 | FIN-03 | Cartão: bruto, taxa, líquido, parcelas e conciliação do repasse | `venda100ComTaxa3ReceitaDespesaERecebivel97...` (CARTAO-01), mutação M3 | PASS (provedor/adquirente real: D04) |

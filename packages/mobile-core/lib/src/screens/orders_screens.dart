@@ -30,7 +30,9 @@ Future<bool?> _push(BuildContext context, Widget child) {
 /// R02/R09 — pedidos que a permissão alcança (próprios, para o balcão), com busca por número ou cliente, período
 /// (dia civil de São Paulo) e paginação. Situação e pagamento sempre vêm do servidor.
 class OrdersScreen extends StatefulWidget {
-  const OrdersScreen({super.key});
+  /// null = todos os tipos no escopo; 'DELIVERY' no app Entregas.
+  const OrdersScreen({super.key, this.type});
+  final String? type;
   @override
   State<OrdersScreen> createState() => _OrdersScreenState();
 }
@@ -66,7 +68,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   Future<ApiPage<OrderInfo>> _fetch({String? cursor}) {
     final r = _range;
-    return EngScope.of(context).api.orders(limit: 25, query: _query.isEmpty ? null : _query, from: r.from, to: r.to, cursor: cursor);
+    return EngScope.of(context).api.orders(limit: 25, query: _query.isEmpty ? null : _query, from: r.from, to: r.to, cursor: cursor,
+        type: widget.type);
   }
 
   Future<void> _load() async {
@@ -210,10 +213,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
       );
     }
     return Scaffold(
-      floatingActionButton: me.can('orders.pickup.create')
+      floatingActionButton: me.can(widget.type == 'DELIVERY' ? 'orders.delivery.create' : 'orders.pickup.create')
           ? FloatingActionButton.extended(
               onPressed: () async {
-                final created = await _push(context, const NewOrderScreen());
+                final created = await _push(context, NewOrderScreen(type: widget.type == 'DELIVERY' ? 'DELIVERY' : 'PICKUP'));
                 if (created == true) _load();
               },
               icon: const EngIcon('plus', color: EngColors.background),
@@ -225,9 +228,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
   }
 }
 
-/// Novo pedido de retirada: preço e total calculados pelo servidor; reserva o estoque ao salvar.
+/// Novo pedido (retirada ou entrega): preço e total calculados pelo servidor; reserva o estoque ao salvar.
+/// Cliente e produto por busca no servidor (a lista não fica presa aos primeiros cadastros).
 class NewOrderScreen extends StatefulWidget {
-  const NewOrderScreen({super.key});
+  const NewOrderScreen({super.key, this.type = 'PICKUP'});
+  final String type;
   @override
   State<NewOrderScreen> createState() => _NewOrderScreenState();
 }
@@ -243,6 +248,15 @@ class _NewOrderScreenState extends State<NewOrderScreen> {
   final _key = ApiClient.newIdempotencyKey();
   bool _busy = false;
   ApiException? _error;
+  final _customerSearch = TextEditingController();
+  final _productSearch = TextEditingController();
+  final _address = TextEditingController();
+  final _reference = TextEditingController();
+  final _contact = TextEditingController();
+  String? _agreed;
+  final Map<String, Customer> _seenCustomers = {};
+  final Map<String, Product> _seenProducts = {};
+  bool get _delivery => widget.type == 'DELIVERY';
 
   @override
   void didChangeDependencies() {
@@ -250,11 +264,50 @@ class _NewOrderScreenState extends State<NewOrderScreen> {
     if (_customers == null && _loadError == null) _load();
   }
 
+  Future<void> _searchCustomers() async {
+    try {
+      final c = await EngScope.of(context).api.customers(query: _customerSearch.text.trim().isEmpty ? null : _customerSearch.text.trim());
+      if (mounted) {
+        setState(() {
+          for (final x in c.items) {
+            _seenCustomers[x.id] = x;
+          }
+          _customers = [if (_customer != null && !c.items.any((x) => x.id == _customer)) _seenCustomers[_customer]!, ...c.items];
+        });
+      }
+    } on ApiException catch (e) {
+      if (mounted) setState(() => _loadError = e);
+    }
+  }
+
+  Future<void> _searchProducts() async {
+    try {
+      final p = await EngScope.of(context).api.products(limit: 25, query: _productSearch.text.trim().isEmpty ? null : _productSearch.text.trim());
+      final ok = p.items.where((x) => x.baseUnitConfirmed).toList();
+      if (mounted) {
+        setState(() {
+          for (final x in ok) {
+            _seenProducts[x.id] = x;
+          }
+          _products = [if (_product != null && !ok.any((x) => x.id == _product)) _seenProducts[_product]!, ...ok];
+        });
+      }
+    } on ApiException catch (e) {
+      if (mounted) setState(() => _loadError = e);
+    }
+  }
+
   Future<void> _load() async {
     final api = EngScope.of(context).api;
     try {
-      final c = await api.customersAll();
-      final p = await api.products();
+      final c = await api.customers();
+      final p = await api.products(limit: 25);
+      for (final x in c.items) {
+        _seenCustomers[x.id] = x;
+      }
+      for (final x in p.items) {
+        _seenProducts[x.id] = x;
+      }
       if (mounted) {
         setState(() {
           _customers = c.items;
@@ -275,7 +328,11 @@ class _NewOrderScreenState extends State<NewOrderScreen> {
     });
     try {
       final o = await EngScope.of(context).api.createOrder(
-          idempotencyKey: _key, customerId: _customer ?? '', items: [(productId: _product ?? '', unit: _unit, quantity: _qty.text)]);
+          idempotencyKey: _key, customerId: _customer ?? '', items: [(productId: _product ?? '', unit: _unit, quantity: _qty.text)],
+          type: widget.type,
+          delivery: _delivery
+              ? (address: _address.text, reference: _reference.text, contact: _contact.text, agreedPayment: _agreed)
+              : null);
       if (!mounted) return;
       final s = EngScope.of(context);
       await Navigator.of(context).pushReplacement(MaterialPageRoute<bool>(
@@ -302,15 +359,58 @@ class _NewOrderScreenState extends State<NewOrderScreen> {
       body = const LoadingState();
     } else {
       body = ListView(padding: const EdgeInsets.all(16), children: [
+        TextField(
+          controller: _customerSearch,
+          textInputAction: TextInputAction.search,
+          decoration: const InputDecoration(labelText: 'Buscar cliente', prefixIcon: Padding(padding: EdgeInsets.all(12), child: EngIcon('search', size: 18))),
+          onSubmitted: (_) => _searchCustomers(),
+        ),
         DropdownButtonFormField<String>(
+          key: ValueKey('c${_customers!.length}${_customers!.firstOrNull?.id}'),
           initialValue: _customer,
           isExpanded: true,
           decoration: InputDecoration(labelText: 'Cliente *', errorText: _fe('customer_id')),
           items: [for (final c in _customers!) DropdownMenuItem(value: c.id, child: Text(c.name, overflow: TextOverflow.ellipsis))],
-          onChanged: (v) => setState(() => _customer = v),
+          onChanged: (v) => setState(() {
+            _customer = v;
+            final c = v == null ? null : _seenCustomers[v];
+            if (_delivery && c != null) {
+              if (_address.text.isEmpty && c.address != null) _address.text = c.address!;
+              if (_contact.text.isEmpty && c.contact != null) _contact.text = c.contact!;
+            }
+          }),
         ),
+        if (_delivery) ...[
+          const SizedBox(height: 12),
+          if (EngScope.of(context).me.canSeeField('delivery_address')) ...[
+            TextField(controller: _address, decoration: InputDecoration(labelText: 'Endereço de entrega *', errorText: _fe('delivery.address'))),
+            TextField(controller: _reference, decoration: const InputDecoration(labelText: 'Referência')),
+          ] else
+            const Text('Endereço: sua permissão não inclui endereço de entrega.', style: TextStyle(color: EngColors.warning)),
+          if (EngScope.of(context).me.canSeeField('operational_contact'))
+            TextField(controller: _contact, decoration: const InputDecoration(labelText: 'Contato no local')),
+          DropdownButtonFormField<String>(
+            initialValue: _agreed,
+            isExpanded: true,
+            decoration: InputDecoration(labelText: 'Pagamento combinado *', errorText: _fe('delivery.agreed_payment')),
+            items: const [
+              DropdownMenuItem(value: 'CASH', child: Text('Dinheiro na entrega')),
+              DropdownMenuItem(value: 'PIX', child: Text('Pix')),
+              DropdownMenuItem(value: 'DEBIT', child: Text('Débito na entrega')),
+              DropdownMenuItem(value: 'CREDIT', child: Text('Crédito na entrega')),
+            ],
+            onChanged: (v) => setState(() => _agreed = v),
+          ),
+        ],
         const SizedBox(height: 12),
+        TextField(
+          controller: _productSearch,
+          textInputAction: TextInputAction.search,
+          decoration: const InputDecoration(labelText: 'Buscar produto', prefixIcon: Padding(padding: EdgeInsets.all(12), child: EngIcon('search', size: 18))),
+          onSubmitted: (_) => _searchProducts(),
+        ),
         DropdownButtonFormField<String>(
+          key: ValueKey('p${_products!.length}${_products!.firstOrNull?.id}'),
           initialValue: _product,
           isExpanded: true,
           decoration: InputDecoration(labelText: 'Produto *', errorText: _fe('items[0].product_id')),
@@ -353,7 +453,7 @@ class _NewOrderScreenState extends State<NewOrderScreen> {
         const Text('O total é calculado pelo servidor com a tabela vigente.', style: TextStyle(color: EngColors.muted, fontSize: 12)),
       ]);
     }
-    return Scaffold(appBar: AppBar(title: const Text('Novo pedido')), body: body);
+    return Scaffold(appBar: AppBar(title: Text(_delivery ? 'Novo pedido de entrega' : 'Novo pedido')), body: body);
   }
 }
 
