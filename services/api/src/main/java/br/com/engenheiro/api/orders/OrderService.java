@@ -654,7 +654,18 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public Page list(Actor actor, String type, String state, int limit, String cursor) {
+        return list(actor, type, state, null, limit, cursor);
+    }
+
+    /**
+     * Lista com busca opcional por número do pedido (exato) ou nome do cliente (contém). Só campos que o próprio
+     * pedido já mostra a quem o vê: endereço, contato e documento nunca entram na busca.
+     */
+    @Transactional(readOnly = true)
+    public Page list(Actor actor, String type, String state, String query, int limit, String cursor) {
         Cursor.checkLimit(limit);
+        String q = br.com.engenheiro.api.shared.web.SearchText.normalize(query);
+        Long number = q != null && q.replaceFirst("^#", "").matches("\\d{1,12}") ? Long.valueOf(q.replaceFirst("^#", "")) : null;
         List<String> parts = new ArrayList<>();
         Map<String, Object> params = new HashMap<>();
         for (String t : List.of("PICKUP", "DELIVERY")) {
@@ -678,9 +689,11 @@ public class OrderService {
         Cursor.Key c = Cursor.decode(cursor);
         var spec = jdbc.sql(SELECT + " WHERE (" + String.join(" OR ", parts) + ")"
                         + " AND (CAST(:st AS text) IS NULL OR o.state = CAST(:st AS text))"
+                        + " AND (CAST(:q AS text) IS NULL OR o.number = CAST(:qn AS bigint)"
+                        + "      OR c.name ILIKE '%' || CAST(:q AS text) || '%' ESCAPE '\\')"
                         + " AND (CAST(:cts AS text) IS NULL OR (o.created_at, o.id) < (CAST(:cts AS timestamptz), CAST(:cid AS uuid)))"
                         + " ORDER BY o.created_at DESC, o.id DESC LIMIT :lim")
-                .param("st", state).param("cts", c == null ? null : c.sort()).param("cid", c == null ? null : c.id())
+                .param("st", state).param("q", br.com.engenheiro.api.shared.web.SearchText.like(q)).param("qn", number).param("cts", c == null ? null : c.sort()).param("cid", c == null ? null : c.id())
                 .param("lim", limit + 1);
         for (Map.Entry<String, Object> p : params.entrySet()) {
             spec = spec.param(p.getKey(), p.getValue());

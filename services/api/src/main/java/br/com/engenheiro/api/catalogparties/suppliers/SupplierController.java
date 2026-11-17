@@ -11,6 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import br.com.engenheiro.api.shared.web.IfMatch;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -33,6 +36,18 @@ public class SupplierController {
         SupplierView v = service.create(actor, new CreateCommand(body.name(), body.contact(), body.personal_document()));
         return ResponseEntity.created(URI.create("/api/v1/suppliers/" + v.id())).eTag("\"" + v.version() + "\"")
                 .cacheControl(CacheControl.noStore()).body(v);
+    }
+
+    public record UpdateSupplierRequest(String name, String contact, String personal_document, String status) {
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<SupplierView> update(Actor actor, @PathVariable UUID id,
+                                               @RequestHeader(value = "If-Match", required = false) String ifMatch,
+                                               @RequestBody UpdateSupplierRequest body) {
+        SupplierView v = service.update(actor, id, IfMatch.version(ifMatch), new SupplierService.UpdateCommand(
+                body.name(), body.contact(), body.personal_document(), body.status()));
+        return ResponseEntity.ok().eTag("\"" + v.version() + "\"").cacheControl(CacheControl.noStore()).body(v);
     }
 
     @GetMapping("/{id}")

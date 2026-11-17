@@ -1,0 +1,24 @@
+# F10 — ./mvnw -o verify (services/api), 17/11/2026 09:33 America/Sao_Paulo
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.286 s -- in br.com.engenheiro.api.accounting.AccountingIntegrationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.422 s -- in br.com.engenheiro.api.integrations.IntegrationsIntegrationTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.617 s -- in br.com.engenheiro.api.inventory.F03LimitsIntegrationTest
+Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.107 s -- in br.com.engenheiro.api.inventory.InventoryIntegrationTest
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.915 s -- in br.com.engenheiro.api.logistics.LogisticsIntegrationTest
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.292 s -- in br.com.engenheiro.api.reports.ReportsIntegrationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in br.com.engenheiro.api.documents.DocumentsUnitTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.461 s -- in br.com.engenheiro.api.central.CentralIntegrationTest
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.184 s -- in br.com.engenheiro.api.finance.FinanceIntegrationTest
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.170 s -- in br.com.engenheiro.api.orders.OrdersIntegrationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.374 s -- in br.com.engenheiro.api.team.TeamAndOpenFinanceIntegrationTest
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.372 s -- in br.com.engenheiro.api.catalogparties.CustomersIntegrationTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.089 s -- in br.com.engenheiro.api.identityaccess.ConcurrencyIntegrationTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.032 s -- in br.com.engenheiro.api.identityaccess.OpenApiContractTest
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in br.com.engenheiro.api.identityaccess.AccessPolicyTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in br.com.engenheiro.api.identityaccess.ContractConsistencyTest
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.510 s -- in br.com.engenheiro.api.identityaccess.LocalSeedIntegrationTest
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.933 s -- in br.com.engenheiro.api.identityaccess.WebBffIntegrationTest
+Tests run: 21, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.543 s -- in br.com.engenheiro.api.identityaccess.AuthorizationIntegrationTest
+Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.193 s -- in br.com.engenheiro.api.identityaccess.AuthenticationIntegrationTest
+Tests run: 148, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+EXIT 0

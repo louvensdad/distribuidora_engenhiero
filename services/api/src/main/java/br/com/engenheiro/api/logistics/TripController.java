@@ -36,9 +36,10 @@ public class TripController {
 
     @GetMapping
     public ResponseEntity<TripService.Page> list(Actor actor, @RequestParam(required = false) String state,
+                                                 @RequestParam(required = false) String q,
                                                  @RequestParam(defaultValue = "25") int limit,
                                                  @RequestParam(required = false) String cursor) {
-        return noStore(trips.list(actor, state, limit, cursor));
+        return noStore(trips.list(actor, state, q, limit, cursor));
     }
 
     @PostMapping

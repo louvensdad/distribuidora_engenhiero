@@ -1,17 +1,20 @@
 import { useState, type FormEvent } from "react";
 import { ApiError, api } from "../../api/http";
-import type { Page, Product } from "../../api/types";
-import { useResource } from "../../api/useResource";
+import type { Product } from "../../api/types";
+import { qs, usePaged, useUrlFilters } from "../../api/usePaged";
+import { EmptyResult, PagedList, SearchBox } from "../../components/Lists";
 import { UNITS, formatDateTime, formatDecimal, formatMoney, unitLabel, toDecimal } from "../../app/format";
 import { Field, FormError, fieldError } from "../../components/Form";
 import { Icon } from "../../components/Icon";
-import { ConflictState, EmptyState, ErrorState, ForbiddenState, LoadingState } from "../../components/States";
+import { ConflictState } from "../../components/States";
 import { useSession } from "../../session/SessionContext";
 
 /** Produtos e medidas: unidade-base, conversões por produto (com histórico) e confirmação da unidade comercial. */
 export function ProductsPage() {
   const { can } = useSession();
-  const [res, reload] = useResource<Page<Product>>("/api/v1/products?limit=100");
+  const [f, setF] = useUrlFilters(["q"] as const);
+  const list = usePaged<Product>(`/api/v1/products?${qs({ limit: 50, q: f.q })}`);
+  const reload = list.reload;
   const [creating, setCreating] = useState(false);
   return (
     <section className="page" aria-labelledby="titulo-produtos">
@@ -22,18 +25,16 @@ export function ProductsPage() {
         </div>
         {can("catalog.create") && !creating && <button className="btn btn-primary" onClick={() => setCreating(true)}><Icon name="plus" size={16} /> Novo produto</button>}
       </header>
-      {creating && <CreateProduct onDone={(ok) => { setCreating(false); if (ok) reload(); }} />}
-      {res.status === "loading" && <LoadingState />}
-      {res.status === "forbidden" && <ForbiddenState />}
-      {res.status === "error" && <ErrorState error={res.error} onRetry={reload} />}
-      {res.status === "ready" && (res.data.items.length === 0 ? <EmptyState title="Nenhum produto cadastrado" /> : (
+      {creating && <CreateProduct onDone={(name) => { setCreating(false); if (name) { if (name === f.q) reload(); else setF({ q: name }); } }} />}
+      <SearchBox id="busca-produtos" label="Buscar produto por nome ou código" value={f.q} onSearch={(q) => setF({ q })} />
+      <PagedList list={list} empty={<EmptyResult q={f.q} what="produto cadastrado" />}>{(items) => (
         <div className="table-wrap card">
           <table className="stack">
             <thead><tr><th scope="col">Produto</th><th scope="col">Código</th><th scope="col">Unidade-base</th><th scope="col">Conversões vigentes</th><th scope="col">Preço de venda</th><th scope="col"><span className="visually-hidden">Ações</span></th></tr></thead>
-            <tbody>{res.data.items.map((p) => <ProductRow key={p.id} p={p} onChange={reload} />)}</tbody>
+            <tbody>{items.map((p) => <ProductRow key={p.id} p={p} onChange={reload} />)}</tbody>
           </table>
         </div>
-      ))}
+      )}</PagedList>
     </section>
   );
 }
@@ -120,7 +121,7 @@ function ProductRow({ p, onChange }: { p: Product; onChange: () => void }) {
   );
 }
 
-function CreateProduct({ onDone }: { onDone: (ok: boolean) => void }) {
+function CreateProduct({ onDone }: { onDone: (createdName: string | false) => void }) {
   const [form, setForm] = useState({ sku: "", name: "", base_unit: "DUZIA", base_unit_confirmed: false });
   const [convs, setConvs] = useState<{ unit: string; factor: string }[]>([]);
   const [busy, setBusy] = useState(false);
@@ -131,7 +132,7 @@ function CreateProduct({ onDone }: { onDone: (ok: boolean) => void }) {
     setError(null);
     try {
       await api.post<Product>("/api/v1/products", { ...form, conversions: convs.filter((c) => c.unit).map((c) => ({ unit: c.unit, factor: toDecimal(c.factor) })) });
-      onDone(true);
+      onDone(form.name.trim());
     } catch (err) {
       setError(err instanceof ApiError ? err : new ApiError({ status: 0, code: "UNKNOWN" }));
       setBusy(false);

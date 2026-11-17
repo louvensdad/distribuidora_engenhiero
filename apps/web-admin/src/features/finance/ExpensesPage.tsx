@@ -1,11 +1,12 @@
 import { useState, type FormEvent } from "react";
 import { ApiError, api, newIdempotencyKey } from "../../api/http";
-import type { Expense, Page } from "../../api/types";
-import { useResource } from "../../api/useResource";
+import type { Expense } from "../../api/types";
+import { qs, usePaged, useUrlFilters } from "../../api/usePaged";
+import { PagedList } from "../../components/Lists";
 import { formatDateTime, formatMoney, toDecimal, todayBr } from "../../app/format";
 import { Field, FormError, fieldError } from "../../components/Form";
 import { Icon } from "../../components/Icon";
-import { EmptyState, ErrorState, ForbiddenState, LoadingState } from "../../components/States";
+import { EmptyState } from "../../components/States";
 import { useSession } from "../../session/SessionContext";
 import { CATEGORY, EXPENSE_STATE, PAYABLE_STATE, brDate } from "./financeLabels";
 
@@ -14,10 +15,10 @@ const asError = (e: unknown) => (e instanceof ApiError ? e : new ApiError({ stat
 /** FIN-01 — despesas por categoria, com competência, vencimento, situação e conta a pagar vinculada. */
 export function ExpensesPage() {
   const { can } = useSession();
-  const [state, setState] = useState("");
-  const [category, setCategory] = useState("");
+  const [f, setF] = useUrlFilters(["state", "category"] as const);
   const [creating, setCreating] = useState(false);
-  const [res, reload] = useResource<Page<Expense>>(`/api/v1/expenses?limit=100${state ? `&state=${state}` : ""}${category ? `&category=${category}` : ""}`);
+  const list = usePaged<Expense>(`/api/v1/expenses?${qs({ limit: 50, state: f.state, category: f.category })}`);
+  const reload = list.reload;
   return (
     <section className="page" aria-labelledby="titulo-despesas">
       <header className="page-head">
@@ -32,23 +33,20 @@ export function ExpensesPage() {
       {creating && <ExpenseForm onDone={() => { setCreating(false); reload(); }} onCancel={() => setCreating(false)} />}
       <div className="actions" style={{ justifyContent: "flex-start" }}>
         <div className="field inline"><label htmlFor="dp-sit">Situação</label>
-          <select id="dp-sit" value={state} onChange={(e) => setState(e.target.value)}>
+          <select id="dp-sit" value={f.state} onChange={(e) => setF({ state: e.target.value })}>
             <option value="">Todas</option>{Object.entries(EXPENSE_STATE).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select></div>
         <div className="field inline"><label htmlFor="dp-cat">Categoria</label>
-          <select id="dp-cat" value={category} onChange={(e) => setCategory(e.target.value)}>
+          <select id="dp-cat" value={f.category} onChange={(e) => setF({ category: e.target.value })}>
             <option value="">Todas</option>{Object.entries(CATEGORY).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select></div>
       </div>
-      {res.status === "loading" && <LoadingState />}
-      {res.status === "forbidden" && <ForbiddenState />}
-      {res.status === "error" && <ErrorState error={res.error} onRetry={reload} />}
-      {res.status === "ready" && (res.data.items.length === 0 ? <EmptyState title="Nenhuma despesa" /> : (
+      <PagedList list={list} empty={<EmptyState title="Nenhuma despesa" />}>{(items) => (
         <div className="table-wrap card">
           <table className="stack">
             <thead><tr><th scope="col">Despesa</th><th scope="col">Categoria</th><th scope="col">Competência</th><th scope="col">Vencimento</th>
               <th scope="col" className="num">Valor</th><th scope="col">Situação</th><th scope="col"><span className="visually-hidden">Ações</span></th></tr></thead>
-            <tbody>{res.data.items.map((x) => (
+            <tbody>{items.map((x) => (
               <tr key={x.id}>
                 <th scope="row">{x.description}<span className="muted small"><br />{x.payee ?? x.supplier_name ?? ""} · por {x.created_by_name} {formatDateTime(x.created_at)}</span></th>
                 <td data-label="Categoria">{CATEGORY[x.category]}<span className="muted small"><br />{x.subcategory}</span></td>
@@ -64,7 +62,7 @@ export function ExpensesPage() {
             ))}</tbody>
           </table>
         </div>
-      ))}
+      )}</PagedList>
     </section>
   );
 }

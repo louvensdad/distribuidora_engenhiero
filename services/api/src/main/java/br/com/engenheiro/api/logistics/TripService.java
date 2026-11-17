@@ -716,7 +716,15 @@ public class TripService {
 
     @Transactional(readOnly = true)
     public Page list(Actor actor, String state, int limit, String cursor) {
+        return list(actor, state, null, limit, cursor);
+    }
+
+    /** Busca opcional por número da viagem (exato) ou placa (contém, sem diferenciar maiúsculas). */
+    @Transactional(readOnly = true)
+    public Page list(Actor actor, String state, String query, int limit, String cursor) {
         Decision d = authz.require(actor, RESOURCE, "view");
+        String q = br.com.engenheiro.api.shared.web.SearchText.normalize(query);
+        Long number = q != null && q.replaceFirst("^[Vv]", "").matches("\\d{1,12}") ? Long.valueOf(q.replaceFirst("^[Vv]", "")) : null;
         Cursor.checkLimit(limit);
         if (state != null && !List.of("DRAFT", "ASSIGNED", "DEPARTED", "RETURNED", "RECONCILED", "CANCELLED")
                 .contains(state)) {
@@ -732,9 +740,11 @@ public class TripService {
                           FROM trips t LEFT JOIN vehicles v ON v.id = t.vehicle_id LEFT JOIN app_users d ON d.id = t.driver_id
                          WHERE """ + p.sql()
                         + " AND (CAST(:st AS text) IS NULL OR t.state = CAST(:st AS text))"
+                        + " AND (CAST(:q AS text) IS NULL OR t.number = CAST(:qn AS bigint)"
+                        + "      OR replace(v.plate, '-', '') ILIKE '%' || replace(CAST(:q AS text), '-', '') || '%' ESCAPE '\\')"
                         + " AND (CAST(:cts AS text) IS NULL OR (t.created_at, t.id) < (CAST(:cts AS timestamptz), CAST(:cid AS uuid)))"
                         + " ORDER BY t.created_at DESC, t.id DESC LIMIT :lim")
-                .param("st", state).param("cts", c == null ? null : c.sort()).param("cid", c == null ? null : c.id())
+                .param("st", state).param("q", br.com.engenheiro.api.shared.web.SearchText.like(q)).param("qn", number).param("cts", c == null ? null : c.sort()).param("cid", c == null ? null : c.id())
                 .param("lim", limit + 1);
         for (Map.Entry<String, Object> e : p.params().entrySet()) {
             spec = spec.param(e.getKey(), e.getValue());

@@ -1,4 +1,5 @@
-import { Navigate, Route, Routes } from "react-router";
+import { useEffect } from "react";
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router";
 import { Shell } from "../layout/Shell";
 import { useSession } from "../session/SessionContext";
 import { TABS, firstAllowedPath } from "./navigation";
@@ -40,10 +41,16 @@ import { FleetPage } from "../features/operation/FleetPage";
 import { VehicleDetailPage } from "../features/operation/VehicleDetailPage";
 import { TripsPage } from "../features/operation/TripsPage";
 import { TripDetailPage } from "../features/operation/TripDetailPage";
-import { ForbiddenState, PendingModule } from "../components/States";
+import { ForbiddenState, NotFoundState, PendingModule } from "../components/States";
+import { ApprovalsPage } from "../features/central/ApprovalsPage";
+import { SectorsPage } from "../features/central/SectorsPage";
+import { SearchPage } from "../features/central/SearchPage";
+import { takeReturn } from "../session/returnPath";
 
 const IMPLEMENTED: Record<string, () => React.JSX.Element> = {
   "/overview": OverviewPage,
+  "/overview/sectors": SectorsPage,
+  "/overview/approvals": ApprovalsPage,
   "/sales/customers": CustomersPage,
   "/operation/stock": StockPage,
   "/operation/receipts": ReceiptsPage,
@@ -78,6 +85,11 @@ const IMPLEMENTED: Record<string, () => React.JSX.Element> = {
 export function App() {
   const { state, can } = useSession();
   if (state.kind !== "ready") return <EntryPage state={state} />;
+  return <ReadyApp can={can} />;
+}
+
+function ReadyApp({ can }: { can: (c: string) => boolean }) {
+  useReturnAfterLogin();
   const home = firstAllowedPath(can);
 
   return (
@@ -103,8 +115,21 @@ export function App() {
         {TABS.filter((t) => !t.subtabs.some((s) => s.path === t.path)).map((t) => (
           <Route key={t.path} path={t.path} element={<Navigate to={t.subtabs[0]!.path} replace />} />
         ))}
-        <Route path="*" element={<ForbiddenState />} />
+        <Route path="/search" element={<SearchPage />} />
+        <Route path="*" element={<NotFoundState />} />
       </Route>
     </Routes>
   );
+}
+
+/** Depois de entrar de novo, volta ao endereço em que a pessoa estava (link profundo preservado; só caminho interno). */
+function useReturnAfterLogin() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  useEffect(() => {
+    const back = takeReturn();
+    if (back && back !== location.pathname + location.search + location.hash) navigate(back, { replace: true });
+    // Só na montagem (logo após a entrada).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 }

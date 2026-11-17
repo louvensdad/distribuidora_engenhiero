@@ -41,9 +41,10 @@ public class OrderController {
     @GetMapping
     public ResponseEntity<OrderService.Page> list(Actor actor, @RequestParam(required = false) String type,
                                                   @RequestParam(required = false) String state,
+                                                  @RequestParam(required = false) String q,
                                                   @RequestParam(defaultValue = "25") int limit,
                                                   @RequestParam(required = false) String cursor) {
-        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(orders.list(actor, type, state, limit, cursor));
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(orders.list(actor, type, state, q, limit, cursor));
     }
 
     @GetMapping("/{id}")

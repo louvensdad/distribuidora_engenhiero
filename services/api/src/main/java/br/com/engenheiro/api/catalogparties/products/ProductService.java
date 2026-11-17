@@ -222,12 +222,13 @@ public class ProductService {
         Cursor.Key c = Cursor.decode(cursor);
         List<Row> rows = jdbc.sql(SELECT + """
                          WHERE p.organization_id = :org AND p.status = 'ACTIVE'
-                           AND (CAST(:q AS text) IS NULL OR p.name ILIKE '%' || CAST(:q AS text) || '%'
-                                OR p.sku ILIKE CAST(:q AS text) || '%')
+                           AND (CAST(:q AS text) IS NULL OR p.name ILIKE '%' || CAST(:q AS text) || '%' ESCAPE '\\'
+                                OR p.sku ILIKE CAST(:q AS text) || '%' ESCAPE '\\')
                            AND (CAST(:cname AS text) IS NULL OR (p.name, p.id) > (CAST(:cname AS text), CAST(:cid AS uuid)))
                          ORDER BY p.name, p.id LIMIT :lim
                         """)
-                .param("org", actor.organizationId()).param("q", Text.trim(query))
+                .param("org", actor.organizationId()).param("q", br.com.engenheiro.api.shared.web.SearchText.like(
+                        br.com.engenheiro.api.shared.web.SearchText.normalize(query)))
                 .param("cname", c == null ? null : c.sort()).param("cid", c == null ? null : c.id())
                 .param("lim", limit + 1).query(Row.class).list();
         String next = null;

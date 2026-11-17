@@ -19,10 +19,18 @@ export interface Tab {
   subtabs: SubTab[];
 }
 
+/** Quem decide algo em algum módulo (a central só mostra o que cada um pode decidir; o servidor filtra). */
+export const APPROVERS = ["taxes.approve", "payroll.approve", "inventory.losses.approve", "expenses.approve", "fuel.approve",
+  "payments.confirm", "reports.reopen_period", "users.edit_draft", "admin"];
+
 export const TABS: Tab[] = [
   {
     id: "overview", label: "Visão geral", icon: "dashboard", path: "/overview",
-    subtabs: [{ id: "summary", label: "Resumo", path: "/overview", anyOf: ["dashboard.view"] }],
+    subtabs: [
+      { id: "summary", label: "Resumo", path: "/overview", anyOf: ["dashboard.view"] },
+      { id: "sectors", label: "Setores", path: "/overview/sectors", anyOf: ["dashboard.view", "audit.view"] },
+      { id: "approvals", label: "Aprovações", path: "/overview/approvals", anyOf: APPROVERS },
+    ],
   },
   {
     id: "sales", label: "Vendas", icon: "order", path: "/sales",

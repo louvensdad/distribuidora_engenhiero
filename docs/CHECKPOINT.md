@@ -1,10 +1,10 @@
 # Checkpoint
 
-Data/hora e fuso: 17/11/2026 04:30 America/Sao_Paulo
+Data/hora e fuso: 17/11/2026 09:50 America/Sao_Paulo
 Agente e repositório: Claude Code (Opus 5.5) — `/home/louvens/Ivan/distribuidora-engenheiro` (movido de `~/distribuidora-engenheiro`)
 Branch e commit atual: `main` — ver `git log -1`
-Fase: F09 concluída (relatórios, metas e gráficos 3D); próxima F10
-Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **PASS** (pendências abaixo) · F06 **PASS** (pendências abaixo) · F07 **PASS** (pendências abaixo) · F08 **PASS** (critérios provados; integração real BLOCKED: D02/D03/D04) · F09 **PASS** (IA e busca dependem de F15/F10)
+Fase: F10 concluída (site integral do patrão); próxima F11
+Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **PASS** (pendências abaixo) · F06 **PASS** (pendências abaixo) · F07 **PASS** (pendências abaixo) · F08 **PASS** (critérios provados; integração real BLOCKED: D02/D03/D04) · F09 **PASS** (IA depende da F15) · F10 **PASS** (IA real: F15)
 
 ## Entregue e comprovado
 
@@ -108,6 +108,41 @@ Pendências F04:
 - App: Pix pendente é registrado, mas conferir Pix, retirada parcial, cancelamento e devolução estão só no site; app
   Patrão com Pedidos/Caixa compilado e com teste de widget, não exercitado no emulador nesta fase.
 - Concessões do balcão no emulador aplicadas direto no banco local (equivalentes ao mapa de acessos).
+
+## F10 — site integral do patrão (17/11/2026, ADR-025)
+
+Lacunas encontradas no levantamento e fechadas: listas presas aos 50/100 primeiros registros, filtros perdidos ao
+recarregar, clientes/fornecedores sem edição, histórico sem setor/registro/período, sem busca geral, sem central de
+aprovações e sessão expirada derrubando a tela (perdendo o digitado); página inexistente aparecia como "sem permissão".
+Entregue (sem migration):
+- Visão geral › **Setores** (Retirada, Entregas, Contabilidade): pendências, últimos movimentos com autor/app/"abrir" e
+  entrada nos módulos, sempre com a conta do patrão. `GET /audit-events` ganhou `sector`, `entity_type`, `entity_id`,
+  `result` e período em dia civil de São Paulo.
+- Visão geral › **Aprovações** (`GET /approvals`): só o que o ator pode decidir (guias, folhas, perdas, ajustes,
+  despesas com aviso de alçada, gastos de veículo, caixas, pagamentos a conferir, reabertura de mês, folgas), no escopo e
+  com as máscaras de cada módulo; a decisão continua na tela do módulo.
+- **Busca geral** no topo (`GET /search`): número, nome, SKU e placa só nos módulos permitidos, nunca em campo sensível;
+  curinga literal. `GET /orders?q=` e `GET /trips?q=`.
+- **Editar/arquivar** cliente e fornecedor (`PUT`, If-Match, campo oculto mantido e recusado se enviado).
+- Listas paginadas com "Carregar mais" e filtros na URL (pedidos, clientes, fornecedores, produtos, viagens,
+  recebimentos, despesas, contas a pagar, histórico, guias); após cadastrar, a lista mostra o registro criado.
+- Totais da Visão geral abrem os lançamentos (`/reports?abrir=`); histórico com "Abrir origem" e "Só este registro";
+  "Perguntar à IA" desligado e rotulado até a F15.
+- **Sessão expirada** sem desmontar a tela (aviso com entrar em outra aba / já entrei / entrar nesta aba com volta ao
+  endereço); outra conta → recarrega do zero; erro de rede com "Tentar novamente" (também no "Carregar mais").
+- Rótulos do histórico unificados entre site e apps (notas fiscais apareciam como `invoices.review`).
+Validação: `./mvnw verify` **148** (`F10-mvnw-verify.txt`), mutação 4/4 pegas (`F10-testes-de-mutacao.txt`), Vitest
+**64** (`F10-web-vitest.txt`), Playwright **137** (+2 pulados; `F10-web-playwright.txt`, inclui 360/768/1440 nas
+rotas novas), Dart mobile-core **22** (`F10-mobile.txt`). Telas: `telas-web/F10-*.png`.
+Critérios: o patrão percorre os três setores sem trocar de identidade (E2E confere o nome no topo); a correção feita
+pelo patrão num cadastro do balcão fica no setor de Retirada como do patrão, pelo site (integração + E2E); sessão
+expirada (cookie de sessão removido no Chrome real) e rede abortada se recuperam sem perder dados.
+Defeito encontrado na rodada completa e corrigido: com paginação, o fornecedor recém-cadastrado podia não aparecer
+na primeira página — agora a lista filtra pelo registro criado.
+
+Pendências F10:
+- IA da gestão (W14 e "Perguntar à IA"): F15. Central/busca/histórico no App Patrão: F14.
+- `audit.view` continua mostrando a organização inteira (setor é filtro de leitura, não permissão).
 
 ## F09 — relatórios, metas e gráficos 3D (17/11/2026, ADR-024)
 
@@ -303,5 +338,5 @@ ENGENHEIRO_SENHA_LOCAL=... python3 -I ../../infra/local/e2e_login_web.py
 
 ## Próxima ação
 
-1. **F10**: site integral do patrão — todos os módulos web ligados a serviços reais, sem botões falsos (busca global,
-   paridade de funções e revisão das telas existentes).
+1. **F11**: aplicativo Retirada (balcão e recebimento de fornecedores) com build, ícone e client próprios, operação em
+   tablet e celular, caixa e comprovantes autorizados.

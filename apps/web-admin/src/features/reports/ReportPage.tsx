@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router";
+import { useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router";
 import type { LedgerLines, Report, ReportItem } from "../../api/types";
 import { useResource } from "../../api/useResource";
 import { formatDateTime, formatDecimal, formatMoney, formatQty } from "../../app/format";
@@ -34,6 +34,14 @@ export function ReportPage() {
   const [[filter, setFilter, qs], [res, reload]] = useReport();
   const [flat, setFlat] = useState(() => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
   const [drill, setDrill] = useState<ReportItem | null>(null);
+  // Link profundo de um total (?abrir=cogs): abre os lançamentos dele assim que o relatório chega.
+  const [sp] = useSearchParams();
+  const wanted = sp.get("abrir");
+  useEffect(() => {
+    if (res.status !== "ready" || !wanted) return;
+    const item = res.data.drill.find((i) => i.key === wanted) ?? res.data.expenses.find((i) => i.key === wanted);
+    if (item) setDrill(item);
+  }, [res, wanted]);
   return (
     <section className="page" aria-labelledby="titulo-relatorio">
       <header className="page-head">

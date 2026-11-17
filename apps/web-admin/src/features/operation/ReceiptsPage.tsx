@@ -1,19 +1,19 @@
-import { useState } from "react";
 import { Link } from "react-router";
-import type { Page, Receipt } from "../../api/types";
-import { useResource } from "../../api/useResource";
+import type { Receipt } from "../../api/types";
+import { qs, usePaged, useUrlFilters } from "../../api/usePaged";
+import { PagedList } from "../../components/Lists";
 import { formatDateTime, formatMoney } from "../../app/format";
 import { Hidden } from "../../components/Form";
 import { Icon } from "../../components/Icon";
-import { EmptyState, ErrorState, ForbiddenState, LoadingState } from "../../components/States";
+import { EmptyState } from "../../components/States";
 import { useSession } from "../../session/SessionContext";
 
 export const RECEIPT_STATUS: Record<Receipt["status"], string> = { DRAFT: "Rascunho — aguardando conferência", CONFIRMED: "Confirmado" };
 
 export function ReceiptsPage() {
   const { can } = useSession();
-  const [status, setStatus] = useState("");
-  const [res, reload] = useResource<Page<Receipt>>(`/api/v1/inventory/receipts?limit=50${status ? `&status=${status}` : ""}`);
+  const [f, setF] = useUrlFilters(["status"] as const);
+  const list = usePaged<Receipt>(`/api/v1/inventory/receipts?${qs({ limit: 50, status: f.status })}`);
   return (
     <section className="page" aria-labelledby="titulo-recebimentos">
       <header className="page-head">
@@ -27,20 +27,17 @@ export function ReceiptsPage() {
       </header>
       <div className="field inline">
         <label htmlFor="rec-filtro">Situação</label>
-        <select id="rec-filtro" value={status} onChange={(e) => setStatus(e.target.value)}>
+        <select id="rec-filtro" value={f.status} onChange={(e) => setF({ status: e.target.value })}>
           <option value="">Todos</option><option value="DRAFT">Rascunhos</option><option value="CONFIRMED">Confirmados</option>
         </select>
       </div>
-      {res.status === "loading" && <LoadingState />}
-      {res.status === "forbidden" && <ForbiddenState />}
-      {res.status === "error" && <ErrorState error={res.error} onRetry={reload} />}
-      {res.status === "ready" && (res.data.items.length === 0 ? <EmptyState title="Nenhum recebimento" /> : (
+      <PagedList list={list} empty={<EmptyState title="Nenhum recebimento" />}>{(items) => (
         <div className="table-wrap card">
           <table className="stack">
             <thead><tr><th scope="col">Fornecedor</th><th scope="col">Documento</th><th scope="col">Itens</th><th scope="col">Total</th>
               <th scope="col">Registro</th><th scope="col">Situação</th></tr></thead>
             <tbody>
-              {res.data.items.map((r) => (
+              {items.map((r) => (
                 <tr key={r.id}>
                   <th scope="row"><Link to={`/operation/receipts/${r.id}`}>{r.supplier_name}</Link></th>
                   <td data-label="Documento">{r.document_number ?? "—"}</td>
@@ -53,7 +50,7 @@ export function ReceiptsPage() {
             </tbody>
           </table>
         </div>
-      ))}
+      )}</PagedList>
     </section>
   );
 }

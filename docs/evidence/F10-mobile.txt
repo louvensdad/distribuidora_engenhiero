@@ -1,0 +1,4 @@
+# F10 — Dart (mobile-core): rótulos do histórico unificados com o site, 17/11/2026
+$ (cd packages/mobile-core && flutter analyze && flutter test)
+No issues found! (ran in 0.8s)
+00:04 +22: All tests passed!

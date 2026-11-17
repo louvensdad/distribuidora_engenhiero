@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ApiError, api, newIdempotencyKey, uploadFile } from "../../api/http";
 import type { TaxObligation } from "../../api/types";
 import { useResource } from "../../api/useResource";
+import { useUrlFilters } from "../../api/usePaged";
 import { formatDateTime, formatMoney } from "../../app/format";
 import { EmptyState, ErrorState, ForbiddenState, LoadingState } from "../../components/States";
 import { useSession } from "../../session/SessionContext";
@@ -14,7 +15,8 @@ const asError = (e: unknown) => (e instanceof ApiError ? e : new ApiError({ stat
 
 /** W09 — guias: o contador prepara no app; aqui o patrão aprova ou devolve e, à parte, registra o pagamento. */
 export function TaxesPage() {
-  const [state, setState] = useState("");
+  const [f, setF] = useUrlFilters(["state"] as const);
+  const state = f.state;
   const [res, reload] = useResource<{ items: TaxObligation[] }>(`/api/v1/tax-obligations${state ? `?state=${state}` : ""}`);
   const [notice, setNotice] = useState<string | null>(null);
   return (
@@ -25,7 +27,7 @@ export function TaxesPage() {
           <p className="muted">Preparar, aprovar e pagar são etapas separadas. Guia aprovada continua <strong>não paga</strong> até alguém registrar o pagamento. A despesa entra uma vez, na aprovação.</p>
         </div>
         <div className="field inline"><label htmlFor="g-sit">Situação</label>
-          <select id="g-sit" value={state} onChange={(e) => setState(e.target.value)}>
+          <select id="g-sit" value={state} onChange={(e) => setF({ state: e.target.value })}>
             <option value="">Todas</option>{Object.entries(STEP).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select></div>
       </header>

@@ -522,3 +522,38 @@ export interface Goal {
     days_total: number; status: "NOT_STARTED" | "ON_PACE" | "BEHIND_PACE" | "ACHIEVED" | "MISSED" | "HIDDEN"; formula: string };
   version: number;
 }
+
+// ---------- F10: central do patrão ----------
+export type CentralSector = "COUNTER" | "DELIVERY" | "ACCOUNTING" | "FINANCE" | "TEAM";
+
+export interface ApprovalItem {
+  kind: "TAX" | "PAYROLL" | "LOSS" | "ADJUSTMENT" | "EXPENSE" | "VEHICLE_EXPENSE" | "CASH_SESSION" | "PAYMENT" | "PERIOD_REOPEN" | "ABSENCE";
+  sector: CentralSector;
+  id: string | null;
+  title: string;
+  detail: string | null;
+  amount: string | null;
+  requested_by: string | null;
+  requested_at: string | null;
+  path: string;
+  note: string | null;
+}
+
+export interface ApprovalCenter {
+  items: ApprovalItem[];
+  sectors: { sector: CentralSector; pending: number }[];
+}
+
+export interface SearchHit {
+  type: "order" | "trip" | "vehicle" | "customer" | "supplier" | "product";
+  id: string;
+  title: string;
+  subtitle: string | null;
+  path: string;
+}
+
+export interface SearchResult {
+  query: string;
+  searched: string[];
+  items: SearchHit[];
+}

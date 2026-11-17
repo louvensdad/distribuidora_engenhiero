@@ -18,8 +18,8 @@ Requisitos de F02 em diante seguem NOT_STARTED (lista completa em `docs/especifi
 | SEC-05 | Ator recarregado do banco por requisição | `revogacaoImpedeAProximaChamada`, `bloqueioDeConta...`, `removerAplicativo...` | PASS (HTTP); canais SSE quando existirem |
 | SEC-06 | BFF: tokens só na sessão do servidor; cookie HttpOnly/SameSite=Lax; CSRF | `WebBffIntegrationTest.loginCompleto...SemExporTokens`, e2e Keycloak | PASS (web); segredo de app móvel: não há (clients públicos) |
 | SEC-07 | Escopo ASSIGNED | `AccessPolicyTest.motoristaSoVeViagemAtribuidaASi` | PARTIAL — falta teste HTTP com viagens (F05) |
-| SEC-08 | `requireRecord` (404 = inexistente), `ScopeSql` em listas/busca | `CustomersIntegrationTest` | PARTIAL — busca/listas OK; downloads, relatórios, eventos e IA nas fases próprias |
-| SEC-09 | Ator real na auditoria; sem impersonação | `campoExtraNoCorpoNaoMudaAtor...`, `historicoRegistraAtorReal...` | PASS (identidade) |
+| SEC-08 | `requireRecord` (404 = inexistente), `ScopeSql` em listas/busca; busca geral por módulo permitido | `CustomersIntegrationTest`, `buscaGeralRespeitaEscopoECamposSensiveis`, `campoOcultoNaoVazaEmNenhumaSaida` | PARTIAL — busca, listas, downloads e relatórios OK; eventos em tempo real e IA nas fases próprias |
+| SEC-09 | Ator real na auditoria; sem impersonação; ação do patrão no setor fica em nome dele | `campoExtraNoCorpoNaoMudaAtor...`, `historicoRegistraAtorReal...`, `patraoVeOsTresSetoresComAPropriaIdentidade...`, `central.spec.ts` | PASS |
 
 | INV-01 | `catalogparties.products` (unidade-base confirmada, `unit_conversions` com vigência); site Produtos | `InventoryIntegrationTest.produtoComConversao...`; `inventory.spec.ts` | PASS |
 | INV-02 | `suppliers`, `inventory.ReceiptService` (rascunho → conferência, lote, documento, custo, frete rateado); W06; app Retirada R06/R07 | `recebimentoQuantitativoSemCustoVisivel...`, `idempotenciaDoRecebimento`, `inventory.spec.ts`, `inventory_test.dart`, `F03-mobile.txt` | PASS (obrigação a pagar criada na confirmação; liquidação F06); anexos privados `F03LimitsIntegrationTest`, `f03-limites.spec.ts` |
@@ -80,7 +80,9 @@ Requisitos de F02 em diante seguem NOT_STARTED (lista completa em `docs/especifi
 | UX-03 | Ícones/nomes/IDs dos 4 apps | realm + `F00_INVENTARIO.md`; ícones em `docs/especificacao/assets/apps` | PARTIAL — builds dos apps em F11–F14 |
 | UX-04 | Estados carregando/vazio/erro/sem permissão/conflito/offline/pendente | `App.test.tsx` (403, 412, pendente), `States.tsx` | PASS (web) |
 | UX-05 | Skip link, foco visível, labels, aria-live, alvo 44 px, movimento reduzido | `site.spec.ts` (teclado) | PARTIAL — falta auditoria com leitor de tela |
-| WEB-01..03 | Site integrado a serviços reais (sem botões falsos; módulos futuros rotulados por fase) | Playwright 103 testes (`F08-web-playwright.txt`) | PARTIAL — só módulos já existentes no backend |
+| WEB-01 | Todas as áreas do site ligadas à API real; totais levam aos registros; IA rotulada "não configurada" (F15), sem número de exemplo; setores e central de aprovações (`central/*`, ADR-025) | `CentralIntegrationTest` (4), `Central.test.tsx`, `central.spec.ts`, Playwright completo (`F10-web-playwright.txt`) | PASS (IA real: F15) |
+| WEB-02 | Listas com busca, filtros na URL e paginação por cursor; edição/arquivamento de clientes e fornecedores com versão; busca geral sem campo sensível | `buscaGeralRespeitaEscopoECamposSensiveis`, `buscaDePedidosPorNumeroOuClienteNoEscopo`, `patraoVe...` (412, campo oculto 422), `Central.test.tsx` (Carregar mais com falha de rede), `layout.spec.ts` (novas rotas em 360/768/1440) | PASS |
+| WEB-03 | Navegação profunda (filtros e registro na URL, volta ao endereço após entrar), sessão expirada sem perder o digitado, erro de rede com nova tentativa, 404 de página | `Central.test.tsx` (sessão, outra conta, volta segura), `central.spec.ts` (sessão real expirada no Chrome, rede abortada) | PASS |
 
 Testes adicionais de F01: imutabilidade de `audit_events` (trigger), paginação por cursor, 412 por versão,
 concorrência entre administradores (`ConcurrencyIntegrationTest`, com teste de mutação).

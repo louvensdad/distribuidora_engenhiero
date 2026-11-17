@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { NavLink, Outlet, useLocation } from "react-router";
+import { useEffect, useState } from "react";
+import { NavLink, Outlet, useLocation, useNavigate, useSearchParams } from "react-router";
 import { visibleTabs } from "../app/navigation";
 import { Icon } from "../components/Icon";
 import { OfflineBanner } from "../components/States";
+import { SessionExpiredDialog } from "../components/SessionExpiredDialog";
 import { useSession } from "../session/SessionContext";
 import marca from "../assets/marca.svg";
 
@@ -12,6 +13,8 @@ export function Shell() {
   const [leaving, setLeaving] = useState(false);
   const tabs = visibleTabs(can);
   const active = tabs.find((t) => location.pathname.startsWith(t.path));
+  const searchable = ["orders.pickup.view", "orders.delivery.view", "trips.view", "vehicles.view", "customers.view",
+    "suppliers.view", "catalog.view"].some(can);
 
   return (
     <div className="app">
@@ -22,6 +25,7 @@ export function Shell() {
           <span className="org">{me?.organization.name}</span>
           <span className="muted small">Unidade: {me?.branch.name}</span>
         </div>
+        {searchable && <GlobalSearch />}
         <div className="user">
           <span className="user-name">{me?.user.display_name}</span>
           <button
@@ -67,6 +71,7 @@ export function Shell() {
       )}
 
       <OfflineBanner />
+      <SessionExpiredDialog />
       <main id="conteudo" tabIndex={-1} className="content">
         <Outlet />
       </main>
@@ -74,5 +79,25 @@ export function Shell() {
         Distribuidora de Cana Engenheiro Ltda · as permissões são verificadas pelo servidor a cada ação
       </footer>
     </div>
+  );
+}
+
+/** Busca geral no topo: leva a /search?q= (o servidor decide em quais módulos procurar). */
+function GlobalSearch() {
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const location = useLocation();
+  const current = location.pathname === "/search" ? params.get("q") ?? "" : "";
+  const [q, setQ] = useState(current);
+  useEffect(() => setQ(current), [current]);
+  return (
+    <form className="global-search" role="search" onSubmit={(e) => {
+      e.preventDefault();
+      if (q.trim().length >= 2) navigate(`/search?q=${encodeURIComponent(q.trim())}`);
+    }}>
+      <label className="visually-hidden" htmlFor="busca-geral">Buscar pedido, cliente, placa…</label>
+      <input id="busca-geral" type="search" maxLength={80} placeholder="Buscar pedido, cliente, placa…" value={q} onChange={(e) => setQ(e.target.value)} />
+      <button className="btn btn-ghost" aria-label="Buscar em tudo"><Icon name="search" size={16} /></button>
+    </form>
   );
 }

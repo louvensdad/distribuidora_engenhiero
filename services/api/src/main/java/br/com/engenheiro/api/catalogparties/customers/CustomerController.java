@@ -11,6 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import br.com.engenheiro.api.shared.web.IfMatch;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -35,6 +38,19 @@ public class CustomerController {
                 body.personal_document()));
         return ResponseEntity.created(URI.create("/api/v1/customers/" + v.id())).eTag("\"" + v.version() + "\"")
                 .cacheControl(CacheControl.noStore()).body(v);
+    }
+
+    public record UpdateCustomerRequest(String name, String contact, String address, String personal_document,
+                                        String status) {
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<CustomerView> update(Actor actor, @PathVariable UUID id,
+                                               @RequestHeader(value = "If-Match", required = false) String ifMatch,
+                                               @RequestBody UpdateCustomerRequest body) {
+        CustomerView v = service.update(actor, id, IfMatch.version(ifMatch), new CustomerService.UpdateCommand(
+                body.name(), body.contact(), body.address(), body.personal_document(), body.status()));
+        return ResponseEntity.ok().eTag("\"" + v.version() + "\"").cacheControl(CacheControl.noStore()).body(v);
     }
 
     @GetMapping("/{id}")

@@ -1,11 +1,13 @@
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router";
 import { ApiError, api, newIdempotencyKey } from "../../api/http";
-import type { Page, Payable, PayableDetail } from "../../api/types";
+import type { Payable, PayableDetail } from "../../api/types";
 import { useResource } from "../../api/useResource";
+import { qs, usePaged, useUrlFilters } from "../../api/usePaged";
+import { PagedList } from "../../components/Lists";
 import { formatDateTime, formatMoney, toDecimal, todayBr } from "../../app/format";
 import { Field, FormError, fieldError } from "../../components/Form";
-import { EmptyState, ErrorState, ForbiddenState, LoadingState } from "../../components/States";
+import { EmptyState, ErrorState, LoadingState } from "../../components/States";
 import { useSession } from "../../session/SessionContext";
 import { AccountSelect } from "./AccountSelect";
 import { PAYABLE_STATE, brDate } from "./financeLabels";
@@ -15,9 +17,11 @@ const SOURCE: Record<string, string> = { inventory_receipt: "Compra de mercadori
 
 /** Contas a pagar (FIN-02/FIN-06): pagar baixa o passivo contra caixa/banco; nunca gera nova despesa. */
 export function PayablesPage() {
-  const [state, setState] = useState("PENDING");
+  const [f, setF] = useUrlFilters(["state"] as const);
+  const state = f.state || "PENDING"; // sem filtro na URL = a pagar; "ALL" = todas
   const [open, setOpen] = useState<string | null>(null);
-  const [res, reload] = useResource<Page<Payable>>(`/api/v1/payables?limit=100${state ? `&state=${state}` : ""}`);
+  const list = usePaged<Payable>(`/api/v1/payables?${qs({ limit: 50, state: state === "ALL" ? "" : state })}`);
+  const reload = list.reload;
   return (
     <section className="page" aria-labelledby="titulo-pagar">
       <header className="page-head">
@@ -27,20 +31,17 @@ export function PayablesPage() {
         </div>
         <div className="field inline">
           <label htmlFor="pagar-filtro">Situação</label>
-          <select id="pagar-filtro" value={state} onChange={(e) => setState(e.target.value)}>
-            <option value="PENDING">A pagar</option><option value="PAID">Pagas</option><option value="CANCELLED">Canceladas</option><option value="">Todas</option>
+          <select id="pagar-filtro" value={state} onChange={(e) => setF({ state: e.target.value === "PENDING" ? "" : e.target.value })}>
+            <option value="PENDING">A pagar</option><option value="PAID">Pagas</option><option value="CANCELLED">Canceladas</option><option value="ALL">Todas</option>
           </select>
         </div>
       </header>
-      {res.status === "loading" && <LoadingState />}
-      {res.status === "forbidden" && <ForbiddenState />}
-      {res.status === "error" && <ErrorState error={res.error} onRetry={reload} />}
-      {res.status === "ready" && (res.data.items.length === 0 ? <EmptyState title="Nenhuma conta nesta situação" /> : (
+      <PagedList list={list} empty={<EmptyState title="Nenhuma conta nesta situação" />}>{(items) => (
         <div className="table-wrap card">
           <table className="stack">
             <thead><tr><th scope="col">Descrição</th><th scope="col">Origem</th><th scope="col">Competência</th><th scope="col">Vencimento</th>
               <th scope="col" className="num">Valor</th><th scope="col" className="num">Saldo</th><th scope="col">Situação</th><th scope="col"><span className="visually-hidden">Ações</span></th></tr></thead>
-            <tbody>{res.data.items.map((p) => (
+            <tbody>{items.map((p) => (
               <tr key={p.id}>
                 <th scope="row">{p.source_type === "inventory_receipt" ? <Link to={`/operation/receipts/${p.source_id}`}>{p.description}</Link> : p.description}</th>
                 <td data-label="Origem">{SOURCE[p.source_type] ?? p.source_type}</td>
@@ -55,7 +56,7 @@ export function PayablesPage() {
             ))}</tbody>
           </table>
         </div>
-      ))}
+      )}</PagedList>
       {open && <PayableCard id={open} onChange={reload} />}
     </section>
   );

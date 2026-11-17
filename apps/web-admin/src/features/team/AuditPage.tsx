@@ -1,67 +1,79 @@
-import { useEffect, useState } from "react";
-import { ApiError, api } from "../../api/http";
+import { Link } from "react-router";
 import { AUDIT_ACTION_LABELS, CLIENT_LABELS, label } from "../../api/labels";
 import type { AuditEvent, Page, UserView } from "../../api/types";
+import { qs, usePaged, useUrlFilters } from "../../api/usePaged";
 import { useResource } from "../../api/useResource";
 import { formatDateTime } from "../../app/format";
-import { EmptyState, ErrorState, ForbiddenState, LoadingState } from "../../components/States";
+import { ENTITY_LABELS, originPath } from "../../app/origin";
+import { PagedList } from "../../components/Lists";
+import { EmptyState } from "../../components/States";
 import { useSession } from "../../session/SessionContext";
 
-/** W16 — histórico com ator real e horário do servidor. Paginação por cursor no servidor. */
+/** Dia seguinte (o servidor usa fim exclusivo; a tela mostra "até" inclusivo). */
+const nextDay = (iso: string) => {
+  const d = new Date(iso + "T12:00:00Z");
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+};
+
+/**
+ * W16 — histórico com ator real e horário do servidor, paginado por cursor. Filtros por pessoa, setor, registro,
+ * resultado e período (dia civil de São Paulo) ficam na URL; "Abrir origem" leva ao registro (com a permissão de lá).
+ */
 export function AuditPage() {
   const { can } = useSession();
-  const [actor, setActor] = useState("");
+  const [f, setF] = useUrlFilters(["actor", "sector", "entity_type", "entity_id", "from", "until", "result"] as const);
   const [users] = useResource<Page<UserView>>(can("users.view") ? "/api/v1/users" : null);
-  const query = `/api/v1/audit-events?limit=25${actor ? `&actor_user_id=${actor}` : ""}`;
-  const [first, reload] = useResource<Page<AuditEvent>>(query);
-  const [items, setItems] = useState<AuditEvent[]>([]);
-  const [cursor, setCursor] = useState<string | null>(null);
-  const [more, setMore] = useState<{ busy: boolean; error: ApiError | null }>({ busy: false, error: null });
-
-  useEffect(() => {
-    if (first.status === "ready") {
-      setItems(first.data.items);
-      setCursor(first.data.next_cursor);
-    }
-  }, [first]);
-
-  const loadMore = async () => {
-    if (!cursor) return;
-    setMore({ busy: true, error: null });
-    try {
-      const { data } = await api.get<Page<AuditEvent>>(`${query}&cursor=${encodeURIComponent(cursor)}`);
-      setItems((prev) => [...prev, ...data.items]);
-      setCursor(data.next_cursor);
-      setMore({ busy: false, error: null });
-    } catch (e) {
-      setMore({ busy: false, error: e instanceof ApiError ? e : null });
-    }
-  };
+  const list = usePaged<AuditEvent>(`/api/v1/audit-events?${qs({
+    limit: 25, actor_user_id: f.actor, sector: f.sector, entity_type: f.entity_type, entity_id: f.entity_id,
+    from: f.from, to: f.until ? nextDay(f.until) : "", result: f.result,
+  })}`);
+  const filtered = Object.values(f).some(Boolean);
 
   return (
     <section className="page" aria-labelledby="titulo-historico">
       <header className="page-head">
         <div>
           <h1 id="titulo-historico">Histórico</h1>
-          <p className="muted">Cada ação com quem fez, quando (horário do servidor) e por qual aplicativo.</p>
+          <p className="muted">Cada ação com quem fez, quando (horário do servidor) e por qual aplicativo. Ação do patrão fica no nome do patrão.</p>
         </div>
+      </header>
+      <form className="filters card" aria-label="Filtros do histórico" onSubmit={(e) => e.preventDefault()}>
         {users.status === "ready" && (
-          <label className="field inline">
-            <span>Filtrar pessoa</span>
-            <select value={actor} onChange={(e) => setActor(e.target.value)}>
+          <label className="field"><span>Pessoa</span>
+            <select value={f.actor} onChange={(e) => setF({ actor: e.target.value })}>
               <option value="">Todas</option>
               {users.data.items.map((u) => <option key={u.id} value={u.id}>{u.display_name}</option>)}
             </select>
           </label>
         )}
-      </header>
-      {first.status === "loading" && <LoadingState />}
-      {first.status === "forbidden" && <ForbiddenState />}
-      {first.status === "error" && <ErrorState error={first.error} onRetry={reload} />}
-      {first.status === "ready" && (items.length === 0 ? <EmptyState title="Nenhum movimento registrado" /> : (
-        <>
-          <ol className="timeline">
-            {items.map((ev) => (
+        <label className="field"><span>Setor</span>
+          <select value={f.sector} onChange={(e) => setF({ sector: e.target.value })}>
+            <option value="">Todos</option>
+            <option value="COUNTER">Retirada, balcão e fornecedores</option>
+            <option value="DELIVERY">Entregas, motoristas e veículos</option>
+            <option value="ACCOUNTING">Contabilidade e documentos</option>
+          </select>
+        </label>
+        <label className="field"><span>Resultado</span>
+          <select value={f.result} onChange={(e) => setF({ result: e.target.value })}>
+            <option value="">Todos</option><option value="SUCCESS">Concluídos</option><option value="DENIED">Negados</option><option value="FAILURE">Falhas</option>
+          </select>
+        </label>
+        <label className="field"><span>De</span><input type="date" value={f.from} onChange={(e) => setF({ from: e.target.value })} /></label>
+        <label className="field"><span>Até</span><input type="date" value={f.until} onChange={(e) => setF({ until: e.target.value })} /></label>
+        {f.entity_id && (
+          <p className="span-2">Só o registro: <strong>{ENTITY_LABELS[f.entity_type] ?? f.entity_type} {f.entity_id.slice(0, 8)}</strong>{" "}
+            <button type="button" className="btn btn-small btn-ghost" onClick={() => setF({ entity_type: "", entity_id: "" })}>Mostrar todos</button></p>
+        )}
+        {filtered && <button type="button" className="btn btn-small btn-ghost"
+          onClick={() => setF({ actor: "", sector: "", entity_type: "", entity_id: "", from: "", until: "", result: "" })}>Limpar filtros</button>}
+      </form>
+      <PagedList list={list} empty={<EmptyState title={filtered ? "Nenhum movimento com estes filtros" : "Nenhum movimento registrado"} />}>{(items) => (
+        <ol className="timeline">
+          {items.map((ev) => {
+            const to = originPath(ev.entity_type, ev.entity_id);
+            return (
               <li key={ev.id} className={"event event-" + ev.result.toLowerCase()}>
                 <time dateTime={ev.occurred_at}>{formatDateTime(ev.occurred_at)}</time>
                 <div>
@@ -71,21 +83,25 @@ export function AuditPage() {
                   <div className="muted small">
                     {ev.client_id && <>{label(CLIENT_LABELS, ev.client_id)} · </>}
                     {ev.reason && <>Motivo: {ev.reason} · </>}
-                    {ev.entity_type && <>{ev.entity_type} </>}
+                    {ev.entity_type && <>{ENTITY_LABELS[ev.entity_type] ?? ev.entity_type} · </>}
                     {ev.request_id && <code title="Código para suporte">{ev.request_id.slice(0, 8)}</code>}
                   </div>
+                  {ev.entity_type && ev.entity_id && (
+                    <div className="row-actions">
+                      {to && <Link className="btn btn-small" to={to}>Abrir origem</Link>}
+                      {f.entity_id !== ev.entity_id && (
+                        <button className="btn btn-small btn-ghost" onClick={() => setF({ entity_type: ev.entity_type ?? "", entity_id: ev.entity_id ?? "" })}>
+                          Só este registro
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </li>
-            ))}
-          </ol>
-          {more.error && <ErrorState error={more.error} onRetry={() => void loadMore()} />}
-          {cursor && (
-            <button className="btn" disabled={more.busy} onClick={() => void loadMore()}>
-              {more.busy ? "Carregando…" : "Carregar mais"}
-            </button>
-          )}
-        </>
-      ))}
+            );
+          })}
+        </ol>
+      )}</PagedList>
     </section>
   );
 }

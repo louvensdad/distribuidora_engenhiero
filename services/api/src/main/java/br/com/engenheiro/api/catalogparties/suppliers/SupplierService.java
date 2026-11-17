@@ -52,6 +52,75 @@ public class SupplierService {
     public record CreateCommand(String name, String contact, String personalDocument) {
     }
 
+    public record UpdateCommand(String name, String contact, String personalDocument, String status) {
+    }
+
+    /** Edição com versão; campo oculto não é enviado e fica como está; ARCHIVED some das listas e de novos recebimentos. */
+    @Transactional
+    public SupplierView update(Actor actor, UUID id, long expectedVersion, UpdateCommand cmd) {
+        Row row = find(id).orElse(null);
+        if (row == null) {
+            authz.require(actor, RESOURCE, "edit_draft");
+            throw ApiException.notFound();
+        }
+        authz.requireRecord(actor, RESOURCE, "edit_draft", "supplier", id.toString(),
+                new RecordRef(row.organizationId(), null, null, row.createdBy(), null));
+        List<FieldError> errors = new ArrayList<>();
+        String name = Text.trim(cmd.name());
+        if (name == null || name.length() > 200) {
+            errors.add(new FieldError("name", "Nome obrigatório (até 200 caracteres)"));
+        }
+        String status = cmd.status() == null ? row.status() : cmd.status();
+        if (!List.of("ACTIVE", "ARCHIVED").contains(status)) {
+            errors.add(new FieldError("status", "ACTIVE ou ARCHIVED"));
+        }
+        String doc = Text.document(cmd.personalDocument());
+        if (doc != null && !doc.matches("[0-9]{11}|[0-9]{14}")) {
+            errors.add(new FieldError("personal_document", "CPF (11) ou CNPJ (14) dígitos"));
+        }
+        rejectHidden(actor, FieldClass.OPERATIONAL_CONTACT, Text.trim(cmd.contact()), "contact", errors);
+        rejectHidden(actor, FieldClass.PERSONAL_DOCUMENT, doc, "personal_document", errors);
+        if (!errors.isEmpty()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "Corrija os campos indicados.", errors);
+        }
+        String contact = authz.canSeeField(actor, FieldClass.OPERATIONAL_CONTACT) ? Text.trim(cmd.contact()) : row.contact();
+        String document = authz.canSeeField(actor, FieldClass.PERSONAL_DOCUMENT) ? doc : row.personalDocument();
+        List<String> changed = new ArrayList<>();
+        if (!name.equals(row.name())) {
+            changed.add("name");
+        }
+        if (!java.util.Objects.equals(contact, row.contact())) {
+            changed.add("contact");
+        }
+        if (!java.util.Objects.equals(document, row.personalDocument())) {
+            changed.add("personal_document");
+        }
+        if (!status.equals(row.status())) {
+            changed.add("status");
+        }
+        int n;
+        try {
+            n = jdbc.sql("""
+                            UPDATE suppliers SET name = :name, contact = :contact, personal_document = :doc, status = :st,
+                                   version = version + 1, updated_at = now(), updated_by = :by
+                             WHERE id = :id AND version = :v
+                            """)
+                    .param("name", name).param("contact", contact).param("doc", document).param("st", status)
+                    .param("by", actor.userId()).param("id", id).param("v", expectedVersion).update();
+        } catch (DuplicateKeyException e) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "Documento já cadastrado.",
+                    List.of(new FieldError("personal_document", "Já existe fornecedor com este documento")));
+        }
+        if (n == 0) {
+            throw new ApiException(ErrorCode.VERSION_CONFLICT, "O fornecedor foi alterado por outra pessoa. Recarregue.");
+        }
+        audit.record(new AuditEntry(actor.organizationId(), actor.branchId(), actor.userId(), "USER",
+                actor.clientId(), status.equals("ARCHIVED") && changed.contains("status") ? "suppliers.archive"
+                        : "suppliers.update", "supplier", id.toString(), "SUCCESS", null,
+                Map.of("fields_changed", changed), "api"));
+        return view(actor, find(id).orElseThrow());
+    }
+
     @Transactional
     public SupplierView create(Actor actor, CreateCommand cmd) {
         authz.require(actor, RESOURCE, "create");
@@ -112,11 +181,12 @@ public class SupplierService {
         Cursor.Key c = Cursor.decode(cursor);
         List<Row> rows = jdbc.sql(SELECT + """
                          WHERE s.organization_id = :org AND s.status = 'ACTIVE'
-                           AND (CAST(:q AS text) IS NULL OR s.name ILIKE '%' || CAST(:q AS text) || '%')
+                           AND (CAST(:q AS text) IS NULL OR s.name ILIKE '%' || CAST(:q AS text) || '%' ESCAPE '\\')
                            AND (CAST(:cname AS text) IS NULL OR (s.name, s.id) > (CAST(:cname AS text), CAST(:cid AS uuid)))
                          ORDER BY s.name, s.id LIMIT :lim
                         """)
-                .param("org", actor.organizationId()).param("q", Text.trim(query))
+                .param("org", actor.organizationId()).param("q", br.com.engenheiro.api.shared.web.SearchText.like(
+                        br.com.engenheiro.api.shared.web.SearchText.normalize(query)))
                 .param("cname", c == null ? null : c.sort()).param("cid", c == null ? null : c.id())
                 .param("lim", limit + 1).query(Row.class).list();
         String next = null;

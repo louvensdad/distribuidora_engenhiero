@@ -3,6 +3,7 @@ import { ErrorState, LoadingState } from "../../components/States";
 import type { SessionState } from "../../session/SessionContext";
 import { useSession } from "../../session/SessionContext";
 import marca from "../../assets/marca.svg";
+import { rememberReturn } from "../../session/returnPath";
 
 /** W01 — entrada segura. Senha e segundo fator ficam no provedor de identidade, não neste site. */
 export function EntryPage({ state }: { state: Exclude<SessionState, { kind: "ready" }> }) {
@@ -17,7 +18,7 @@ export function EntryPage({ state }: { state: Exclude<SessionState, { kind: "rea
         {state.kind === "anonymous" && (
           <>
             {state.expired && <p className="notice" role="status">Sua sessão terminou. Entre novamente.</p>}
-            <a className="btn btn-primary btn-large" href={state.loginUrl}>
+            <a className="btn btn-primary btn-large" href={state.loginUrl} onClick={() => rememberReturn()}>
               <Icon name="shield" size={18} /> Entrar com segurança
             </a>
             <p className="muted small">

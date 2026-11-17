@@ -1,9 +1,9 @@
-import { useEffect, useState, type FormEvent } from "react";
-import { useSearchParams } from "react-router";
+import { useState, type FormEvent } from "react";
 import { ApiError, api } from "../../api/http";
-import type { Customer, Page } from "../../api/types";
-import { useResource } from "../../api/useResource";
-import { EmptyState, ErrorState, ForbiddenState, LoadingState } from "../../components/States";
+import type { Customer } from "../../api/types";
+import { qs, usePaged, useUrlFilters } from "../../api/usePaged";
+import { PagedList, SearchBox } from "../../components/Lists";
+import { ConflictState, EmptyState } from "../../components/States";
 import { Icon } from "../../components/Icon";
 import { useSession } from "../../session/SessionContext";
 
@@ -12,34 +12,10 @@ const Hidden = () => <span className="masked" title="Oculto pela sua permissão 
 /** Clientes no escopo do usuário. Campos sensíveis vêm nulos do servidor quando não liberados. */
 export function CustomersPage() {
   const { can } = useSession();
-  const [params, setParams] = useSearchParams();
-  const q = params.get("q") ?? "";
-  const [search, setSearch] = useState(q);
+  const [f, setF] = useUrlFilters(["q"] as const);
   const [creating, setCreating] = useState(false);
-  const path = `/api/v1/customers?limit=25${q ? `&q=${encodeURIComponent(q)}` : ""}`;
-  const [first, reload] = useResource<Page<Customer>>(path);
-  const [items, setItems] = useState<Customer[]>([]);
-  const [cursor, setCursor] = useState<string | null>(null);
-  const [loadingMore, setLoadingMore] = useState(false);
-
-  useEffect(() => {
-    if (first.status === "ready") {
-      setItems(first.data.items);
-      setCursor(first.data.next_cursor);
-    }
-  }, [first]);
-
-  const loadMore = async () => {
-    if (!cursor) return;
-    setLoadingMore(true);
-    try {
-      const { data } = await api.get<Page<Customer>>(`${path}&cursor=${encodeURIComponent(cursor)}`);
-      setItems((p) => [...p, ...data.items]);
-      setCursor(data.next_cursor);
-    } finally {
-      setLoadingMore(false);
-    }
-  };
+  const [editing, setEditing] = useState<Customer | null>(null);
+  const list = usePaged<Customer>(`/api/v1/customers?${qs({ limit: 25, q: f.q })}`);
 
   return (
     <section className="page" aria-labelledby="titulo-clientes">
@@ -53,49 +29,92 @@ export function CustomersPage() {
         )}
       </header>
 
-      {creating && <CreateCustomer onDone={(created) => { setCreating(false); if (created) reload(); }} />}
+      {creating && <CreateCustomer onDone={(name) => { setCreating(false); if (name) { if (name === f.q) list.reload(); else setF({ q: name }); } }} />}
+      {editing && <EditCustomer key={editing.id} customer={editing} onDone={(changed) => { setEditing(null); if (changed) list.reload(); }} />}
 
-      <form className="search" role="search" onSubmit={(e) => { e.preventDefault(); setParams(search.trim() ? { q: search.trim() } : {}); }}>
-        <label className="visually-hidden" htmlFor="busca-clientes">Buscar cliente por nome</label>
-        <input id="busca-clientes" type="search" placeholder="Buscar por nome" value={search} onChange={(e) => setSearch(e.target.value)} />
-        <button className="btn"><Icon name="search" size={16} /> Buscar</button>
-      </form>
+      <SearchBox id="busca-clientes" label="Buscar cliente por nome" placeholder="Buscar por nome" value={f.q} onSearch={(q) => setF({ q })} />
 
-      {first.status === "loading" && <LoadingState />}
-      {first.status === "forbidden" && <ForbiddenState />}
-      {first.status === "error" && <ErrorState error={first.error} onRetry={reload} />}
-      {first.status === "ready" && (items.length === 0 ? (
-        <EmptyState title={q ? `Nenhum cliente encontrado para “${q}”` : "Nenhum cliente cadastrado"}>
-          {can("customers.create") && <p>Use “Novo cliente” para cadastrar o primeiro.</p>}
-        </EmptyState>
-      ) : (
-        <>
-          <div className="table-wrap card">
-            <table className="stack">
-              <thead>
-                <tr><th scope="col">Nome</th><th scope="col">Contato</th><th scope="col">Endereço</th><th scope="col">CPF/CNPJ</th><th scope="col">Unidade</th></tr>
-              </thead>
-              <tbody>
-                {items.map((c) => (
-                  <tr key={c.id}>
-                    <th scope="row">{c.name}</th>
-                    <td data-label="Contato">{c.masked_fields.includes("contact") ? <Hidden /> : c.contact ?? "—"}</td>
-                    <td data-label="Endereço">{c.masked_fields.includes("address") ? <Hidden /> : c.address ?? "—"}</td>
-                    <td data-label="CPF/CNPJ">{c.masked_fields.includes("personal_document") ? <Hidden /> : c.personal_document ?? "—"}</td>
-                    <td data-label="Unidade">{c.branch}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {cursor && <button className="btn" disabled={loadingMore} onClick={() => void loadMore()}>{loadingMore ? "Carregando…" : "Carregar mais"}</button>}
-        </>
-      ))}
+      <PagedList list={list} empty={
+        <EmptyState title={f.q ? `Nenhum cliente encontrado para “${f.q}”` : "Nenhum cliente cadastrado"}>
+          {can("customers.create") && !f.q && <p>Use “Novo cliente” para cadastrar o primeiro.</p>}
+        </EmptyState>}>{(items) => (
+        <div className="table-wrap card">
+          <table className="stack">
+            <thead>
+              <tr><th scope="col">Nome</th><th scope="col">Contato</th><th scope="col">Endereço</th><th scope="col">CPF/CNPJ</th><th scope="col">Unidade</th>
+                <th scope="col"><span className="visually-hidden">Ações</span></th></tr>
+            </thead>
+            <tbody>
+              {items.map((c) => (
+                <tr key={c.id}>
+                  <th scope="row">{c.name}</th>
+                  <td data-label="Contato">{c.masked_fields.includes("contact") ? <Hidden /> : c.contact ?? "—"}</td>
+                  <td data-label="Endereço">{c.masked_fields.includes("address") ? <Hidden /> : c.address ?? "—"}</td>
+                  <td data-label="CPF/CNPJ">{c.masked_fields.includes("personal_document") ? <Hidden /> : c.personal_document ?? "—"}</td>
+                  <td data-label="Unidade">{c.branch}</td>
+                  <td>{can("customers.edit_draft") && <button className="btn btn-small" onClick={() => setEditing(c)} aria-label={`Editar ${c.name}`}>Editar</button>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}</PagedList>
     </section>
   );
 }
 
-function CreateCustomer({ onDone }: { onDone: (created: boolean) => void }) {
+/** Edição com versão (If-Match): campos ocultos não aparecem nem são enviados — o servidor os mantém. */
+function EditCustomer({ customer, onDone }: { customer: Customer; onDone: (changed: boolean) => void }) {
+  const { canSeeField } = useSession();
+  const [form, setForm] = useState({ name: customer.name, contact: customer.contact ?? "", address: customer.address ?? "",
+    personal_document: customer.personal_document ?? "" });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<ApiError | null>(null);
+  const set = (k: keyof typeof form) => (e: { target: { value: string } }) => setForm({ ...form, [k]: e.target.value });
+  const fieldError = (f: string) => error?.fieldErrors.find((x) => x.field === f)?.message;
+  const save = async (status: "ACTIVE" | "ARCHIVED") => {
+    setBusy(true);
+    setError(null);
+    const body: Record<string, string | null> = { name: form.name.trim(), status };
+    if (canSeeField("operational_contact")) body.contact = form.contact.trim() || null;
+    if (canSeeField("delivery_address")) body.address = form.address.trim() || null;
+    if (canSeeField("personal_document")) body.personal_document = form.personal_document.trim() || null;
+    try {
+      await api.put<Customer>(`/api/v1/customers/${customer.id}`, body, `"${customer.version}"`);
+      onDone(true);
+    } catch (err) {
+      setError(err instanceof ApiError ? err : new ApiError({ status: 0, code: "UNKNOWN" }));
+      setBusy(false);
+    }
+  };
+  if (error?.status === 412) return <ConflictState onReload={() => onDone(true)} />;
+  return (
+    <form className="card form-grid" onSubmit={(e) => { e.preventDefault(); void save("ACTIVE"); }} aria-labelledby="titulo-editar-cliente" noValidate>
+      <h2 id="titulo-editar-cliente" className="h3 span-2">Editar cliente</h2>
+      <Field id="ce-nome" label="Nome *" error={fieldError("name")}>
+        <input id="ce-nome" maxLength={200} value={form.name} onChange={set("name")} autoFocus />
+      </Field>
+      {canSeeField("operational_contact") && (
+        <Field id="ce-contato" label="Contato" error={fieldError("contact")}><input id="ce-contato" value={form.contact} onChange={set("contact")} /></Field>
+      )}
+      {canSeeField("delivery_address") && (
+        <Field id="ce-endereco" label="Endereço de entrega" error={fieldError("address")}><input id="ce-endereco" value={form.address} onChange={set("address")} /></Field>
+      )}
+      {canSeeField("personal_document") && (
+        <Field id="ce-doc" label="CPF ou CNPJ" error={fieldError("personal_document")}><input id="ce-doc" inputMode="numeric" value={form.personal_document} onChange={set("personal_document")} /></Field>
+      )}
+      <div aria-live="assertive" className="span-2">{error && <p className="notice notice-error" role="alert">{error.message}</p>}</div>
+      <div className="actions span-2">
+        <button type="button" className="btn btn-ghost" onClick={() => onDone(false)}>Cancelar</button>
+        <button type="button" className="btn btn-ghost" disabled={busy} onClick={() => void save("ARCHIVED")}
+          title="Some das listas e de novos pedidos; o histórico continua">Arquivar</button>
+        <button className="btn btn-primary" disabled={busy || !form.name.trim()}>{busy ? "Salvando…" : "Salvar"}</button>
+      </div>
+    </form>
+  );
+}
+
+function CreateCustomer({ onDone }: { onDone: (createdName: string | false) => void }) {
   const { canSeeField } = useSession();
   const [form, setForm] = useState({ name: "", contact: "", address: "", personal_document: "" });
   const [busy, setBusy] = useState(false);
@@ -110,7 +129,7 @@ function CreateCustomer({ onDone }: { onDone: (created: boolean) => void }) {
     const body = Object.fromEntries(Object.entries(form).filter(([, v]) => v.trim() !== ""));
     try {
       await api.post<Customer>("/api/v1/customers", body);
-      onDone(true);
+      onDone(form.name.trim());
     } catch (err) {
       setError(err instanceof ApiError ? err : new ApiError({ status: 0, code: "UNKNOWN" }));
       setBusy(false); // dados digitados preservados

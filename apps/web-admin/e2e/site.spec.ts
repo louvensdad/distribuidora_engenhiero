@@ -31,7 +31,7 @@ test.describe("site do patrão — pilha real", () => {
     await page.getByLabel("Endereço de entrega").fill("Rua de Teste, 10");
     await page.getByRole("button", { name: "Cadastrar cliente" }).click();
     await page.getByLabel("Buscar cliente por nome").fill(nome);
-    await page.getByRole("button", { name: "Buscar" }).click();
+    await page.getByRole("button", { name: "Buscar", exact: true }).click();
     const row = page.getByRole("row", { name: new RegExp(nome) });
     await expect(row).toContainText("(11) 90000-1234");
     await expect(row).toContainText("Matriz");

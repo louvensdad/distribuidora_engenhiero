@@ -58,6 +58,10 @@ public class CustomerService {
     public record Page(List<CustomerView> items, String next_cursor) {
     }
 
+    /** Edição: campos que o ator não vê não são enviados e ficam como estão. status: ACTIVE ou ARCHIVED. */
+    public record UpdateCommand(String name, String contact, String address, String personalDocument, String status) {
+    }
+
     @Transactional
     public CustomerView create(Actor actor, CreateCommand cmd) {
         authz.require(actor, RESOURCE, "create");
@@ -98,6 +102,82 @@ public class CustomerService {
         return view(actor, find(id).orElseThrow());
     }
 
+    @Transactional
+    public CustomerView update(Actor actor, UUID id, long expectedVersion, UpdateCommand cmd) {
+        Row row = find(id).orElse(null);
+        if (row == null) {
+            authz.require(actor, RESOURCE, "edit_draft");
+            throw ApiException.notFound();
+        }
+        authz.requireRecord(actor, RESOURCE, "edit_draft", "customer", id.toString(),
+                new RecordRef(row.organizationId(), row.branchId(), null, row.createdBy(), null));
+        List<FieldError> errors = new ArrayList<>();
+        String name = trim(cmd.name());
+        if (name == null || name.length() > 200) {
+            errors.add(new FieldError("name", "Nome obrigatório (até 200 caracteres)"));
+        }
+        String status = cmd.status() == null ? row.status() : cmd.status();
+        if (!List.of("ACTIVE", "ARCHIVED").contains(status)) {
+            errors.add(new FieldError("status", "ACTIVE ou ARCHIVED"));
+        }
+        String doc = cmd.personalDocument() == null ? null : cmd.personalDocument().replaceAll("[.\\-/\\s]", "");
+        if (doc != null && doc.isEmpty()) {
+            doc = null;
+        }
+        if (doc != null && !doc.matches("[0-9]{11}|[0-9]{14}")) {
+            errors.add(new FieldError("personal_document", "CPF (11) ou CNPJ (14) dígitos"));
+        }
+        rejectHiddenField(actor, FieldClass.OPERATIONAL_CONTACT, cmd.contact(), "contact", errors);
+        rejectHiddenField(actor, FieldClass.DELIVERY_ADDRESS, cmd.address(), "address", errors);
+        rejectHiddenField(actor, FieldClass.PERSONAL_DOCUMENT, doc, "personal_document", errors);
+        if (!errors.isEmpty()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "Corrija os campos indicados.", errors);
+        }
+        // Campo oculto mantém o valor gravado (quem não vê não apaga às cegas).
+        String contact = authz.canSeeField(actor, FieldClass.OPERATIONAL_CONTACT) ? trim(cmd.contact()) : row.contact();
+        String address = authz.canSeeField(actor, FieldClass.DELIVERY_ADDRESS) ? trim(cmd.address()) : row.address();
+        String document = authz.canSeeField(actor, FieldClass.PERSONAL_DOCUMENT) ? doc : row.personalDocument();
+        List<String> changed = new ArrayList<>();
+        if (!name.equals(row.name())) {
+            changed.add("name");
+        }
+        if (!java.util.Objects.equals(contact, row.contact())) {
+            changed.add("contact");
+        }
+        if (!java.util.Objects.equals(address, row.address())) {
+            changed.add("address");
+        }
+        if (!java.util.Objects.equals(document, row.personalDocument())) {
+            changed.add("personal_document");
+        }
+        if (!status.equals(row.status())) {
+            changed.add("status");
+        }
+        int n;
+        try {
+            n = jdbc.sql("""
+                            UPDATE customers SET name = :name, contact = :contact, address = :address,
+                                   personal_document = :doc, status = :st, version = version + 1,
+                                   updated_at = now(), updated_by = :by
+                             WHERE id = :id AND version = :v
+                            """)
+                    .param("name", name).param("contact", contact).param("address", address).param("doc", document)
+                    .param("st", status).param("by", actor.userId()).param("id", id).param("v", expectedVersion)
+                    .update();
+        } catch (DuplicateKeyException e) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "Documento já cadastrado.",
+                    List.of(new FieldError("personal_document", "Já existe cliente com este documento")));
+        }
+        if (n == 0) {
+            throw new ApiException(ErrorCode.VERSION_CONFLICT, "O cliente foi alterado por outra pessoa. Recarregue.");
+        }
+        audit.record(new AuditEntry(actor.organizationId(), actor.branchId(), actor.userId(), "USER",
+                actor.clientId(), status.equals("ARCHIVED") && changed.contains("status") ? "customers.archive"
+                        : "customers.update", "customer", id.toString(), "SUCCESS", null,
+                Map.of("fields_changed", changed), "api")); // só nomes de campo, nunca valores pessoais
+        return view(actor, find(id).orElseThrow());
+    }
+
     @Transactional(readOnly = true)
     public CustomerView get(Actor actor, UUID id) {
         Row row = find(id).orElse(null);
@@ -120,10 +200,11 @@ public class CustomerService {
         String[] c = decodeCursor(cursor);
         var spec = jdbc.sql(SELECT + " WHERE " + scope.sql()
                         + " AND c.status = 'ACTIVE'"
-                        + " AND (CAST(:q AS text) IS NULL OR c.name ILIKE '%' || CAST(:q AS text) || '%')"
+                        + " AND (CAST(:q AS text) IS NULL OR c.name ILIKE '%' || CAST(:q AS text) || '%' ESCAPE '\\')"
                         + " AND (CAST(:cname AS text) IS NULL OR (c.name, c.id) > (CAST(:cname AS text), CAST(:cid AS uuid)))"
                         + " ORDER BY c.name, c.id LIMIT :lim")
-                .param("q", trim(query)).param("cname", c == null ? null : c[0]).param("cid", c == null ? null : c[1])
+                .param("q", br.com.engenheiro.api.shared.web.SearchText.like(
+                        br.com.engenheiro.api.shared.web.SearchText.normalize(query))).param("cname", c == null ? null : c[0]).param("cid", c == null ? null : c[1])
                 .param("lim", limit + 1);
         for (Map.Entry<String, Object> p : scope.params().entrySet()) {
             spec = spec.param(p.getKey(), p.getValue());

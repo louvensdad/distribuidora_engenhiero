@@ -1,6 +1,8 @@
 import { Link } from "react-router";
 import { AUDIT_ACTION_LABELS, label } from "../../api/labels";
-import type { AuditEvent, Page, Report, UserView } from "../../api/types";
+import type { ApprovalCenter, AuditEvent, Page, Report, UserView } from "../../api/types";
+import { APPROVERS } from "../../app/navigation";
+import { SECTOR_NAMES } from "../../app/origin";
 import { useResource } from "../../api/useResource";
 import { formatDateTime, formatMoney } from "../../app/format";
 import { Icon } from "../../components/Icon";
@@ -17,12 +19,14 @@ export function OverviewPage() {
   const [audit] = useResource<Page<AuditEvent>>(can("audit.view") ? "/api/v1/audit-events?limit=6" : null);
   const [sum] = useResource<Report>(can("reports.view") ? "/api/v1/reports/overview?period=MONTH" : null);
   const r = sum.status === "ready" ? sum.data.result : undefined;
-  const kpis: [string, string | null | undefined][] = [
-    ["Vendas (receita líquida)", r?.net_revenue],
-    ["CMV", r && r.cogs],
-    ["Despesas", r?.expenses_total],
-    ["Perdas", r && r.losses],
-    ["Lucro gerencial", r && r.profit],
+  const [ap] = useResource<ApprovalCenter>(APPROVERS.some(can) ? "/api/v1/approvals" : null);
+  // Cada total abre os registros que o compõem (drilldown do relatório canônico).
+  const kpis: [string, string | null | undefined, string][] = [
+    ["Vendas (receita líquida)", r?.net_revenue, "/reports?period=MONTH&abrir=gross_revenue"],
+    ["CMV", r && r.cogs, "/reports?period=MONTH&abrir=cogs"],
+    ["Despesas", r?.expenses_total, "/reports/categories?period=MONTH"],
+    ["Perdas", r && r.losses, "/reports?period=MONTH&abrir=losses"],
+    ["Lucro gerencial", r && r.profit, "/reports?period=MONTH"],
   ];
 
   return (
@@ -32,11 +36,28 @@ export function OverviewPage() {
           <h1 id="titulo-visao">Visão geral</h1>
           <p className="muted">{me?.organization.name} · {me?.branch.name}</p>
         </div>
+        <div className="actions">
+          {can("reports.view") && <Link className="btn" to="/reports">Abrir relatório</Link>}
+          {/* IA real só na F15: botão desligado e rotulado, nunca resposta simulada. */}
+          <button className="btn" disabled title="IA da gestão ainda não configurada (fase F15)">
+            <Icon name="ai" size={16} /> Perguntar à IA — não configurada
+          </button>
+        </div>
       </header>
 
+      {ap.status === "ready" && (
+        <Link to="/overview/approvals" className={"card approvals-strip" + (ap.data.items.length ? " has-pending" : "")}>
+          <Icon name="approve" size={20} />
+          {ap.data.items.length === 0 ? <span>Nada esperando a sua decisão.</span> : (
+            <span><strong>{ap.data.items.length}</strong> esperando a sua decisão:{" "}
+              {ap.data.sectors.filter((x) => x.pending > 0).map((x) => `${x.pending} ${SECTOR_NAMES[x.sector]}`).join(" · ")}</span>
+          )}
+        </Link>
+      )}
+
       <div className="kpis">
-        {kpis.map(([k, v]) => v !== undefined ? (
-          <Link key={k} to="/reports" className="kpi card">
+        {kpis.map(([k, v, to]) => v !== undefined ? (
+          <Link key={k} to={to} className="kpi card">
             <span className="kpi-label">{k} (mês)</span>
             <span className="kpi-value">{v === null ? "oculto" : formatMoney(v)}</span>
             <span className="muted small">{v === null ? "Oculto pela sua permissão (custo/margem)" : "Resultado gerencial por competência"}</span>
@@ -76,6 +97,7 @@ export function OverviewPage() {
             </ul>
           ))}
           {can("audit.view") && <Link to="/team/audit">Ver histórico completo</Link>}
+          {" · "}<Link to="/overview/sectors">Central dos setores</Link>
         </div>
       </div>
     </section>

@@ -79,6 +79,45 @@ const auditActionLabels = {
   'documents.download': 'Baixou documento',
   'branches.create': 'Criou unidade',
   'branches.status': 'Alterou situação da unidade',
+  'customers.archive': 'Arquivou cliente',
+  'customers.update': 'Corrigiu cliente',
+  'documents.new_version': 'Enviou nova versão de documento',
+  'documents.request_cancel': 'Cancelou solicitação de documento',
+  'documents.request_fulfilled': 'Atendeu solicitação de documento',
+  'expenses.approve': 'Aprovou despesa',
+  'expenses.create': 'Cadastrou despesa',
+  'expenses.reject': 'Recusou despesa',
+  'expenses.reverse': 'Estornou despesa',
+  'finance.accounts.create': 'Criou conta financeira',
+  'finance.transfers.create': 'Transferiu entre contas',
+  'finance.transfers.reverse': 'Estornou transferência',
+  'open_finance.connect': 'Conectou conta bancária (Open Finance)',
+  'open_finance.ignore': 'Ignorou transação do extrato',
+  'open_finance.revoke': 'Revogou conexão bancária',
+  'open_finance.sync': 'Leu extrato do banco',
+  'payables.pay': 'Pagou conta',
+  'payables.payment_reverse': 'Estornou pagamento de conta',
+  'payroll.export': 'Exportou folha',
+  'payroll.return': 'Devolveu folha',
+  'periods.close': 'Fechou o mês',
+  'periods.reopen': 'Reabriu o mês',
+  'periods.reopen_reject': 'Recusou reabertura do mês',
+  'periods.reopen_request': 'Pediu reabertura do mês',
+  'receivables.settle': 'Registrou recebimento/repasse',
+  'receivables.settlement_reverse': 'Estornou recebimento',
+  'suppliers.archive': 'Arquivou fornecedor',
+  'suppliers.update': 'Corrigiu fornecedor',
+  'taxes.cancel': 'Cancelou guia',
+  'taxes.update': 'Ajustou guia',
+  'team.absence.approve': 'Aprovou folga/férias',
+  'team.absence.cancel': 'Cancelou folga/férias',
+  'team.absence.create': 'Registrou folga/férias',
+  'team.absence.reject': 'Recusou folga/férias',
+  'trips.cancel': 'Cancelou viagem',
+  'trips.order_removed': 'Pedido saiu da viagem',
+  'vehicles.expense.reject': 'Recusou gasto do veículo',
+  'vehicles.odometer_correction': 'Corrigiu odômetro',
+  'vehicles.status': 'Alterou situação do veículo',
 };
 
 const clientLabels = {
@@ -116,8 +155,14 @@ String formatDateTime(DateTime utc) {
 
 // ---- F03: medidas e quantidades (texto decimal do servidor; só troca separadores) ----
 const _unitNames = {
-  'UNIDADE': ('unidade', 'unidades'), 'DUZIA': ('dúzia', 'dúzias'), 'FEIXE': ('feixe', 'feixes'), 'MACO': ('maço', 'maços'),
-  'CAIXA': ('caixa', 'caixas'), 'SACO': ('saco', 'sacos'), 'KG': ('kg', 'kg'), 'TONELADA': ('tonelada', 'toneladas'),
+  'UNIDADE': ('unidade', 'unidades'),
+  'DUZIA': ('dúzia', 'dúzias'),
+  'FEIXE': ('feixe', 'feixes'),
+  'MACO': ('maço', 'maços'),
+  'CAIXA': ('caixa', 'caixas'),
+  'SACO': ('saco', 'sacos'),
+  'KG': ('kg', 'kg'),
+  'TONELADA': ('tonelada', 'toneladas'),
 };
 
 String unitLabel(String unit, [String? qty]) {
@@ -131,18 +176,27 @@ String formatDecimal(String? v) {
   if (v == null) return '—';
   final neg = v.startsWith('-');
   final parts = (neg ? v.substring(1) : v).split('.');
-  final grouped = parts[0].replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => '.');
+  final grouped = parts[0].replaceAllMapped(
+    RegExp(r'\B(?=(\d{3})+(?!\d))'),
+    (_) => '.',
+  );
   return '${neg ? '−' : ''}$grouped${parts.length > 1 ? ',${parts[1]}' : ''}';
 }
 
-String formatQty(String v, String unit) => '${formatDecimal(v)} ${unitLabel(unit, v)}';
+String formatQty(String v, String unit) =>
+    '${formatDecimal(v)} ${unitLabel(unit, v)}';
 
 String formatMoney(String? v) {
   if (v == null) return '—';
   final neg = v.startsWith('-');
   final parts = (neg ? v.substring(1) : v).split('.');
-  final cents = (parts.length > 1 ? parts[1] : '00').padRight(2, '0').substring(0, 2);
+  final cents = (parts.length > 1 ? parts[1] : '00')
+      .padRight(2, '0')
+      .substring(0, 2);
   return '${neg ? '−' : ''}R\$ ${formatDecimal(parts[0])},$cents';
 }
 
-const receiptStatusLabels = {'DRAFT': 'Rascunho — aguardando conferência', 'CONFIRMED': 'Confirmado'};
+const receiptStatusLabels = {
+  'DRAFT': 'Rascunho — aguardando conferência',
+  'CONFIRMED': 'Confirmado',
+};

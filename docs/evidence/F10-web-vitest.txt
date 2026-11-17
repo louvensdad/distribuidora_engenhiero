@@ -1,0 +1,12 @@
+# F10 — Vitest (site), 17/11/2026 09:37 America/Sao_Paulo
+$ npm run typecheck && npx vitest run
+> tsc --noEmit -p tsconfig.json
+
+ RUN  v5.0.5 /home/louvens/Ivan/distribuidora-engenheiro/apps/web-admin
+ Test Files  14 passed (14)
+      Tests  64 passed (64)
+   Start at  09:37:39
+   Duration  6.55s (environment 40%, tests 36%, transform 9%, setup 7%, import 7%, worker 1%)
+Environment  jsdom was created 14 times · 23.19s total, 40% of tracked time
+             create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+             learn more: https://vitest.dev/guide/improving-performance#test-environments

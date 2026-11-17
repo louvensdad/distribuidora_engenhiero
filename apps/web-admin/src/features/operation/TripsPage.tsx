@@ -2,11 +2,11 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { ApiError, api, newIdempotencyKey } from "../../api/http";
 import type { Trip, TripSummary } from "../../api/types";
-import { useResource } from "../../api/useResource";
+import { qs, usePaged, useUrlFilters } from "../../api/usePaged";
+import { EmptyResult, PagedList, SearchBox } from "../../components/Lists";
 import { formatDateTime } from "../../app/format";
 import { FormError } from "../../components/Form";
 import { Icon } from "../../components/Icon";
-import { EmptyState, ErrorState, ForbiddenState, LoadingState } from "../../components/States";
 import { useSession } from "../../session/SessionContext";
 import { TRIP_STATE } from "./fleetLabels";
 
@@ -14,8 +14,8 @@ import { TRIP_STATE } from "./fleetLabels";
 export function TripsPage() {
   const { can } = useSession();
   const navigate = useNavigate();
-  const [state, setState] = useState("");
-  const [res, reload] = useResource<{ items: TripSummary[]; next_cursor: string | null }>(`/api/v1/trips?limit=50${state ? `&state=${state}` : ""}`);
+  const [f, setF] = useUrlFilters(["state", "q"] as const);
+  const list = usePaged<TripSummary>(`/api/v1/trips?${qs({ limit: 50, state: f.state, q: f.q })}`);
   const [key] = useState(newIdempotencyKey);
   const [error, setError] = useState<ApiError | null>(null);
   const create = async () => {
@@ -40,22 +40,20 @@ export function TripsPage() {
         </div>
       </header>
       <FormError error={error} />
+      <SearchBox id="busca-viagens" label="Buscar viagem por número ou placa" placeholder="Nº da viagem ou placa" value={f.q} onSearch={(q) => setF({ q })} />
       <div className="field inline">
         <label htmlFor="vg-estado">Situação</label>
-        <select id="vg-estado" value={state} onChange={(e) => setState(e.target.value)}>
+        <select id="vg-estado" value={f.state} onChange={(e) => setF({ state: e.target.value })}>
           <option value="">Todas</option>
           {Object.entries(TRIP_STATE).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
         </select>
       </div>
-      {res.status === "loading" && <LoadingState />}
-      {res.status === "forbidden" && <ForbiddenState />}
-      {res.status === "error" && <ErrorState error={res.error} onRetry={reload} />}
-      {res.status === "ready" && (res.data.items.length === 0 ? <EmptyState title="Nenhuma viagem" /> : (
+      <PagedList list={list} empty={<EmptyResult q={f.q} what="viagem" />}>{(items) => (
         <div className="table-wrap card">
           <table className="stack">
             <thead><tr><th scope="col">Viagem</th><th scope="col">Data</th><th scope="col">Veículo</th><th scope="col">Motorista</th>
               <th scope="col">Entregas</th><th scope="col">Situação</th><th scope="col">Criada</th></tr></thead>
-            <tbody>{res.data.items.map((t) => (
+            <tbody>{items.map((t) => (
               <tr key={t.id}>
                 <th scope="row"><Link to={`/operation/trips/${t.id}`}>V{t.number}</Link></th>
                 <td data-label="Data">{t.planned_date}</td>
@@ -68,7 +66,7 @@ export function TripsPage() {
             ))}</tbody>
           </table>
         </div>
-      ))}
+      )}</PagedList>
     </section>
   );
 }

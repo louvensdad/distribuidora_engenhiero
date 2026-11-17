@@ -55,6 +55,17 @@ export function ForbiddenState() {
   );
 }
 
+export function NotFoundState() {
+  return (
+    <div className="state">
+      <Icon name="search" size={28} />
+      <h3>Página não encontrada</h3>
+      <p>Este endereço não existe no site. Confira o link ou use a busca.</p>
+      <Link className="btn" to="/">Voltar ao início</Link>
+    </div>
+  );
+}
+
 export function ConflictState({ onReload }: { onReload: () => void }) {
   return (
     <div className="state state-warning" role="alert">

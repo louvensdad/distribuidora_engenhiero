@@ -1,0 +1,7 @@
+# F10 — testes de mutação (uma regra desligada por vez; CentralIntegrationTest), 17/11/2026
+Script: aplica a mutação, roda o teste, restaura o arquivo. Depois: CentralIntegrationTest de novo 4/4 verde.
+M1 central mostra guia a quem não pode aprovar: PEGA — Tests run: 4, Failures: 1, Errors: 0, Skipped: 0, ; falhou: br.com.engenheiro.api.central.CentralIntegrationTest.centralDeAprovacoesSoMostraOQueOAtorPodeDecidir
+M2 setor de Retirada inclui ações do app de Entregas: PEGA — Tests run: 4, Failures: 1, Errors: 0, Skipped: 0, ; falhou: br.com.engenheiro.api.central.CentralIntegrationTest.patraoVeOsTresSetoresComAPropriaIdentidadeEAcaoDeleFicaComoDele
+M3 busca de clientes também por documento: PEGA — Tests run: 4, Failures: 1, Errors: 0, Skipped: 0, ; falhou: br.com.engenheiro.api.central.CentralIntegrationTest.buscaGeralRespeitaEscopoECamposSensiveis
+M4 edição aceita campo oculto (documento): PEGA — Tests run: 4, Failures: 1, Errors: 0, Skipped: 0, ; falhou: br.com.engenheiro.api.central.CentralIntegrationTest.patraoVeOsTresSetoresComAPropriaIdentidadeEAcaoDeleFicaComoDele
+Resultado: 4/4 mutações pegas.

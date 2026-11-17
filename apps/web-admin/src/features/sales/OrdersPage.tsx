@@ -1,19 +1,17 @@
-import { useState } from "react";
 import { Link } from "react-router";
-import type { Order, Page } from "../../api/types";
-import { useResource } from "../../api/useResource";
+import type { Order } from "../../api/types";
+import { qs, usePaged, useUrlFilters } from "../../api/usePaged";
 import { formatDateTime, formatMoney } from "../../app/format";
 import { Icon } from "../../components/Icon";
-import { EmptyState, ErrorState, ForbiddenState, LoadingState } from "../../components/States";
+import { EmptyResult, PagedList, SearchBox } from "../../components/Lists";
 import { useSession } from "../../session/SessionContext";
 import { ORDER_STATE, PAYMENT_STATE, TYPE } from "./orderLabels";
 
 /** W03 — pedidos de retirada e entrega no escopo do usuário. Estado do pedido e do pagamento separados. */
 export function OrdersPage() {
   const { can } = useSession();
-  const [type, setType] = useState("");
-  const [state, setState] = useState("");
-  const [res, reload] = useResource<Page<Order>>(`/api/v1/orders?limit=50${type ? `&type=${type}` : ""}${state ? `&state=${state}` : ""}`);
+  const [f, setF] = useUrlFilters(["type", "state", "q"] as const);
+  const list = usePaged<Order>(`/api/v1/orders?${qs({ limit: 50, type: f.type, state: f.state, q: f.q })}`);
   return (
     <section className="page" aria-labelledby="titulo-pedidos">
       <header className="page-head">
@@ -25,30 +23,28 @@ export function OrdersPage() {
           <Link className="btn btn-primary" to="/sales/orders/new"><Icon name="plus" size={16} /> Novo pedido</Link>
         )}
       </header>
+      <SearchBox id="busca-pedidos" label="Buscar pedido por número ou cliente" placeholder="Nº do pedido ou nome do cliente" value={f.q} onSearch={(q) => setF({ q })} />
       <div className="actions" style={{ justifyContent: "flex-start" }}>
         <div className="field inline">
           <label htmlFor="ped-tipo">Setor</label>
-          <select id="ped-tipo" value={type} onChange={(e) => setType(e.target.value)}>
+          <select id="ped-tipo" value={f.type} onChange={(e) => setF({ type: e.target.value })}>
             <option value="">Todos</option><option value="PICKUP">Retirada</option><option value="DELIVERY">Entrega</option>
           </select>
         </div>
         <div className="field inline">
           <label htmlFor="ped-estado">Situação</label>
-          <select id="ped-estado" value={state} onChange={(e) => setState(e.target.value)}>
+          <select id="ped-estado" value={f.state} onChange={(e) => setF({ state: e.target.value })}>
             <option value="">Todas</option>
             {Object.entries(ORDER_STATE).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
         </div>
       </div>
-      {res.status === "loading" && <LoadingState />}
-      {res.status === "forbidden" && <ForbiddenState />}
-      {res.status === "error" && <ErrorState error={res.error} onRetry={reload} />}
-      {res.status === "ready" && (res.data.items.length === 0 ? <EmptyState title="Nenhum pedido" /> : (
+      <PagedList list={list} empty={<EmptyResult q={f.q} what="pedido" />}>{(items) => (
         <div className="table-wrap card">
           <table className="stack">
             <thead><tr><th scope="col">Pedido</th><th scope="col">Cliente</th><th scope="col">Tipo</th><th scope="col" className="num">Total</th>
               <th scope="col">Situação</th><th scope="col">Pagamento</th><th scope="col">Cadastro</th></tr></thead>
-            <tbody>{res.data.items.map((o) => (
+            <tbody>{items.map((o) => (
               <tr key={o.id}>
                 <th scope="row"><Link to={`/sales/orders/${o.id}`}>#{o.number}</Link></th>
                 <td data-label="Cliente">{o.customer_name}</td>
@@ -61,7 +57,7 @@ export function OrdersPage() {
             ))}</tbody>
           </table>
         </div>
-      ))}
+      )}</PagedList>
     </section>
   );
 }
