@@ -1,0 +1,26 @@
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0 — br.com.engenheiro.api.accounting.ContabilAppIntegrationTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0 — br.com.engenheiro.api.accounting.AccountingIntegrationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0 — br.com.engenheiro.api.integrations.IntegrationsIntegrationTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0 — br.com.engenheiro.api.inventory.F03LimitsIntegrationTest
+Tests run: 12, Failures: 0, Errors: 0, Skipped: 0 — br.com.engenheiro.api.inventory.InventoryIntegrationTest
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0 — br.com.engenheiro.api.logistics.LogisticsIntegrationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0 — br.com.engenheiro.api.logistics.EntregasAppIntegrationTest
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0 — br.com.engenheiro.api.reports.ReportsIntegrationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0 — br.com.engenheiro.api.documents.DocumentsUnitTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0 — br.com.engenheiro.api.central.CentralIntegrationTest
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0 — br.com.engenheiro.api.finance.FinanceIntegrationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0 — br.com.engenheiro.api.orders.RetiradaAppIntegrationTest
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 0 — br.com.engenheiro.api.orders.OrdersIntegrationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0 — br.com.engenheiro.api.team.EmployeesIntegrationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0 — br.com.engenheiro.api.team.TeamAndOpenFinanceIntegrationTest
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 0 — br.com.engenheiro.api.catalogparties.CustomersIntegrationTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0 — br.com.engenheiro.api.identityaccess.ConcurrencyIntegrationTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0 — br.com.engenheiro.api.identityaccess.OpenApiContractTest
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0 — br.com.engenheiro.api.identityaccess.AccessPolicyTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0 — br.com.engenheiro.api.identityaccess.ContractConsistencyTest
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0 — br.com.engenheiro.api.identityaccess.LocalSeedIntegrationTest
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0 — br.com.engenheiro.api.identityaccess.WebBffIntegrationTest
+Tests run: 21, Failures: 0, Errors: 0, Skipped: 0 — br.com.engenheiro.api.identityaccess.AuthorizationIntegrationTest
+Tests run: 15, Failures: 0, Errors: 0, Skipped: 0 — br.com.engenheiro.api.identityaccess.AuthenticationIntegrationTest
+Tests run: 163, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS

@@ -664,7 +664,7 @@ class VehicleExpenseInfo {
 class TaxInfo {
   const TaxInfo({required this.id, required this.kind, required this.description, required this.competence, required this.dueDate,
       required this.amount, required this.state, this.payableState, this.decidedByName, this.decidedNote, required this.attachments,
-      required this.version});
+      required this.version, this.notes, this.payrollRunId, this.createdByName, this.submittedByName});
   final String id;
   final String kind;
   final String description;
@@ -677,6 +677,13 @@ class TaxInfo {
   final String? decidedNote;
   final List<DocumentInfo> attachments;
   final int version;
+  final String? notes;
+  final String? payrollRunId;
+  final String? createdByName;
+  final String? submittedByName;
+
+  /// Vencida: ainda não paga/cancelada e o vencimento (AAAA-MM-DD) já passou em relação a [today].
+  bool overdueOn(String today) => state != 'PAID' && state != 'CANCELLED' && dueDate.compareTo(today) < 0;
   factory TaxInfo.fromJson(Map<String, dynamic> j) => TaxInfo(
         id: j['id'] as String,
         kind: j['kind'] as String,
@@ -690,13 +697,17 @@ class TaxInfo {
         decidedNote: j['decided_note'] as String?,
         attachments: [for (final d in (j['attachments'] as List?) ?? const []) DocumentInfo.fromJson(d as Map<String, dynamic>)],
         version: j['version'] as int,
+        notes: j['notes'] as String?,
+        payrollRunId: j['payroll_run_id'] as String?,
+        createdByName: j['created_by_name'] as String?,
+        submittedByName: j['submitted_by_name'] as String?,
       );
 }
 
 class PayrollRunInfo {
   const PayrollRunInfo({required this.id, required this.competence, required this.description, required this.state,
       required this.source, required this.totals, required this.rubrics, required this.individualVisible, this.decidedNote,
-      required this.version});
+      required this.version, this.payDate, this.createdByName, this.submittedByName, this.decidedByName});
   final String id;
   final String competence;
   final String description;
@@ -707,6 +718,10 @@ class PayrollRunInfo {
   final bool individualVisible;
   final String? decidedNote;
   final int version;
+  final String? payDate;
+  final String? createdByName;
+  final String? submittedByName;
+  final String? decidedByName;
   factory PayrollRunInfo.fromJson(Map<String, dynamic> j) => PayrollRunInfo(
         id: j['id'] as String,
         competence: j['competence'] as String,
@@ -718,18 +733,43 @@ class PayrollRunInfo {
         individualVisible: j['people'] != null,
         decidedNote: j['decided_note'] as String?,
         version: j['version'] as int,
+        payDate: j['pay_date'] as String?,
+        createdByName: j['created_by_name'] as String?,
+        submittedByName: j['submitted_by_name'] as String?,
+        decidedByName: j['decided_by_name'] as String?,
+      );
+}
+
+/// Uma versão do documento contábil: motivo, autor e o arquivo privado (bytes só pelo download autorizado).
+class AccDocVersionInfo {
+  const AccDocVersionInfo({required this.versionNo, this.reason, required this.createdByName, required this.createdAt, this.file});
+  final int versionNo;
+  final String? reason;
+  final String createdByName;
+  final String createdAt;
+  final DocumentInfo? file;
+  factory AccDocVersionInfo.fromJson(Map<String, dynamic> j) => AccDocVersionInfo(
+        versionNo: j['version_no'] as int,
+        reason: j['reason'] as String?,
+        createdByName: (j['created_by_name'] as String?) ?? '',
+        createdAt: (j['created_at'] as String?) ?? '',
+        file: j['file'] == null ? null : DocumentInfo.fromJson(j['file'] as Map<String, dynamic>),
       );
 }
 
 class AccDocInfo {
   const AccDocInfo({required this.id, required this.kind, required this.title, this.competence, required this.currentVersion,
-      required this.createdByName});
+      required this.createdByName, this.relatedType, this.versions = const [], this.version = 0});
   final String id;
   final String kind;
   final String title;
   final String? competence;
   final int currentVersion;
   final String createdByName;
+  /// Entidade de origem (ex.: tax_obligation, payroll_run, invoice); null = enviado avulso.
+  final String? relatedType;
+  final List<AccDocVersionInfo> versions;
+  final int version;
   factory AccDocInfo.fromJson(Map<String, dynamic> j) => AccDocInfo(
         id: j['id'] as String,
         kind: j['kind'] as String,
@@ -737,22 +777,55 @@ class AccDocInfo {
         competence: j['competence'] as String?,
         currentVersion: j['current_version'] as int,
         createdByName: j['created_by_name'] as String,
+        relatedType: j['related_type'] as String?,
+        versions: [for (final v in (j['versions'] as List?) ?? const []) AccDocVersionInfo.fromJson(v as Map<String, dynamic>)],
+        version: (j['version'] as int?) ?? 0,
       );
 }
 
 class DocRequestInfo {
-  const DocRequestInfo({required this.id, required this.title, required this.state, this.requestedFromName, this.fulfilledByName});
+  const DocRequestInfo({required this.id, required this.title, required this.state, this.requestedFromName, this.fulfilledByName,
+      this.description, this.dueDate, this.createdByName, this.kind});
   final String id;
   final String title;
   final String state;
   final String? requestedFromName;
   final String? fulfilledByName;
+  final String? description;
+  final String? dueDate;
+  final String? createdByName;
+  /// Tipo pedido (GUIA, COMPROVANTE…); o atendimento começa com ele.
+  final String? kind;
   factory DocRequestInfo.fromJson(Map<String, dynamic> j) => DocRequestInfo(
         id: j['id'] as String,
         title: j['title'] as String,
         state: j['state'] as String,
         requestedFromName: j['requested_from_name'] as String?,
         fulfilledByName: j['fulfilled_by_name'] as String?,
+        description: j['description'] as String?,
+        dueDate: j['due_date'] as String?,
+        createdByName: j['created_by_name'] as String?,
+        kind: j['kind'] as String?,
+      );
+}
+
+/// Histórico de um registro (guia/folha): quem, quando, por qual app e a observação. Sem valores.
+class RecordHistoryItem {
+  const RecordHistoryItem({required this.occurredAt, required this.action, this.actorName, required this.actorKind, this.clientId,
+      this.note});
+  final String occurredAt;
+  final String action;
+  final String? actorName;
+  final String actorKind;
+  final String? clientId;
+  final String? note;
+  factory RecordHistoryItem.fromJson(Map<String, dynamic> j) => RecordHistoryItem(
+        occurredAt: j['occurred_at'] as String,
+        action: j['action'] as String,
+        actorName: j['actor_name'] as String?,
+        actorKind: (j['actor_kind'] as String?) ?? 'USER',
+        clientId: j['client_id'] as String?,
+        note: j['note'] as String?,
       );
 }
 

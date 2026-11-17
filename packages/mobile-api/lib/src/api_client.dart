@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart' show MediaType;
 import 'api_exception.dart';
@@ -313,6 +314,66 @@ class ApiClient {
 
   Future<TaxInfo> submitTax({required String id, required int version}) async =>
       TaxInfo.fromJson(await _post('/api/v1/tax-obligations/$id/submit', null, ifMatch: '"$version"'));
+
+  /// Corrige rascunho ou guia devolvida (C03/C04). A guia ligada à folha mantém o vínculo.
+  Future<TaxInfo> updateTax({required String id, required int version, required String kind, required String description,
+          required String competence, required String dueDate, required String amount, String? notes, String? payrollRunId}) async =>
+      TaxInfo.fromJson(await _post('/api/v1/tax-obligations/$id/draft', {
+        'kind': kind,
+        'description': description.trim(),
+        'competence': competence.trim(),
+        'due_date': dueDate.trim(),
+        'amount': decimalText(amount),
+        if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
+        'payroll_run_id': ?payrollRunId,
+      }, ifMatch: '"$version"'));
+
+  Future<List<RecordHistoryItem>> taxHistory(String id) async => [
+        for (final i in (await _get('/api/v1/tax-obligations/$id/history'))['items'] as List)
+          RecordHistoryItem.fromJson(i as Map<String, dynamic>)
+      ];
+
+  Future<PayrollRunInfo> payrollRun(String id) async => PayrollRunInfo.fromJson(await _get('/api/v1/payroll-runs/$id'));
+
+  Future<List<RecordHistoryItem>> payrollHistory(String id) async => [
+        for (final i in (await _get('/api/v1/payroll-runs/$id/history'))['items'] as List)
+          RecordHistoryItem.fromJson(i as Map<String, dynamic>)
+      ];
+
+  /// Desiste da folha em preparação/devolvida (libera a competência para a versão corrigida).
+  Future<PayrollRunInfo> cancelPayroll({required String id, required int version, required String note}) async =>
+      PayrollRunInfo.fromJson(await _post('/api/v1/payroll-runs/$id/cancel', {'note': note.trim()}, ifMatch: '"$version"'));
+
+  Future<AccDocInfo> accountingDocument(String id) async => AccDocInfo.fromJson(await _get('/api/v1/documents/$id'));
+
+  Future<AccDocInfo> newDocumentVersion({required String id, required String reason, required String fileName,
+          required List<int> bytes, required String contentType}) async =>
+      AccDocInfo.fromJson(await _multipart('/api/v1/documents/$id/versions', {'reason': reason.trim()}, fileName, bytes, contentType));
+
+  Future<InvoiceInfo> invoice(String id) async => InvoiceInfo.fromJson(await _get('/api/v1/invoices/$id'));
+
+  /// Transmissão (exige invoices.confirm). 202 = em curso/incerta: NÃO é emissão.
+  Future<InvoiceInfo> transmitInvoice({required String id, required int version, required String idempotencyKey}) async =>
+      InvoiceInfo.fromJson(await _post('/api/v1/invoices/$id/transmission', null, ifMatch: '"$version"', idempotencyKey: idempotencyKey));
+
+  /// Bytes de um anexo privado pelo download autorizado e auditado do servidor.
+  Future<({Uint8List bytes, String mime})> downloadDocument(String id, {bool retried = false}) async {
+    final token = await tokenProvider(forceRefresh: retried);
+    if (token == null) throw ApiException(status: 401, code: 'UNAUTHENTICATED', detail: 'Sessão encerrada. Entre novamente.');
+    final req = http.Request('GET', baseUrl.replace(path: '/api/v1/documents/$id/download'))
+      ..headers['Authorization'] = 'Bearer $token';
+    http.Response res;
+    try {
+      res = await http.Response.fromStream(await _http.send(req).timeout(timeout));
+    } catch (_) {
+      throw ApiException(status: 0, code: 'NETWORK_ERROR', detail: 'Sem conexão com o servidor.');
+    }
+    if (res.statusCode == 401 && !retried) return downloadDocument(id, retried: true);
+    if (res.statusCode >= 400) {
+      throw ApiException.fromProblem(res.statusCode, _decode(utf8.decode(res.bodyBytes, allowMalformed: true)));
+    }
+    return (bytes: res.bodyBytes, mime: (res.headers['content-type'] ?? 'application/octet-stream').split(';').first.trim());
+  }
 
   // ---- F08: notas fiscais ----
   Future<FiscalSettingsInfo> fiscalSettings() async => FiscalSettingsInfo.fromJson(await _get('/api/v1/fiscal-settings'));

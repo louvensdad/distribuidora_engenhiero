@@ -1,5 +1,6 @@
 package br.com.engenheiro.api.accounting;
 
+import br.com.engenheiro.api.audit.RecordHistory;
 import br.com.engenheiro.api.documents.DocumentService.DocumentView;
 import br.com.engenheiro.api.identityaccess.domain.Actor;
 import br.com.engenheiro.api.shared.web.IfMatch;
@@ -30,11 +31,14 @@ public class AccountingController {
     private final TaxObligationService taxes;
     private final PayrollService payroll;
     private final AccountingDocumentService docs;
+    private final RecordHistory history;
 
-    public AccountingController(TaxObligationService taxes, PayrollService payroll, AccountingDocumentService docs) {
+    public AccountingController(TaxObligationService taxes, PayrollService payroll, AccountingDocumentService docs,
+                                RecordHistory history) {
         this.taxes = taxes;
         this.payroll = payroll;
         this.docs = docs;
+        this.history = history;
     }
 
     // ---- guias ----
@@ -91,6 +95,13 @@ public class AccountingController {
         return ok(taxes.cancel(actor, id, IfMatch.version(ifMatch), body));
     }
 
+    /** C04: histórico da decisão da guia. Mesma autorização do detalhe (escopo do registro). */
+    @GetMapping("/api/v1/tax-obligations/{id}/history")
+    public ResponseEntity<Map<String, List<RecordHistory.Item>>> taxHistory(Actor actor, @PathVariable UUID id) {
+        taxes.requireVisible(actor, id);
+        return ok(Map.of("items", history.of(actor.organizationId(), "tax_obligation", id)));
+    }
+
     @PostMapping(value = "/api/v1/tax-obligations/{id}/attachments", consumes = "multipart/form-data")
     public ResponseEntity<DocumentView> attachTax(Actor actor, @PathVariable UUID id, @RequestParam("file") MultipartFile file)
             throws IOException {
@@ -139,6 +150,19 @@ public class AccountingController {
     public ResponseEntity<PayrollService.RunView> returnRun(Actor actor, @PathVariable UUID id,
             @RequestHeader(value = IF_MATCH, required = false) String ifMatch, @RequestBody PayrollService.NoteCommand body) {
         return ok(payroll.returnToPreparer(actor, id, IfMatch.version(ifMatch), body));
+    }
+
+    @PostMapping("/api/v1/payroll-runs/{id}/cancel")
+    public ResponseEntity<PayrollService.RunView> cancelRun(Actor actor, @PathVariable UUID id,
+            @RequestHeader(value = IF_MATCH, required = false) String ifMatch, @RequestBody PayrollService.NoteCommand body) {
+        return ok(payroll.cancel(actor, id, IfMatch.version(ifMatch), body));
+    }
+
+    /** C05: histórico da folha (quem preparou, enviou, devolveu/aprovou e por qual app). Mesma autorização do detalhe. */
+    @GetMapping("/api/v1/payroll-runs/{id}/history")
+    public ResponseEntity<Map<String, List<RecordHistory.Item>>> runHistory(Actor actor, @PathVariable UUID id) {
+        payroll.get(actor, id);
+        return ok(Map.of("items", history.of(actor.organizationId(), "payroll_run", id)));
     }
 
     @PostMapping("/api/v1/payroll-runs/{id}/payments")

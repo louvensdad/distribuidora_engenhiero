@@ -238,7 +238,12 @@ public class TaxObligationService {
                             .param("n", Text.trim(cmd == null ? null : cmd.note())).param("id", t.id()).param("v", expectedVersion)
                             .update();
                     conflict(n);
-                    audit.record(entry(actor, "taxes.approve", t.id(), Map.of("amount", t.amount().toPlainString())));
+                    Map<String, Object> ch = new HashMap<>(Map.of("amount", t.amount().toPlainString()));
+                    String approvalNote = Text.trim(cmd == null ? null : cmd.note());
+                    if (approvalNote != null) {
+                        ch.put("note", approvalNote);
+                    }
+                    audit.record(entry(actor, "taxes.approve", t.id(), ch));
                     return view(find(t.id()).orElseThrow());
                 });
     }

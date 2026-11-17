@@ -317,7 +317,41 @@ public class PayrollService {
                          WHERE id = :id AND version = :v
                         """).param("by", actor.userId()).param("n", Text.trim(cmd == null ? null : cmd.note())).param("np", netP)
                 .param("bp", benP).param("cp", chP).param("id", id).param("v", expectedVersion).update());
-        audit.record(entry(actor, "payroll.approve", id, Map.of("people", t.people())));
+        Map<String, Object> ch = new HashMap<>(Map.of("people", t.people()));
+        String approvalNote = Text.trim(cmd == null ? null : cmd.note());
+        if (approvalNote != null) {
+            ch.put("note", approvalNote);
+        }
+        audit.record(entry(actor, "payroll.approve", id, ch));
+        return view(actor, find(id).orElseThrow());
+    }
+
+    /**
+     * Desiste de uma folha em preparação ou devolvida pelo patrão (F13). Sem isso, a folha devolvida prendia a
+     * competência (índice único de competência + descrição) e a versão corrigida não podia ser importada. Folha enviada,
+     * aprovada ou paga não se cancela por aqui; nenhum passivo/lançamento existe antes da aprovação.
+     */
+    @Transactional
+    public RunView cancel(Actor actor, UUID id, long expectedVersion, NoteCommand cmd) {
+        Run r = lock(actor, id, "create");
+        String note = Text.trim(cmd == null ? null : cmd.note());
+        if (note == null || note.length() > 500) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "Informe o motivo.", List.of(new FieldError("note", "Obrigatório")));
+        }
+        if (!List.of("DRAFT", "RETURNED").contains(r.state())) {
+            throw new ApiException(ErrorCode.INVALID_TRANSITION, "Só folha em preparação ou devolvida pode ser cancelada (" + r.state() + ").");
+        }
+        long linked = jdbc.sql("SELECT count(*) FROM tax_obligations WHERE payroll_run_id = :id AND state <> 'CANCELLED'")
+                .param("id", id).query(Long.class).single();
+        if (linked > 0) {
+            throw new ApiException(ErrorCode.INVALID_TRANSITION, "Há guia de encargos ligada a esta folha. Cancele a guia antes.");
+        }
+        // A decisão do patrão (decided_by/decided_note) fica como está; o motivo do cancelamento é do contador e vai para
+        // o histórico com o ator real — gravá-lo em decided_note o atribuiria ao patrão.
+        conflict(jdbc.sql("""
+                        UPDATE payroll_runs SET state = 'CANCELLED', version = version + 1 WHERE id = :id AND version = :v
+                        """).param("id", id).param("v", expectedVersion).update());
+        audit.record(entry(actor, "payroll.cancel", id, Map.of("reason", note)));
         return view(actor, find(id).orElseThrow());
     }
 

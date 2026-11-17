@@ -267,6 +267,12 @@ class IntegrationsIntegrationTest {
         assertThat(rj.json().path("rejection_reason").asString()).contains("NCM");
         assertThat(rj.json().path("access_key").isNull()).isTrue();
         assertThat(rj.json().path("xml_document_id").isNull()).isTrue();
+        // F13: o contador (app Contábil) vê a rejeição como rejeição — com o motivo, sem chave/protocolo de emissão.
+        JsonNode seenByAccountant = api.get("/api/v1/invoices/" + inv2.path("id").asString(), contador.token()).json();
+        assertThat(seenByAccountant.path("state").asString()).isEqualTo("REJECTED");
+        assertThat(seenByAccountant.path("rejection_reason").asString()).contains("NCM");
+        assertThat(seenByAccountant.path("access_key").isNull()).isTrue();
+        assertThat(seenByAccountant.path("protocol").isNull()).isTrue();
         assertThat(api.post("/api/v1/invoices/" + inv2.path("id").asString() + "/discard", contador.token(),
                 Map.of("reason", "Corrigir cadastro"), "\"" + rj.json().path("version").asLong() + "\"").status()).isEqualTo(200);
         assertThat(api.postWith("/api/v1/invoices", contador.token(), Map.of("order_id", rj.json().path("order_id").asString()),

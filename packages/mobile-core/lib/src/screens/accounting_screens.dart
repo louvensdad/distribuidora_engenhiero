@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:material_ui/material_ui.dart';
 import '../labels.dart';
 import '../scope.dart';
+import 'reports_screens.dart' show isoDate, todaySaoPaulo;
 
 /// Escolha de arquivo (PDF, imagem, CSV). Substituível em teste. O servidor confere o conteúdo de novo.
 typedef PickedFile = ({String name, Uint8List bytes, String mime});
@@ -24,6 +25,14 @@ AccountingFilePicker accountingFilePicker = ({required List<String> extensions})
   };
   return (name: f.name, bytes: bytes, mime: mime);
 };
+
+/// Salvar no aparelho (PDF/CSV) pelo seletor do sistema. Substituível em teste. Devolve false se o usuário desistiu.
+typedef AccountingFileSaver = Future<bool> Function({required String fileName, required Uint8List bytes, required String mime});
+
+AccountingFileSaver accountingFileSaver = ({required String fileName, required Uint8List bytes, required String mime}) async =>
+    (await FilePicker.saveFile(fileName: fileName, bytes: bytes, mimeType: mime)) != null;
+
+const docOriginLabels = {'tax_obligation': 'Guia', 'payroll_run': 'Folha', 'expense': 'Despesa', 'payable': 'Conta a pagar'};
 
 const taxStepLabels = {
   'DRAFT': 'Em preparação', 'SUBMITTED': 'Aguardando aprovação do patrão', 'RETURNED': 'Devolvida — corrigir',
@@ -46,6 +55,106 @@ String? _fe(ApiException? e, String field) {
     if (f.field == field) return f.message;
   }
   return null;
+}
+
+String _dt(String iso) {
+  final d = DateTime.tryParse(iso);
+  return d == null ? iso : formatDateTime(d);
+}
+
+/// "Ver documento" (C04/C08): baixa pelo download autorizado; imagem abre na tela, PDF/CSV vai para o aparelho.
+class DocumentViewButton extends StatefulWidget {
+  const DocumentViewButton({super.key, required this.doc, this.label = 'Ver documento'});
+  final DocumentInfo doc;
+  final String label;
+  @override
+  State<DocumentViewButton> createState() => _DocumentViewButtonState();
+}
+
+class _DocumentViewButtonState extends State<DocumentViewButton> {
+  bool _busy = false;
+
+  Future<void> _open() async {
+    final api = EngScope.of(context).api;
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _busy = true);
+    try {
+      final f = await api.downloadDocument(widget.doc.id);
+      if (!mounted) return;
+      if (f.mime.startsWith('image/')) {
+        await showDialog<void>(context: context, builder: (c) => AlertDialog(
+          title: Text(widget.doc.fileName),
+          content: Image.memory(f.bytes, semanticLabel: widget.doc.fileName, fit: BoxFit.contain),
+          actions: [TextButton(onPressed: () => Navigator.of(c).pop(), child: const Text('Fechar'))],
+        ));
+      } else {
+        final saved = await accountingFileSaver(fileName: widget.doc.fileName, bytes: f.bytes, mime: f.mime);
+        messenger.showSnackBar(SnackBar(content: Text(saved ? 'Arquivo salvo no aparelho.' : 'Nada foi salvo.')));
+      }
+    } on ApiException catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(e.isForbidden ? 'Sem permissão para este arquivo.' : e.message)));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      TextButton(onPressed: _busy || !widget.doc.available ? null : _open, child: Text(_busy ? 'Baixando…' : widget.label));
+}
+
+/// Histórico do registro (C04 "Histórico da decisão"): quem fez, quando, por qual app e a observação. Sem valores.
+class RecordHistoryView extends StatefulWidget {
+  const RecordHistoryView({super.key, required this.load});
+  final Future<List<RecordHistoryItem>> Function(ApiClient api) load;
+  @override
+  State<RecordHistoryView> createState() => _RecordHistoryViewState();
+}
+
+class _RecordHistoryViewState extends State<RecordHistoryView> {
+  Future<List<RecordHistoryItem>>? _f;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _f ??= widget.load(EngScope.of(context).api);
+  }
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder<List<RecordHistoryItem>>(
+        future: _f,
+        builder: (context, snap) {
+          if (snap.hasError) {
+            final e = snap.error;
+            return Text(e is ApiException ? e.message : 'Histórico indisponível.', style: const TextStyle(color: EngColors.muted));
+          }
+          if (!snap.hasData) return const Padding(padding: EdgeInsets.all(8), child: LinearProgressIndicator());
+          final items = snap.data!;
+          if (items.isEmpty) return const Text('Sem histórico.', style: TextStyle(color: EngColors.muted));
+          return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            for (final i in items)
+              Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('${labelOf(auditActionLabels, i.action)} — ${i.actorName ?? (i.actorKind == 'SERVICE' ? 'Integração' : 'Sistema')}',
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                Text('${_dt(i.occurredAt)}${i.clientId == null ? '' : ' · ${labelOf(clientLabels, i.clientId!)}'}',
+                    style: const TextStyle(color: EngColors.muted, fontSize: 12)),
+                if (i.note != null) Text('“${i.note}”'),
+              ])),
+          ]);
+        },
+      );
+}
+
+Future<String?> _askReason(BuildContext context, {required String title, required String action}) {
+  final c = TextEditingController();
+  return showDialog<String>(context: context, builder: (d) => AlertDialog(
+    title: Text(title),
+    content: TextField(controller: c, autofocus: true, maxLength: 500, decoration: const InputDecoration(labelText: 'Motivo *')),
+    actions: [
+      TextButton(onPressed: () => Navigator.of(d).pop(), child: const Text('Voltar')),
+      FilledButton(onPressed: () => Navigator.of(d).pop(c.text), child: Text(action)),
+    ],
+  ));
 }
 
 Widget _err(ApiException? e) => e == null
@@ -102,41 +211,76 @@ class _LoaderState<T> extends State<_Loader<T>> {
   }
 }
 
-/// C02 — agenda do contador: o que está pendente (guias, folha, documentos pedidos). Sem dashboard nem números gerais.
+/// C02 — agenda do contador: o que está pendente (guias por vencimento, folha, notas, documentos pedidos).
+/// Sem dashboard nem números gerais: só os registros que o servidor libera para esta conta.
 class AccountantAgendaScreen extends StatelessWidget {
   const AccountantAgendaScreen({super.key});
   @override
   Widget build(BuildContext context) {
     final me = EngScope.of(context).me;
-    return _Loader<({List<TaxInfo> taxes, List<PayrollRunInfo> runs, List<DocRequestInfo> requests})>(
+    final today = isoDate(todaySaoPaulo());
+    return _Loader<({List<TaxInfo> taxes, List<PayrollRunInfo> runs, List<DocRequestInfo> requests, List<InvoiceInfo> invoices})>(
       load: (api) async => (
         taxes: me.can('taxes.view') ? await api.taxes() : <TaxInfo>[],
         runs: me.can('payroll.view') ? await api.payrollRuns() : <PayrollRunInfo>[],
         requests: me.can('documents.view') ? await api.documentRequests() : <DocRequestInfo>[],
+        invoices: me.can('invoices.view') ? await api.invoices() : <InvoiceInfo>[],
       ),
       empty: (d) => false,
       builder: (context, d, reload) {
-        final pendingTaxes = d.taxes.where((t) => t.state != 'PAID' && t.state != 'CANCELLED').toList();
+        final pendingTaxes = d.taxes.where((t) => t.state != 'PAID' && t.state != 'CANCELLED').toList()
+          ..sort((x, y) => x.dueDate.compareTo(y.dueDate));
         final pendingRuns = d.runs.where((r) => r.state != 'PAID' && r.state != 'CANCELLED').toList();
         final openReq = d.requests.where((r) => r.state == 'OPEN').toList();
-        if (pendingTaxes.isEmpty && pendingRuns.isEmpty && openReq.isEmpty) {
+        final invoices = d.invoices.where((n) => const ['DRAFT', 'REJECTED', 'UNCERTAIN'].contains(n.state)).toList();
+        if (pendingTaxes.isEmpty && pendingRuns.isEmpty && openReq.isEmpty && invoices.isEmpty) {
           return ListView(children: const [SizedBox(height: 120), EmptyState(title: 'Nada pendente na agenda')]);
         }
+        final overdue = pendingTaxes.where((t) => t.overdueOn(today)).length;
         return ListView(padding: const EdgeInsets.all(16), children: [
+          if (overdue > 0)
+            Card(child: Padding(padding: const EdgeInsets.all(12), child: Text('$overdue guia(s) vencida(s) sem pagamento registrado.',
+                style: const TextStyle(color: EngColors.error, fontWeight: FontWeight.w700)))),
           for (final t in pendingTaxes)
             Card(child: ListTile(
               title: Text('Guia ${t.kind} ${_month(t.competence)} · ${formatMoney(t.amount)}'),
-              subtitle: Text('${labelOf(taxStepLabels, t.state)} · vence ${_date(t.dueDate)}'),
+              subtitle: Text('${labelOf(taxStepLabels, t.state)} · ${t.overdueOn(today) ? 'VENCIDA em' : 'vence'} ${_date(t.dueDate)}',
+                  style: t.overdueOn(today) ? const TextStyle(color: EngColors.error) : null),
               onTap: () async {
                 await _push(context, TaxDetailScreen(id: t.id));
                 reload();
               },
             )),
           for (final r in pendingRuns)
-            Card(child: ListTile(title: Text('${r.description} ${_month(r.competence)}'), subtitle: Text(labelOf(taxStepLabels, r.state)))),
+            Card(child: ListTile(
+              title: Text('${r.description} ${_month(r.competence)}'),
+              subtitle: Text(labelOf(taxStepLabels, r.state), style: r.state == 'RETURNED' ? const TextStyle(color: EngColors.error) : null),
+              onTap: () async {
+                await _push(context, PayrollDetailScreen(id: r.id));
+                reload();
+              },
+            )),
+          for (final n in invoices)
+            Card(child: ListTile(
+              title: Text('Nota do pedido #${n.orderNumber} · ${n.customerName}'),
+              subtitle: Text(labelOf(invoiceStateLabels, n.state),
+                  style: TextStyle(color: n.state == 'REJECTED' ? EngColors.error : n.state == 'UNCERTAIN' ? EngColors.warning : null)),
+            )),
           for (final q in openReq)
-            Card(child: ListTile(title: Text('Documento solicitado: ${q.title}'),
-                subtitle: Text(q.requestedFromName == null ? 'Aberto' : 'Pedido a ${q.requestedFromName}'))),
+            Card(child: ListTile(
+              title: Text('Documento solicitado: ${q.title}'),
+              subtitle: Text([
+                if (q.requestedFromName != null) 'Pedido a ${q.requestedFromName}',
+                if (q.dueDate != null) 'até ${_date(q.dueDate!)}',
+                if (q.requestedFromName == null && q.dueDate == null) 'Aberto',
+              ].join(' · ')),
+              onTap: me.can('documents.attach')
+                  ? () async {
+                      await _push(context, FulfillRequestScreen(request: q));
+                      reload();
+                    }
+                  : null,
+            )),
         ]);
       },
     );
@@ -180,7 +324,9 @@ class TaxesScreen extends StatelessWidget {
 
 /// C03 — preparar guia (rascunho). O arquivo da guia é anexado no detalhe antes de enviar.
 class TaxFormScreen extends StatefulWidget {
-  const TaxFormScreen({super.key});
+  const TaxFormScreen({super.key, this.existing});
+  /// Guia em rascunho ou devolvida a corrigir (C04 → C03). Sem ela, cria uma nova.
+  final TaxInfo? existing;
   @override
   State<TaxFormScreen> createState() => _TaxFormScreenState();
 }
@@ -196,6 +342,20 @@ class _TaxFormScreenState extends State<TaxFormScreen> {
   bool _busy = false;
   ApiException? _error;
 
+  @override
+  void initState() {
+    super.initState();
+    final t = widget.existing;
+    if (t != null) {
+      _kind = taxKinds.contains(t.kind) ? t.kind : 'OUTRA';
+      _desc.text = t.description;
+      _comp.text = t.competence.length >= 7 ? t.competence.substring(0, 7) : t.competence;
+      _due.text = t.dueDate;
+      _amount.text = t.amount;
+      _notes.text = t.notes ?? '';
+    }
+  }
+
   Future<void> _save() async {
     final api = EngScope.of(context).api;
     final nav = Navigator.of(context);
@@ -203,6 +363,19 @@ class _TaxFormScreenState extends State<TaxFormScreen> {
       _busy = true;
       _error = null;
     });
+    final existing = widget.existing;
+    if (existing != null) {
+      try {
+        await api.updateTax(id: existing.id, version: existing.version, kind: _kind, description: _desc.text,
+            competence: _comp.text, dueDate: _due.text, amount: _amount.text, notes: _notes.text, payrollRunId: existing.payrollRunId);
+        if (mounted) nav.pop(true);
+      } on ApiException catch (e) {
+        setState(() => _error = e);
+      } finally {
+        if (mounted) setState(() => _busy = false);
+      }
+      return;
+    }
     try {
       final t = await api.createTax(idempotencyKey: _key, kind: _kind, description: _desc.text, competence: _comp.text,
           dueDate: _due.text, amount: _amount.text, notes: _notes.text);
@@ -218,7 +391,7 @@ class _TaxFormScreenState extends State<TaxFormScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Preparar guia')),
+        appBar: AppBar(title: Text(widget.existing == null ? 'Preparar guia' : 'Corrigir guia')),
         body: ListView(padding: const EdgeInsets.all(16), children: [
           DropdownButtonFormField<String>(
             initialValue: _kind,
@@ -234,7 +407,8 @@ class _TaxFormScreenState extends State<TaxFormScreen> {
               decoration: InputDecoration(labelText: 'Valor (R\$) *', errorText: _fe(_error, 'amount'))),
           TextField(controller: _notes, decoration: const InputDecoration(labelText: 'Observação')),
           const SizedBox(height: 16),
-          FilledButton(onPressed: _busy ? null : _save, child: Text(_busy ? 'Salvando…' : 'Salvar rascunho')),
+          FilledButton(onPressed: _busy ? null : _save,
+              child: Text(_busy ? 'Salvando…' : widget.existing == null ? 'Salvar rascunho' : 'Salvar correção')),
           if (_error != null && _error!.fieldErrors.isEmpty) _err(_error),
         ]),
       );
@@ -314,6 +488,9 @@ class _TaxDetailScreenState extends State<TaxDetailScreen> {
         Text('${t.kind} · competência ${_month(t.competence)}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
         Text('${formatMoney(t.amount)} · vence ${_date(t.dueDate)}'),
         Text(t.description, style: const TextStyle(color: EngColors.muted)),
+        if (t.createdByName != null)
+          Text('Preparada por ${t.createdByName}${t.submittedByName == null ? '' : ' · enviada por ${t.submittedByName}'}',
+              style: const TextStyle(color: EngColors.muted, fontSize: 12)),
         const SizedBox(height: 8),
         Card(child: Padding(padding: const EdgeInsets.all(12), child: Text(labelOf(taxStepLabels, t.state),
             style: TextStyle(fontWeight: FontWeight.w700, color: t.state == 'RETURNED' ? EngColors.error
@@ -323,10 +500,22 @@ class _TaxDetailScreenState extends State<TaxDetailScreen> {
         const Text('Arquivos', style: TextStyle(fontWeight: FontWeight.w600)),
         if (t.attachments.isEmpty) const Text('Nenhum arquivo. Anexe a guia (PDF ou foto) antes de enviar.', style: TextStyle(color: EngColors.muted)),
         for (final d in t.attachments)
-          Text('${d.fileName} — ${d.available ? 'ok' : 'recusado: ${d.rejection}'}'),
+          Row(children: [
+            Expanded(child: Text('${d.fileName} — ${d.available ? 'ok' : 'recusado: ${d.rejection}'}')),
+            if (d.available) DocumentViewButton(doc: d),
+          ]),
         if (editable && me.can('taxes.create')) ...[
           const SizedBox(height: 8),
           OutlinedButton(onPressed: _busy ? null : _attach, child: const Text('Anexar arquivo da guia')),
+          OutlinedButton(
+            onPressed: _busy
+                ? null
+                : () async {
+                    final changed = await _push(context, TaxFormScreen(existing: t));
+                    if (changed == true) await _load();
+                  },
+            child: const Text('Corrigir dados da guia'),
+          ),
         ],
         if (editable && me.can('taxes.request')) ...[
           const SizedBox(height: 8),
@@ -335,6 +524,10 @@ class _TaxDetailScreenState extends State<TaxDetailScreen> {
         if (t.state == 'APPROVED')
           const Text('O pagamento é registrado pelo patrão; a guia continua pendente até lá.', style: TextStyle(color: EngColors.muted)),
         _err(_error),
+        const Divider(height: 32),
+        const Text('Histórico da decisão', style: TextStyle(fontWeight: FontWeight.w600)),
+        // Anexar não muda a versão da guia: a chave inclui os anexos para o histórico recarregar.
+        RecordHistoryView(key: ValueKey('h-${t.id}-${t.version}-${t.attachments.length}'), load: (api) => api.taxHistory(t.id)),
       ]);
     }
     return Scaffold(appBar: AppBar(title: const Text('Guia')), body: body);
@@ -421,7 +614,12 @@ class _RunCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final me = EngScope.of(context).me;
     final t = run.totals;
-    return Card(child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    return Card(child: InkWell(
+      onTap: () async {
+        await _push(context, PayrollDetailScreen(id: run.id));
+        onChanged();
+      },
+      child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text('${run.description} · ${_month(run.competence)}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
       Text(labelOf(taxStepLabels, run.state)),
       Text('Proventos ${formatMoney(t['earnings'] as String?)} · Benefícios ${formatMoney(t['benefits'] as String?)} · '
@@ -445,7 +643,113 @@ class _RunCard extends StatelessWidget {
           },
           child: const Text('Enviar ao patrão'),
         )),
-    ])));
+    ]))));
+  }
+}
+
+const _rubricKindLabels = {'EARNING': 'Provento', 'BENEFIT': 'Benefício', 'DEDUCTION': 'Desconto', 'ADVANCE': 'Adiantamento',
+  'EMPLOYER_CHARGE': 'Encargo'};
+
+/// C05 — detalhe da folha: totais por rubrica, decisão do patrão, histórico; enviar ou desistir (devolvida/rascunho).
+class PayrollDetailScreen extends StatefulWidget {
+  const PayrollDetailScreen({super.key, required this.id});
+  final String id;
+  @override
+  State<PayrollDetailScreen> createState() => _PayrollDetailScreenState();
+}
+
+class _PayrollDetailScreenState extends State<PayrollDetailScreen> {
+  PayrollRunInfo? _r;
+  ApiException? _error;
+  bool _busy = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_r == null && _error == null) _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final r = await EngScope.of(context).api.payrollRun(widget.id);
+      if (mounted) setState(() => _r = r);
+    } on ApiException catch (e) {
+      if (mounted) setState(() => _error = e);
+    }
+  }
+
+  Future<void> _act(Future<PayrollRunInfo> Function(ApiClient api) fn, String ok) async {
+    final api = EngScope.of(context).api;
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      final r = await fn(api);
+      setState(() => _r = r);
+      messenger.showSnackBar(SnackBar(content: Text(ok)));
+    } on ApiException catch (e) {
+      setState(() => _error = e);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final me = EngScope.of(context).me;
+    final r = _r;
+    Widget body;
+    if (r == null) {
+      body = _error != null
+          ? (_error!.isForbidden ? const ForbiddenStateView() : ErrorStateView(message: _error!.message, requestId: _error!.requestId, onRetry: _load))
+          : const LoadingState();
+    } else {
+      final open = r.state == 'DRAFT' || r.state == 'RETURNED';
+      final t = r.totals;
+      body = ListView(padding: const EdgeInsets.all(16), children: [
+        Text('${r.description} · ${_month(r.competence)}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+        if (r.payDate != null) Text('Pagamento previsto ${_date(r.payDate!)} · ${r.source == 'IMPORT' ? 'importada de arquivo' : 'lançada'}'),
+        Card(child: Padding(padding: const EdgeInsets.all(12), child: Text(labelOf(taxStepLabels, r.state),
+            style: TextStyle(fontWeight: FontWeight.w700, color: r.state == 'RETURNED' ? EngColors.error
+                : r.state == 'PAID' ? EngColors.green : EngColors.violet)))),
+        if (r.decidedNote != null) Text('${r.decidedByName ?? 'Patrão'}: ${r.decidedNote}', style: const TextStyle(color: EngColors.warning)),
+        const SizedBox(height: 8),
+        Text('Proventos ${formatMoney(t['earnings'] as String?)} · Benefícios ${formatMoney(t['benefits'] as String?)}'),
+        Text('Encargos ${formatMoney(t['employer_charges'] as String?)} · Descontos ${formatMoney(t['deductions'] as String?)}'),
+        Text('Líquido ${formatMoney(t['net_pay'] as String?)} · Custo total ${formatMoney(t['company_cost'] as String?)}',
+            style: const TextStyle(fontWeight: FontWeight.w700)),
+        const SizedBox(height: 12),
+        const Text('Rubricas', style: TextStyle(fontWeight: FontWeight.w600)),
+        for (final x in r.rubrics)
+          Text('${x['rubric']} (${labelOf(_rubricKindLabels, '${x['kind']}')}) · ${formatMoney(x['amount'] as String?)} · ${x['people']} pessoa(s)'),
+        if (!r.individualVisible)
+          const Text('Valores por pessoa: só com permissão individual do dono.', style: TextStyle(color: EngColors.muted, fontSize: 12)),
+        if (open && me.can('payroll.request'))
+          Padding(padding: const EdgeInsets.only(top: 12), child: FilledButton(
+            onPressed: _busy ? null : () => _act((api) => api.submitPayroll(id: r.id, version: r.version), 'Folha enviada ao patrão.'),
+            child: const Text('Enviar ao patrão'),
+          )),
+        if (open && me.can('payroll.create'))
+          OutlinedButton(
+            onPressed: _busy
+                ? null
+                : () async {
+                    final why = await _askReason(context, title: 'Desistir desta folha?', action: 'Cancelar folha');
+                    if (why == null) return;
+                    await _act((api) => api.cancelPayroll(id: r.id, version: r.version, note: why),
+                        'Folha cancelada. A versão corrigida já pode ser importada.');
+                  },
+            child: Text(r.state == 'RETURNED' ? 'Cancelar e importar a versão corrigida' : 'Cancelar folha'),
+          ),
+        _err(_error),
+        const Divider(height: 32),
+        const Text('Histórico', style: TextStyle(fontWeight: FontWeight.w600)),
+        RecordHistoryView(key: ValueKey('ph-${r.id}-${r.version}'), load: (api) => api.payrollHistory(r.id)),
+      ]);
+    }
+    return Scaffold(appBar: AppBar(title: const Text('Folha')), body: body);
   }
 }
 
@@ -542,18 +846,193 @@ class _AccountingDocumentsScreenState extends State<AccountingDocumentsScreen> {
           empty: (d) => false,
           builder: (context, d, reload) => ListView(children: [
             for (final q in d.requests.where((r) => r.state == 'OPEN'))
-              Card(child: ListTile(title: Text('Solicitado: ${q.title}'), subtitle: const Text('Aguardando envio'))),
+              Card(child: ListTile(
+                title: Text('Solicitado: ${q.title}'),
+                subtitle: Text(me.can('documents.attach') ? 'Aguardando envio — toque para atender' : 'Aguardando envio'),
+                onTap: me.can('documents.attach')
+                    ? () async {
+                        await _push(context, FulfillRequestScreen(request: q));
+                        reload();
+                      }
+                    : null,
+              )),
             if (d.docs.isEmpty) const EmptyState(title: 'Nenhum documento'),
             for (final x in d.docs)
               Card(child: ListTile(
                 title: Text(x.title),
                 subtitle: Text('${labelOf(docKindLabels, x.kind)}${x.competence == null ? '' : ' · ${_month(x.competence!)}'} · '
-                    'versão ${x.currentVersion} · ${x.createdByName}'),
+                    'versão ${x.currentVersion} · ${x.createdByName}'
+                    '${x.relatedType == null ? '' : ' · origem: ${labelOf(docOriginLabels, x.relatedType!)}'}'),
+                onTap: () async {
+                  await _push(context, AccountingDocumentDetailScreen(id: x.id));
+                  reload();
+                },
               )),
           ]),
         ),
       ),
     ]);
+  }
+}
+
+/// C09 — documento: versões com motivo e autor, ver cada arquivo, enviar nova versão (validada pelo servidor).
+class AccountingDocumentDetailScreen extends StatefulWidget {
+  const AccountingDocumentDetailScreen({super.key, required this.id});
+  final String id;
+  @override
+  State<AccountingDocumentDetailScreen> createState() => _AccountingDocumentDetailScreenState();
+}
+
+class _AccountingDocumentDetailScreenState extends State<AccountingDocumentDetailScreen> {
+  AccDocInfo? _d;
+  ApiException? _error;
+  bool _busy = false;
+  final _reason = TextEditingController();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_d == null && _error == null) _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final d = await EngScope.of(context).api.accountingDocument(widget.id);
+      if (mounted) setState(() => _d = d);
+    } on ApiException catch (e) {
+      if (mounted) setState(() => _error = e);
+    }
+  }
+
+  Future<void> _newVersion() async {
+    final api = EngScope.of(context).api;
+    final messenger = ScaffoldMessenger.of(context);
+    final f = await accountingFilePicker(extensions: const ['pdf', 'png', 'jpg', 'jpeg']);
+    if (f == null) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      final d = await api.newDocumentVersion(id: widget.id, reason: _reason.text, fileName: f.name, bytes: f.bytes, contentType: f.mime);
+      setState(() {
+        _d = d;
+        _reason.clear();
+      });
+      messenger.showSnackBar(SnackBar(content: Text('Versão ${d.currentVersion} enviada.')));
+    } on ApiException catch (e) {
+      setState(() => _error = e);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final me = EngScope.of(context).me;
+    final d = _d;
+    Widget body;
+    if (d == null) {
+      body = _error != null
+          ? (_error!.isForbidden ? const ForbiddenStateView() : ErrorStateView(message: _error!.message, requestId: _error!.requestId, onRetry: _load))
+          : const LoadingState();
+    } else {
+      body = ListView(padding: const EdgeInsets.all(16), children: [
+        Text(d.title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+        Text('${labelOf(docKindLabels, d.kind)}${d.competence == null ? '' : ' · ${_month(d.competence!)}'} · '
+            'origem: ${d.relatedType == null ? 'envio avulso' : labelOf(docOriginLabels, d.relatedType!)}'),
+        const Text('Arquivo privado: só abre para quem tem permissão; cada download fica registrado.',
+            style: TextStyle(color: EngColors.muted, fontSize: 12)),
+        const SizedBox(height: 12),
+        const Text('Versões', style: TextStyle(fontWeight: FontWeight.w600)),
+        for (final v in d.versions.reversed)
+          Card(child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Versão ${v.versionNo}${v.versionNo == d.currentVersion ? ' (atual)' : ''} · ${v.createdByName}',
+                style: const TextStyle(fontWeight: FontWeight.w600)),
+            if (v.createdAt.isNotEmpty) Text(_dt(v.createdAt), style: const TextStyle(color: EngColors.muted, fontSize: 12)),
+            if (v.reason != null) Text('Motivo: ${v.reason}'),
+            if (v.file != null)
+              Row(children: [
+                Expanded(child: Text('${v.file!.fileName}${v.file!.available ? '' : ' — recusado: ${v.file!.rejection}'}')),
+                if (v.file!.available) DocumentViewButton(doc: v.file!),
+              ]),
+          ]))),
+        if (me.can('documents.attach')) ...[
+          const SizedBox(height: 12),
+          TextField(controller: _reason, decoration: InputDecoration(labelText: 'Motivo da nova versão *', errorText: _fe(_error, 'reason'))),
+          OutlinedButton(onPressed: _busy ? null : _newVersion, child: Text(_busy ? 'Enviando…' : 'Escolher arquivo e enviar nova versão')),
+        ],
+        _err(_error),
+      ]);
+    }
+    return Scaffold(appBar: AppBar(title: const Text('Documento')), body: body);
+  }
+}
+
+/// C08 — atender uma solicitação de documento com o arquivo real (o servidor liga o envio à solicitação).
+class FulfillRequestScreen extends StatefulWidget {
+  const FulfillRequestScreen({super.key, required this.request});
+  final DocRequestInfo request;
+  @override
+  State<FulfillRequestScreen> createState() => _FulfillRequestScreenState();
+}
+
+class _FulfillRequestScreenState extends State<FulfillRequestScreen> {
+  late String _kind = docKindLabels.containsKey(widget.request.kind) ? widget.request.kind! : 'OUTRO';
+  late final _title = TextEditingController(text: widget.request.title);
+  final _comp = TextEditingController();
+  bool _busy = false;
+  ApiException? _error;
+
+  Future<void> _send() async {
+    final api = EngScope.of(context).api;
+    final nav = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final f = await accountingFilePicker(extensions: const ['pdf', 'png', 'jpg', 'jpeg']);
+    if (f == null) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await api.uploadAccountingDocument(kind: _kind, title: _title.text, competence: _comp.text, requestId: widget.request.id,
+          fileName: f.name, bytes: f.bytes, contentType: f.mime);
+      messenger.showSnackBar(const SnackBar(content: Text('Solicitação atendida.')));
+      nav.pop(true);
+    } on ApiException catch (e) {
+      setState(() => _error = e);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final q = widget.request;
+    return Scaffold(
+      appBar: AppBar(title: const Text('Atender solicitação')),
+      body: ListView(padding: const EdgeInsets.all(16), children: [
+        Text(q.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+        if (q.description != null) Text(q.description!),
+        Text([
+          if (q.createdByName != null) 'Pedido por ${q.createdByName}',
+          if (q.dueDate != null) 'até ${_date(q.dueDate!)}',
+        ].join(' · '), style: const TextStyle(color: EngColors.muted)),
+        const SizedBox(height: 12),
+        DropdownButtonFormField<String>(
+          initialValue: _kind,
+          isExpanded: true,
+          decoration: const InputDecoration(labelText: 'Tipo *'),
+          items: [for (final e in docKindLabels.entries) DropdownMenuItem(value: e.key, child: Text(e.value))],
+          onChanged: (v) => setState(() => _kind = v ?? 'OUTRO'),
+        ),
+        TextField(controller: _title, decoration: InputDecoration(labelText: 'Título *', errorText: _fe(_error, 'title'))),
+        TextField(controller: _comp, decoration: InputDecoration(labelText: 'Competência (AAAA-MM)', errorText: _fe(_error, 'competence'))),
+        const SizedBox(height: 12),
+        FilledButton(onPressed: _busy ? null : _send, child: Text(_busy ? 'Enviando…' : 'Escolher arquivo e enviar')),
+        _err(_error),
+      ]),
+    );
   }
 }
 
@@ -580,14 +1059,16 @@ class InvoicesScreen extends StatelessWidget {
             Text('Falta definir: ${d.settings.missing.join(' · ')}', style: const TextStyle(color: EngColors.muted)),
           if (d.items.where((n) => n.state != 'DISCARDED').isEmpty)
             const EmptyState(title: 'Nenhuma nota'),
-          for (final n in d.items.where((n) => n.state != 'DISCARDED')) _InvoiceCard(n: n, onChanged: reload),
+          for (final n in d.items.where((n) => n.state != 'DISCARDED'))
+            _InvoiceCard(n: n, blocked: d.settings.blocked, onChanged: reload),
         ]),
       );
 }
 
 class _InvoiceCard extends StatefulWidget {
-  const _InvoiceCard({required this.n, required this.onChanged});
+  const _InvoiceCard({required this.n, required this.onChanged, this.blocked = true});
   final InvoiceInfo n;
+  final bool blocked;
   final VoidCallback onChanged;
   @override
   State<_InvoiceCard> createState() => _InvoiceCardState();
@@ -596,6 +1077,27 @@ class _InvoiceCard extends StatefulWidget {
 class _InvoiceCardState extends State<_InvoiceCard> {
   final _ncm = <String, TextEditingController>{};
   ApiException? _error;
+  String _transmitKey = ApiClient.newIdempotencyKey();
+
+  /// C07 "Transmitir autorizado": só com invoices.confirm e provedor configurado. O resultado mostrado é o do servidor:
+  /// rejeição aparece como rejeição; em curso/incerta não é emissão.
+  Future<void> _transmit() async {
+    final api = EngScope.of(context).api;
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _error = null);
+    try {
+      final r = await api.transmitInvoice(id: widget.n.id, version: widget.n.version, idempotencyKey: _transmitKey);
+      messenger.showSnackBar(SnackBar(content: Text(switch (r.state) {
+        'AUTHORIZED' => 'Nota autorizada.',
+        'REJECTED' => 'Nota REJEITADA: ${r.rejectionReason ?? 'sem motivo informado'}',
+        _ => 'Enviada, sem resultado ainda (${labelOf(invoiceStateLabels, r.state)}). Não é emissão.',
+      })));
+      _transmitKey = ApiClient.newIdempotencyKey();
+      widget.onChanged();
+    } on ApiException catch (e) {
+      setState(() => _error = e);
+    }
+  }
 
   Future<void> _do(Future<void> Function(ApiClient api) fn, String ok) async {
     final api = EngScope.of(context).api;
@@ -644,6 +1146,11 @@ class _InvoiceCardState extends State<_InvoiceCard> {
         Padding(padding: const EdgeInsets.only(top: 8), child: FilledButton(
           onPressed: () => _do((api) => api.reviewInvoice(id: n.id, version: n.version), 'Nota conferida.'),
           child: const Text('Conferir nota'),
+        )),
+      if (n.state == 'READY' && me.can('invoices.confirm'))
+        Padding(padding: const EdgeInsets.only(top: 8), child: FilledButton(
+          onPressed: widget.blocked ? null : _transmit,
+          child: Text(widget.blocked ? 'Transmissão bloqueada (provedor não configurado)' : 'Transmitir nota'),
         )),
       _err(_error),
     ])));

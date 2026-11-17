@@ -1,10 +1,27 @@
 # Checkpoint
 
-Data/hora e fuso: 17/11/2026 15:02 America/Sao_Paulo
-Agente e repositório: Codex — `/home/louvens/Ivan/distribuidora-engenheiro`
-Branch e commit atual: `main` — alterações locais não commitadas; ver `git status`
-Fase: F12 concluída; próxima F13
-Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **PASS** (pendências abaixo) · F06 **PASS** (pendências abaixo) · F07 **PASS** (pendências abaixo) · F08 **PASS** (critérios provados; integração real BLOCKED: D02/D03/D04) · F09 **PASS** (IA depende da F15) · F10 **PASS** (IA real: F15) · F11 **PASS** (homologação HTTPS: F16) · F12 **PASS** (Android; ponta a ponta real em Keycloak/API local, widget/API e APK aberto)
+Data/hora e fuso: 17/11/2026 15:50 America/Sao_Paulo
+Agente e repositório: Claude Code (Opus 5.5) — `/home/louvens/Ivan/distribuidora-engenheiro`
+Branch e commit atual: `main` — ver `git log -1`
+Fase: F13 concluída; próxima F14
+Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **PASS** (pendências abaixo) · F06 **PASS** (pendências abaixo) · F07 **PASS** (pendências abaixo) · F08 **PASS** (critérios provados; integração real BLOCKED: D02/D03/D04) · F09 **PASS** (IA depende da F15) · F10 **PASS** (IA real: F15) · F11 **PASS** (homologação HTTPS: F16) · F12 **PASS** (Android; ponta a ponta real em Keycloak/API local, widget/API e APK aberto) · F13 **PASS** (Android; transmissão fiscal real BLOQUEADA: D02/D03)
+
+## F13 — app Contábil (17/11/2026, ADR-028)
+
+Entregue: histórico da decisão por registro (guia e folha; só ator, data, app de origem e observação — sem valores nem
+conta bancária; mesma autorização do detalhe); cancelamento da folha em preparação/devolvida (antes a devolvida prendia a
+competência e a versão corrigida não entrava); no app Contábil, agenda por vencimento com vencidas em destaque, notas em
+conferência/rejeitadas/incertas e solicitações abertas; corrigir guia devolvida; "Ver documento" pelo download
+autorizado; detalhe da folha por rubrica com enviar/cancelar; documentos com versões, motivo e nova versão; atender
+solicitação com o arquivo; transmitir nota só com `invoices.confirm` e provedor configurado (rejeição aparece como
+rejeição). Contrato OpenAPI com as 3 rotas novas.
+Validação: `./mvnw clean verify` **163** (`F13-mvnw-verify.txt`; novo `ContabilAppIntegrationTest`), Dart mobile-core
+**35** + app Contábil **3**, Vitest **69**; fluxo real no AVD com `contador` e decisões do patrão no site: guia devolvida →
+corrigida → aprovada com histórico; PDF baixado idêntico ao enviado; folha devolvida → reimportação recusada → cancelada →
+reimportada; solicitação do patrão atendida pelo app (`F13-validacao.txt`, capturas `telas-mobile/F13-*.png`).
+Defeito encontrado no emulador e corrigido: o motivo do cancelamento da folha era gravado como nota do patrão.
+Pendências F13: notificação push não existe no produto (F16); transmissão real BLOQUEADA até contratar provedor fiscal
+(D02/D03); iOS sem macOS; validar com o contador o layout do CSV da folha (já pendente da F07).
 
 ## F12 — app Entregas (17/11/2026)
 
@@ -396,5 +413,5 @@ ENGENHEIRO_SENHA_LOCAL=... python3 -I ../../infra/local/e2e_login_web.py
 
 ## Próxima ação
 
-1. **F13**: aplicativo independente do contador (guias, folha, documentos e fluxos autorizados).
+1. **F14**: aplicativo do patrão com paridade integral (central dos três setores, aprovações e notas pelo celular).
 2. Validar com o dono/contador os cargos e campos de RH (ADR-027).

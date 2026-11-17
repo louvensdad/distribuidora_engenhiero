@@ -10014,6 +10014,63 @@
           "items",
           "account_creation"
         ]
+      },
+      "RecordHistory": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Histórico de um registro (F13): ator, app de origem e observação; sem valores nem conta bancária.",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "occurred_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "action": {
+                  "type": "string"
+                },
+                "actor_name": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "actor_kind": {
+                  "type": "string",
+                  "enum": [
+                    "USER",
+                    "SERVICE",
+                    "ANONYMOUS"
+                  ]
+                },
+                "client_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "note": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "occurred_at",
+                "action",
+                "actor_kind"
+              ]
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
       }
     }
   },
@@ -17866,6 +17923,44 @@
         }
       }
     },
+    "/api/v1/tax-obligations/{id}/history": {
+      "get": {
+        "summary": "Histórico da decisão da guia (mesma autorização do detalhe)",
+        "x-capability": "taxes.view",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordHistory"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
     "/api/v1/tax-obligations/{id}/attachments": {
       "post": {
         "summary": "Anexa arquivo da guia ou comprovante (bytes reais validados)",
@@ -18276,6 +18371,109 @@
                 "$ref": "#/components/schemas/Note"
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/payroll-runs/{id}/cancel": {
+      "post": {
+        "summary": "Cancela folha em preparação/devolvida (libera a competência)",
+        "x-capability": "payroll.create",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollRun"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Note"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payroll-runs/{id}/history": {
+      "get": {
+        "summary": "Histórico da folha (sem valores individuais)",
+        "x-capability": "payroll.view",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordHistory"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
           }
         }
       }

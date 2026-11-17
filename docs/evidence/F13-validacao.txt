@@ -1,0 +1,54 @@
+F13 — validação do app Contábil
+Data: 17/11/2026, 15:20–15:50 America/Sao_Paulo
+Repositório/branch: /home/louvens/Ivan/distribuidora-engenheiro, main (base cca3916)
+
+Verificações automáticas:
+- `./mvnw clean verify` em services/api: BUILD SUCCESS, 163 testes, 0 falhas (lista em F13-mvnw-verify.txt).
+  Novos: ContabilAppIntegrationTest (3) —
+  * guiaEnviadaApareceNoDonoEDecisaoVoltaAoContadorComHistorico: guia enviada aparece na central do patrão (setor
+    contabilidade) e na auditoria com client engenheiro-contabil; aprovação com nota volta ao contador (APPROVED,
+    decidida por, nota, pagamento OPEN); histórico create/attach/submit/approve; após o pagamento o histórico não traz
+    conta bancária nem saldo; balcão 403; ID inexistente 403/404; outra organização 404.
+  * contadorNaoRecebeValorGlobal: relatórios, contas, extrato, conciliação, auditoria geral e caixas → 403/404 sem o
+    saldo; central de aprovações vazia (contagens zero); /me sem dashboard/relatórios/caixa/aprovar; token do contador
+    com client de outro app → 403.
+  * folhaDevolvidaPodeSerCanceladaEReimportadaSemDuplicar: enviada não cancela (409); reimportar com a devolvida
+    ativa → 409; sem motivo 422; balcão 403; versão velha 412; dois cancelamentos simultâneos → só um 200; cancelada
+    sem passivo; decisão do patrão preservada; reimportação 201; histórico sem valor individual.
+  IntegrationsIntegrationTest: o contador vê a nota rejeitada como REJECTED, com motivo, sem chave/protocolo.
+  OpenApiContractTest: contrato cobre as 3 rotas novas.
+- `flutter analyze apps/mobile-accountant packages/mobile-core packages/mobile-api`: No issues found.
+- `flutter test --no-pub` em packages/mobile-core: 35 testes passaram (6 novos em test/contabil_test.dart: guia
+  devolvida com histórico/ver PDF/correção/reenvio; agenda com vencida, rejeitada e sem chamadas não permitidas; folha
+  devolvida cancelada com motivo; solicitação atendida ligada ao pedido + versões; transmissão rejeitada mostrada como
+  rejeitada; transmissão bloqueada sem provedor não envia).
+- `flutter test --no-pub` em apps/mobile-accountant: 3 testes passaram.
+- Site: Vitest 16 arquivos / 69 testes passaram (rótulo "Cancelou folha").
+
+Defeito encontrado no emulador e corrigido: ao cancelar a folha devolvida, o motivo do contador era gravado em
+decided_note e o app mostrava "Patrão Fictício: Refazer com o vale do balcao". Agora a decisão do patrão é preservada e o
+motivo vai só para o histórico (teste acrescentado; o registro local afetado foi restaurado a partir da auditoria).
+
+Fluxo real no AVD engenheiro_api36 (APK debug do app Contábil), Keycloak + API locais, conta individual `contador`;
+decisões do patrão pelo site (sessão BFF do patrão com TOTP):
+- Guia DAS 11/2026 R$ 912,40 preparada no app, PDF fictício anexado pelo seletor do Android, enviada.
+- Patrão devolveu ("Conferir o valor com o extrato do Simples"); app mostrou "Devolvida — corrigir", a nota e o
+  histórico com origem (App Engenheiro Contábil × Site do patrão). "Ver documento" salvou o PDF pelo seletor do
+  sistema; o arquivo baixado é idêntico ao enviado (cmp no aparelho: IGUAL).
+- Contador corrigiu para R$ 918,75 e reenviou; patrão aprovou com nota; app mostrou "Aprovada — pagamento ainda
+  pendente", a nota e o histórico completo.
+- Trilha do patrão (auditoria, setor ACCOUNTING, desta guia): create, attach, submit (contador, engenheiro-contabil) →
+  return (patrão, engenheiro-web) → update, submit (contador) → approve (patrão); todos SUCCESS.
+- Folha 10/2026 importada de CSV fictício (2 pessoas, custo R$ 6.124,00), enviada, devolvida pelo patrão ("Faltou o
+  vale-transporte do balcão"). Reimportar a corrigida foi recusado ("Já existe folha com essa competência e
+  descrição."); o contador cancelou com motivo pelo app e reimportou (benefícios R$ 580,00, custo R$ 6.304,00).
+- Patrão pediu "Comprovante de recolhimento do DAS (ficticio)" até 25/11; apareceu na agenda do contador, que atendeu
+  com o arquivo; banco: solicitação FULFILLED ligada ao documento, atendida por Contador Exemplo.
+
+Capturas em docs/evidence/telas-mobile/: F13-contabil-agenda.png, F13-contabil-guia-devolvida.png,
+F13-contabil-guia-aprovada.png, F13-contabil-folha-cancelada.png (tirada ANTES da correção do defeito acima: mostra a
+nota atribuída ao patrão), F13-contabil-folha-reimportada.png, F13-contabil-documento-solicitado.png.
+
+Limites: transmissão real de nota segue BLOQUEADA sem provedor fiscal (D02/D03); não há notificação push no produto;
+iOS exige macOS/Xcode; APK debug (HTTPS de homologação e assinatura de produção: F16).
+Gate F13: PASS (Android).
