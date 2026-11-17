@@ -61,7 +61,12 @@ export const TABS: Tab[] = [
   },
   {
     id: "reports", label: "Relatórios", icon: "report", path: "/reports",
-    subtabs: [{ id: "reports", label: "Relatórios", path: "/reports", anyOf: ["reports.view"], pendingPhase: "F09" }],
+    subtabs: [
+      { id: "report", label: "Relatório completo", path: "/reports", anyOf: ["reports.view"] },
+      { id: "categories", label: "Gastos por categoria", path: "/reports/categories", anyOf: ["reports.view"] },
+      { id: "goals", label: "Metas", path: "/reports/goals", anyOf: ["goals.view"] },
+      { id: "customers", label: "Clientes", path: "/reports/customers", anyOf: ["reports.view"] },
+    ],
   },
   {
     id: "intelligence", label: "Inteligência", icon: "ai", path: "/intelligence",

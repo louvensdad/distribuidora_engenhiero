@@ -1,0 +1,18 @@
+# F09 — app Engenheiro Patrão (br.com.engenheiro.gestao) no emulador engenheiro_api36, Keycloak 26.8.1 + API real (V12) — 2026-11-17
+Login do patrão com senha + TOTP (Keycloak local, PKCE); topResumedActivity=br.com.engenheiro.gestao/.MainActivity.
+flutter analyze: No issues found! em todos os pacotes/apps. Dart: 45 testes, 0 falhas (mobile-core 22, mobile-api 6,
+mobile-auth 6, owner 3, counter 2, delivery 3, accountant 3). Novos em reports_test.dart:
+  - "relatório no app: 40.000 − 15.000 − 15.000 − 500 = 9.500 nos indicadores, no gráfico e na tabela"
+  - "sem custo/margem: CMV, perdas e lucro não aparecem no app"
+  - "hoje em São Paulo: 01h UTC ainda é o dia anterior"
+
+Aba Relatórios (antes "pendente F09"), Resultado › Mês › novembro de 2026 (base local fictícia):
+  Vendas (receita líquida) R$ 2.250,00 · CMV R$ 900,00 · Despesas R$ 10.608,15 · Perdas R$ 503,54 · Prejuízo −R$ 9.761,69
+  — os MESMOS valores do site no mesmo instante (telas-web/F09-relatorio.png) e da API /api/v1/reports/overview.
+  Colunas 3D com o prejuízo descendo da linha de base, rótulos diretos, chave 2D (telas-mobile/F09-patrao-relatorio.png).
+Aba Metas: "Vendas de novembro (fictícia)" ativa, meta R$ 5.000,00, realizado R$ 2.250,00 (= receita líquida do mês),
+  falta R$ 2.750,00, 45,00%, "Abaixo do ritmo", fórmula à vista; "Dúzias desta semana (fictícia)" rascunho, 200 dz,
+  realizado 300 dz, falta 0 (nunca negativo), atingida; canceladas só contadas (telas-mobile/F09-patrao-metas.png).
+Defeitos vistos no emulador e corrigidos: valor do prejuízo sobrepunha o rótulo da coluna; cartões deixavam vão à
+direita; metas canceladas poluíam a lista; quantidades com seis zeros ("200,000000 DUZIA" → "200 dúzias"); ações
+goals.* e reports.* sem rótulo no histórico.

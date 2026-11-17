@@ -5911,6 +5911,15 @@
           "basis": {
             "type": "string"
           },
+          "policy_version": {
+            "type": "string"
+          },
+          "hidden": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "gross_revenue": {
             "type": [
               "string",
@@ -6161,6 +6170,35 @@
                   "format": "date-time"
                 },
                 "reversal_of": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "uuid"
+                },
+                "origin_type": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "origin_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "uuid"
+                },
+                "origin_number": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "documents": {
+                  "type": "integer"
+                },
+                "document_id": {
                   "type": [
                     "string",
                     "null"
@@ -8385,6 +8423,845 @@
         "required": [
           "items",
           "recent"
+        ]
+      },
+      "ReportResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "gross_revenue": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "discounts": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "returns": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "net_revenue": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "cogs": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "expenses_total": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "losses": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "costs_expenses_losses": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "profit": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "margin_percent": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+          },
+          "outcome": {
+            "enum": [
+              "PROFIT",
+              "LOSS",
+              "ZERO",
+              null
+            ]
+          }
+        }
+      },
+      "Report": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "policy_version": {
+            "type": "string"
+          },
+          "timezone": {
+            "const": "America/Sao_Paulo"
+          },
+          "period": {
+            "enum": [
+              "DAY",
+              "WEEK",
+              "MONTH",
+              "CUSTOM"
+            ]
+          },
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "label": {
+            "type": "string"
+          },
+          "branch_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "branch_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "basis": {
+            "const": "COMPETENCE"
+          },
+          "source": {
+            "enum": [
+              "LIVE",
+              "SNAPSHOT"
+            ]
+          },
+          "closed": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "closed_at": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "closed_by_name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "policy_version": {
+                    "type": "string"
+                  },
+                  "matches_live": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            ]
+          },
+          "hidden": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "result": {
+            "$ref": "#/components/schemas/ReportResult"
+          },
+          "expenses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportItem"
+            }
+          },
+          "subcategories": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "subcategory": {
+                  "type": "string"
+                },
+                "amount": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+                },
+                "entries": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "sold": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "quantity_total": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^-?[0-9]+\\.[0-9]{6}$"
+              },
+              "unit": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "by_unit": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "unit": {
+                      "type": "string"
+                    },
+                    "sold": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "pattern": "^-?[0-9]+\\.[0-9]{6}$"
+                    },
+                    "backlog": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "pattern": "^-?[0-9]+\\.[0-9]{6}$"
+                    }
+                  }
+                }
+              },
+              "orders": {
+                "type": "integer"
+              },
+              "note": {
+                "type": "string"
+              }
+            }
+          },
+          "chart_unit": {
+            "const": "BRL"
+          },
+          "chart": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "amount": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+                }
+              }
+            }
+          },
+          "timeline_bucket": {
+            "enum": [
+              "DAY",
+              "WEEK",
+              "MONTH"
+            ]
+          },
+          "timeline": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "from": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "to": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "net_revenue": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+                },
+                "expenses_total": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+                },
+                "cogs": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+                },
+                "losses": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+                },
+                "profit": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+                },
+                "sold_quantity": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^-?[0-9]+\\.[0-9]{6}$"
+                }
+              }
+            }
+          },
+          "comparison": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "from": {
+                "type": "string",
+                "format": "date"
+              },
+              "to": {
+                "type": "string",
+                "format": "date"
+              },
+              "label": {
+                "type": "string"
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "key": {
+                      "type": "string"
+                    },
+                    "label": {
+                      "type": "string"
+                    },
+                    "current": {
+                      "type": "string"
+                    },
+                    "previous": {
+                      "type": "string"
+                    },
+                    "difference": {
+                      "type": "string"
+                    },
+                    "percent": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+                    }
+                  }
+                }
+              },
+              "formula": {
+                "type": "string"
+              }
+            }
+          },
+          "drill": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportItem"
+            }
+          },
+          "cash": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CashPosition"
+              }
+            ]
+          },
+          "formula": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "generated_by": {
+            "type": "string"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "policy_version",
+          "timezone",
+          "period",
+          "from",
+          "to",
+          "source",
+          "hidden",
+          "result",
+          "chart",
+          "timeline"
+        ]
+      },
+      "CustomerRanking": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "label": {
+            "type": "string"
+          },
+          "branch_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "sort": {
+            "type": "string"
+          },
+          "unit": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "measures": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "formula": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "hidden": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "position": {
+                  "type": "integer"
+                },
+                "customer_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "customer_name": {
+                  "type": "string"
+                },
+                "net_revenue": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+                },
+                "quantity": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^-?[0-9]+\\.[0-9]{6}$"
+                },
+                "margin": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+                },
+                "margin_percent": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+                },
+                "orders": {
+                  "type": "integer"
+                },
+                "active_weeks": {
+                  "type": "integer"
+                },
+                "returns": {
+                  "type": "integer"
+                },
+                "receivables_due": {
+                  "type": "integer"
+                },
+                "receivables_on_time": {
+                  "type": "integer"
+                },
+                "on_time_percent": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+                }
+              }
+            }
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "measures",
+          "sort"
+        ]
+      },
+      "Goal": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "metric": {
+            "enum": [
+              "NET_REVENUE",
+              "SOLD_QUANTITY",
+              "PROFIT"
+            ]
+          },
+          "metric_label": {
+            "type": "string"
+          },
+          "unit": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "period_kind": {
+            "enum": [
+              "WEEK",
+              "MONTH"
+            ]
+          },
+          "period_start": {
+            "type": "string",
+            "format": "date"
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date"
+          },
+          "period_label": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "branch_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "branch_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "enum": [
+              "DRAFT",
+              "ACTIVE",
+              "CANCELLED"
+            ]
+          },
+          "cancel_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_by_name": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "activated_by_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "activated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "cancelled_by_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cancelled_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "progress": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "realized": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "remaining": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "percent": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+              },
+              "expected_by_now": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "days_elapsed": {
+                "type": "integer"
+              },
+              "days_total": {
+                "type": "integer"
+              },
+              "status": {
+                "enum": [
+                  "NOT_STARTED",
+                  "ON_PACE",
+                  "BEHIND_PACE",
+                  "ACHIEVED",
+                  "MISSED",
+                  "HIDDEN"
+                ]
+              },
+              "formula": {
+                "type": "string"
+              }
+            }
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "metric",
+          "period_kind",
+          "period_start",
+          "target",
+          "state",
+          "progress",
+          "version"
+        ]
+      },
+      "GoalList": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Goal"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "GoalInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "metric": {
+            "enum": [
+              "NET_REVENUE",
+              "SOLD_QUANTITY",
+              "PROFIT"
+            ]
+          },
+          "unit": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "period_kind": {
+            "enum": [
+              "WEEK",
+              "MONTH"
+            ]
+          },
+          "period_start": {
+            "type": "string",
+            "format": "date"
+          },
+          "target": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "branch_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "metric",
+          "period_kind",
+          "period_start",
+          "target",
+          "title"
+        ]
+      },
+      "GoalReason": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
         ]
       }
     }
@@ -17622,6 +18499,697 @@
           },
           "403": {
             "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/reports/overview": {
+      "get": {
+        "summary": "Relatório canônico (dia/semana/mês/intervalo em America/Sao_Paulo; campos ocultos removidos)",
+        "x-capability": "reports.view",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "DAY",
+                "WEEK",
+                "MONTH",
+                "CUSTOM"
+              ]
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Report"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/reports/overview/export": {
+      "get": {
+        "summary": "Arquivo do mesmo relatório: csv/xlsx (reports.export) ou pdf (reports.print); auditado",
+        "x-capability": "reports.export|reports.print",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "enum": [
+                "csv",
+                "xlsx",
+                "pdf"
+              ]
+            }
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "DAY",
+                "WEEK",
+                "MONTH",
+                "CUSTOM"
+              ]
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Arquivo (Content-Disposition: attachment)",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/reports/lines": {
+      "get": {
+        "summary": "Drilldown até o registro/comprovante de origem (contas a custo exigem purchase_cost)",
+        "x-capability": "reports.view",
+        "parameters": [
+          {
+            "name": "accounts",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "DAY",
+                "WEEK",
+                "MONTH",
+                "CUSTOM"
+              ]
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LedgerLines"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/reports/customers": {
+      "get": {
+        "summary": "Melhor cliente: medidas separadas com fórmula, ordenadas por uma delas (sem nota única)",
+        "x-capability": "reports.view",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "DAY",
+                "WEEK",
+                "MONTH",
+                "CUSTOM"
+              ]
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "net_revenue",
+                "quantity",
+                "margin",
+                "orders",
+                "active_weeks",
+                "on_time_percent",
+                "returns"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerRanking"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/goals": {
+      "get": {
+        "summary": "Metas que cruzam o intervalo, com realizado/faltante/fórmula",
+        "x-capability": "goals.view",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoalList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      },
+      "post": {
+        "summary": "Cria meta em rascunho",
+        "x-capability": "goals.create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Goal"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoalInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/goals/{id}": {
+      "get": {
+        "summary": "Meta",
+        "x-capability": "goals.view",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Goal"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      },
+      "put": {
+        "summary": "Edita rascunho",
+        "x-capability": "goals.edit_draft",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Goal"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoalInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/goals/{id}/activation": {
+      "post": {
+        "summary": "Ativa (imutável depois)",
+        "x-capability": "goals.create",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Goal"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/goals/{id}/cancellation": {
+      "post": {
+        "summary": "Cancela com motivo",
+        "x-capability": "goals.create",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Goal"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoalReason"
+              }
+            }
           }
         }
       }

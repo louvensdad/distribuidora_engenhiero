@@ -11,8 +11,8 @@ final config = AppConfig(
   destinations: [
     Destination(id: 'inicio', label: 'Início', icon: 'home', builder: (_) => const HomeSummaryScreen()),
     Destination(id: 'central', label: 'Central', icon: 'dashboard', anyOf: const ['audit.view'], builder: (_) => const CentralScreen()),
-    Destination(id: 'relatorios', label: 'Relatórios', icon: 'report', anyOf: const ['reports.view'], pendingPhase: 'F09',
-        builder: (_) => const PendingModuleView(title: 'Relatórios e gráficos 3D', phase: 'F09')),
+    Destination(id: 'relatorios', label: 'Relatórios', icon: 'report', anyOf: const ['reports.view'],
+        builder: (_) => const ReportsScreen()),
     Destination(id: 'ia', label: 'IA', icon: 'ai', anyOf: const ['ai.view'], pendingPhase: 'F15',
         builder: (_) => const PendingModuleView(title: 'IA da gestão', phase: 'F15')),
     Destination(id: 'mais', label: 'Mais', icon: 'settings',

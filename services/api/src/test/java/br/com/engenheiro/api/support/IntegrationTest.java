@@ -34,6 +34,13 @@ public @interface IntegrationTest {
             return new PostgreSQLContainer("postgres:18.6-alpine");
         }
 
+        /** Relógio controlável (fronteira de dia em America/Sao_Paulo); por padrão é o do sistema. */
+        @Bean
+        @Primary
+        MutableClock testClock() {
+            return new MutableClock();
+        }
+
         /** Mesmo conjunto de validadores de produção; só a origem da chave pública muda. */
         @Bean
         @Primary

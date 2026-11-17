@@ -29,3 +29,4 @@ ou de provedores; mudanças exigem novo ADR com o modelo `docs/especificacao/tem
 | ADR-021 | Funcionários (folgas, férias, desempenho por função) e Open Finance — pedido do responsável | ADOTADA (validar férias com o contador) | Ver `ADR-021.md` |
 | ADR-022 | Guias, folha e central de documentos da F07 | ADOTADA (validar com o contador) | Ver `ADR-022.md` |
 | ADR-023 | Notas fiscais e pagamentos por adaptador; BLOQUEADO sem provedor; sem emissão duplicada; avisos assinados | ADOTADA (integração real BLOQUEADA: D02/D03/D04) | Ver `ADR-023.md` |
+| ADR-024 | Relatório canônico (fuso, escopo, campos ocultos), PDF/XLSX/CSV, gráficos 3D, metas e ranking por medida | ADOTADA (validar metas/política com dono e contador, D12) | Ver `ADR-024.md` |

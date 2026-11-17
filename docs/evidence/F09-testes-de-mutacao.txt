@@ -1,0 +1,23 @@
+# F09 — testes de mutação (regra desligada → teste precisa falhar; código restaurado em seguida) — 2026-11-17T04:20:36-03:00
+## M1 — campo oculto exposto (fechamento sempre visível)
+mutação: 'boolean closing = a.closing();' -> 'boolean closing = true;' em src/main/java/br/com/engenheiro/api/reports/ReportService.java
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 11.84 s <<< FAILURE! -- in br.com.engenheiro.api.reports.ReportsIntegrationTest
+Expecting actual:
+Expecting actual:
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0
+
+## M2 — data do lançamento pelo UTC, não por São Paulo
+mutação: 'return LocalDate.ofInstant(clock.instant(), COMMERCIAL);' -> 'return LocalDate.ofInstant(clock.instant(), java.time.ZoneOffset.UTC);' em src/main/java/br/com/engenheiro/api/finance/Journal.java
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 10.53 s <<< FAILURE! -- in br.com.engenheiro.api.reports.ReportsIntegrationTest
+expected: "30.00"
+ but was: "0.00"
+expected: "30.00"
+
+## M3 — faltante da meta sem piso zero
+mutação: 'BigDecimal remaining = r.target().subtract(realized).max(BigDecimal.ZERO);' -> 'BigDecimal remaining = r.target().subtract(realized);' em src/main/java/br/com/engenheiro/api/reports/GoalService.java
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 11.02 s <<< FAILURE! -- in br.com.engenheiro.api.reports.ReportsIntegrationTest
+expected: "0.000000"
+ but was: "-500.000000"
+expected: "0.000000"
+
+Resultado: 3/3 mutações pegas.

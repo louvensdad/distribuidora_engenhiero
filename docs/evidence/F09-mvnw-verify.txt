@@ -1,0 +1,52 @@
+# F09 — ./mvnw -o verify — 2026-11-17T04:20:36-03:00
+[INFO] Tests run: 144, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+
+Novos (ReportsIntegrationTest, 6):
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.132 s -- in br.com.engenheiro.api.reports.ReportsIntegrationTest
+  - "fixtureDoPacoteResulta9500NaTelaNoGraficoENosArquivos"
+  - "campoOcultoNaoVazaEmNenhumaSaida"
+  - "filtroDeDiaRespeitaFronteiraDeSaoPaulo"
+  - "escopoDeUnidadeNoRelatorio"
+  - "metasComRealizadoFaltanteEFormula"
+  - "mesFechadoVemDoRetratoComPoliticaVersionada"
+
+Por classe:
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.136 s -- in br.com.engenheiro.api.accounting.AccountingIntegrationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.382 s -- in br.com.engenheiro.api.integrations.IntegrationsIntegrationTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.604 s -- in br.com.engenheiro.api.inventory.F03LimitsIntegrationTest
+Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.141 s -- in br.com.engenheiro.api.inventory.InventoryIntegrationTest
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.925 s -- in br.com.engenheiro.api.logistics.LogisticsIntegrationTest
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.132 s -- in br.com.engenheiro.api.reports.ReportsIntegrationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in br.com.engenheiro.api.documents.DocumentsUnitTest
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.277 s -- in br.com.engenheiro.api.finance.FinanceIntegrationTest
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.208 s -- in br.com.engenheiro.api.orders.OrdersIntegrationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.380 s -- in br.com.engenheiro.api.team.TeamAndOpenFinanceIntegrationTest
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.360 s -- in br.com.engenheiro.api.catalogparties.CustomersIntegrationTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.087 s -- in br.com.engenheiro.api.identityaccess.ConcurrencyIntegrationTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.031 s -- in br.com.engenheiro.api.identityaccess.OpenApiContractTest
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in br.com.engenheiro.api.identityaccess.AccessPolicyTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in br.com.engenheiro.api.identityaccess.ContractConsistencyTest
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.539 s -- in br.com.engenheiro.api.identityaccess.LocalSeedIntegrationTest
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.861 s -- in br.com.engenheiro.api.identityaccess.WebBffIntegrationTest
+Tests run: 21, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.525 s -- in br.com.engenheiro.api.identityaccess.AuthorizationIntegrationTest
+Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.152 s -- in br.com.engenheiro.api.identityaccess.AuthenticationIntegrationTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0 -- in br.com.engenheiro.api.accounting.AccountingIntegrationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0 -- in br.com.engenheiro.api.integrations.IntegrationsIntegrationTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0 -- in br.com.engenheiro.api.inventory.F03LimitsIntegrationTest
+Tests run: 12, Failures: 0, Errors: 0, Skipped: 0 -- in br.com.engenheiro.api.inventory.InventoryIntegrationTest
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0 -- in br.com.engenheiro.api.logistics.LogisticsIntegrationTest
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0 -- in br.com.engenheiro.api.reports.ReportsIntegrationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0 -- in br.com.engenheiro.api.documents.DocumentsUnitTest
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0 -- in br.com.engenheiro.api.finance.FinanceIntegrationTest
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 0 -- in br.com.engenheiro.api.orders.OrdersIntegrationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0 -- in br.com.engenheiro.api.team.TeamAndOpenFinanceIntegrationTest
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 0 -- in br.com.engenheiro.api.catalogparties.CustomersIntegrationTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0 -- in br.com.engenheiro.api.identityaccess.ConcurrencyIntegrationTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0 -- in br.com.engenheiro.api.identityaccess.OpenApiContractTest
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0 -- in br.com.engenheiro.api.identityaccess.AccessPolicyTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0 -- in br.com.engenheiro.api.identityaccess.ContractConsistencyTest
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0 -- in br.com.engenheiro.api.identityaccess.LocalSeedIntegrationTest
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0 -- in br.com.engenheiro.api.identityaccess.WebBffIntegrationTest
+Tests run: 21, Failures: 0, Errors: 0, Skipped: 0 -- in br.com.engenheiro.api.identityaccess.AuthorizationIntegrationTest
+Tests run: 15, Failures: 0, Errors: 0, Skipped: 0 -- in br.com.engenheiro.api.identityaccess.AuthenticationIntegrationTest

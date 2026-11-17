@@ -19,6 +19,10 @@ import { PayablesPage } from "../features/finance/PayablesPage";
 import { MyCashPage } from "../features/finance/MyCashPage";
 import { CashAccountsPage } from "../features/finance/CashAccountsPage";
 import { ClosingPage } from "../features/finance/ClosingPage";
+import { CategoriesPage } from "../features/reports/CategoriesPage";
+import { CustomersRankingPage } from "../features/reports/CustomersRankingPage";
+import { GoalsPage } from "../features/reports/GoalsPage";
+import { ReportPage } from "../features/reports/ReportPage";
 import { ExpensesPage } from "../features/finance/ExpensesPage";
 import { ReceivablesPage } from "../features/finance/ReceivablesPage";
 import { OpenFinancePage } from "../features/finance/OpenFinancePage";
@@ -51,6 +55,10 @@ const IMPLEMENTED: Record<string, () => React.JSX.Element> = {
   "/finance/my-cash": MyCashPage,
   "/finance/cash": CashAccountsPage,
   "/finance/closing": ClosingPage,
+  "/reports": ReportPage,
+  "/reports/categories": CategoriesPage,
+  "/reports/goals": GoalsPage,
+  "/reports/customers": CustomersRankingPage,
   "/finance/expenses": ExpensesPage,
   "/finance/receivables": ReceivablesPage,
   "/finance/open-finance": OpenFinancePage,

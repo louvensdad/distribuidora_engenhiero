@@ -1,10 +1,10 @@
 # Checkpoint
 
-Data/hora e fuso: 16/11/2026 16:20 America/Sao_Paulo
+Data/hora e fuso: 17/11/2026 04:30 America/Sao_Paulo
 Agente e repositório: Claude Code (Opus 5.5) — `/home/louvens/Ivan/distribuidora-engenheiro` (movido de `~/distribuidora-engenheiro`)
 Branch e commit atual: `main` — ver `git log -1`
-Fase: F08 concluída (integrações fiscais e de pagamento — reais BLOQUEADAS sem provedor); próxima F09
-Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **PASS** (pendências abaixo) · F06 **PASS** (pendências abaixo) · F07 **PASS** (pendências abaixo) · F08 **PASS** (critérios provados; integração real BLOCKED: D02/D03/D04) · F09 **NOT_STARTED**
+Fase: F09 concluída (relatórios, metas e gráficos 3D); próxima F10
+Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **PASS** (pendências abaixo) · F06 **PASS** (pendências abaixo) · F07 **PASS** (pendências abaixo) · F08 **PASS** (critérios provados; integração real BLOCKED: D02/D03/D04) · F09 **PASS** (IA e busca dependem de F15/F10)
 
 ## Entregue e comprovado
 
@@ -108,6 +108,33 @@ Pendências F04:
 - App: Pix pendente é registrado, mas conferir Pix, retirada parcial, cancelamento e devolução estão só no site; app
   Patrão com Pedidos/Caixa compilado e com teste de widget, não exercitado no emulador nesta fase.
 - Concessões do balcão no emulador aplicadas direto no banco local (equivalentes ao mapa de acessos).
+
+## F09 — relatórios, metas e gráficos 3D (17/11/2026, ADR-024)
+
+Entregue (migration V12): relatório canônico único (`ReportService`) por dia/semana/mês/período em America/Sao_Paulo
+(`[início, fim)`), por unidade conforme o escopo; categorias e subcategorias antes do fechamento; CMV, despesas,
+perdas, lucro/prejuízo, margem e quantidade vendida (cumprida − devolvida) com quantidade em carteira separada;
+comparação com o período anterior com fórmula; linha do tempo; drilldown até o pedido/registro e o comprovante;
+PDF/XLSX/CSV gerados no servidor do mesmo objeto (auditados; `reports.export`/`reports.print`); retrato de mês fechado
+com política versionada (`RESULTADO-GERENCIAL-1`) conferido com o livro; metas semanais/mensais (rascunho → ativa →
+cancelada) com realizado, faltante, %, ritmo e fórmula; melhor cliente por medidas separadas (sem nota única).
+Campos ocultos: sem `purchase_cost` e `margin`, CMV/perdas/lucro/margem somem de tela, gráfico, arquivos, linhas a custo,
+ranking e metas — também no resumo da F06, que passou a exigir escopo de organização. Data do lançamento agora vem do
+`Clock` injetado no fuso comercial.
+Superfícies: site (Relatórios › Relatório completo, Gastos por categoria, Metas, Clientes; Visão geral usa o mesmo
+relatório) e app Patrão (aba Relatórios: Resultado com colunas 3D/2D e Metas).
+Validação: `./mvnw verify` **144** (`F09-mvnw-verify.txt`), mutação 3/3 pegas (`F09-testes-de-mutacao.txt`), Vitest
+**54** (`F09-web-vitest.txt`), Playwright **118** (+2 pulados; `F09-web-playwright.txt`), Dart **45** e emulador (`F09-mobile.txt`).
+Critérios: FECHAMENTO-01 (40.000 − 15.000 − 15.000 − 500) = 9.500 na API, nas colunas, na linha do tempo, no CSV, no
+XLSX e no PDF; 23:30 em São Paulo (02:30 UTC) conta no dia de São Paulo; campo oculto ausente de PDF/CSV/XLSX.
+Defeitos encontrados e corrigidos: ranking usava coluna inexistente; relatório em transação só-leitura falhava ao
+garantir as contas padrão; resumo antigo quebrava a tela quando o lucro vinha oculto; rótulos do gráfico cortados,
+caixa "2D" deformada e prejuízo em verde no site; sobreposição e quantidades com seis zeros no app.
+
+Pendências F09:
+- "Analisar com a IA" fica NÃO CONFIGURADA até a F15 (usará o mesmo serviço, com escopo e campos); busca global: F10/F15.
+- Validar com o dono quais metas acompanhar e lucro por unidade (despesa da empresa lançada na Matriz conta na Matriz).
+- Metas são criadas/ativadas pelo site; no app, só leitura (paridade de edição na F14).
 
 ## F08 — integrações fiscais e de pagamento (16/11/2026, ADR-023)
 
@@ -276,5 +303,5 @@ ENGENHEIRO_SENHA_LOCAL=... python3 -I ../../infra/local/e2e_login_web.py
 
 ## Próxima ação
 
-1. **F09**: relatórios, metas e gráficos — relatórios com filtros e limite de período, metas por pessoa/setor e o que
-   ficou parcial do REP-08 (cliente e metas), sobre os lançamentos reais das fases anteriores.
+1. **F10**: site integral do patrão — todos os módulos web ligados a serviços reais, sem botões falsos (busca global,
+   paridade de funções e revisão das telas existentes).

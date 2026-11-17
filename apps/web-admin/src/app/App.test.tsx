@@ -69,9 +69,9 @@ describe("site do patrão", () => {
   });
 
   it("módulo de fase futura é rotulado como pendente, sem números de exemplo", async () => {
-    mockFetch({ "GET /bff/session": session, "GET /api/v1/me/capabilities": { body: me() } });
-    renderAt("/reports");
-    expect(await screen.findByText(/Relatórios: em implementação/)).toBeInTheDocument();
+    mockFetch({ "GET /bff/session": session, "GET /api/v1/me/capabilities": { body: me({ capabilities: caps("ai.view") }) } });
+    renderAt("/intelligence");
+    expect(await screen.findByText(/IA da gestão: em implementação/)).toBeInTheDocument();
     expect(screen.queryByText(/R\$/)).not.toBeInTheDocument();
   });
 

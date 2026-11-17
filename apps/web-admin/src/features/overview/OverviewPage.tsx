@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { AUDIT_ACTION_LABELS, label } from "../../api/labels";
-import type { AuditEvent, FinanceSummary, Page, UserView } from "../../api/types";
+import type { AuditEvent, Page, Report, UserView } from "../../api/types";
 import { useResource } from "../../api/useResource";
 import { formatDateTime, formatMoney } from "../../app/format";
 import { Icon } from "../../components/Icon";
@@ -9,19 +9,20 @@ import { useSession } from "../../session/SessionContext";
 
 /**
  * W02 — visão geral. Só mostra dados reais existentes. Vendas, CMV, despesas, perdas e lucro do mês vêm do mesmo
- * resultado gerencial do Financeiro (F06) para quem tem `reports.view`; sem essa permissão, aparecem como bloqueados.
+ * relatório canônico (F09) para quem tem `reports.view`; sem a permissão, aparecem bloqueados; campo oculto aparece como oculto.
  */
 export function OverviewPage() {
   const { me, can } = useSession();
   const [users] = useResource<Page<UserView>>(can("users.view") ? "/api/v1/users" : null);
   const [audit] = useResource<Page<AuditEvent>>(can("audit.view") ? "/api/v1/audit-events?limit=6" : null);
-  const [sum] = useResource<FinanceSummary>(can("reports.view") ? "/api/v1/reports/summary" : null);
-  const kpis: [string, string | undefined][] = [
-    ["Vendas realizadas", sum.status === "ready" ? sum.data.gross_revenue : undefined],
-    ["CMV", sum.status === "ready" ? sum.data.cogs : undefined],
-    ["Despesas", sum.status === "ready" ? sum.data.expenses_total : undefined],
-    ["Perdas", sum.status === "ready" ? sum.data.losses : undefined],
-    ["Lucro gerencial", sum.status === "ready" ? sum.data.profit : undefined],
+  const [sum] = useResource<Report>(can("reports.view") ? "/api/v1/reports/overview?period=MONTH" : null);
+  const r = sum.status === "ready" ? sum.data.result : undefined;
+  const kpis: [string, string | null | undefined][] = [
+    ["Vendas (receita líquida)", r?.net_revenue],
+    ["CMV", r && r.cogs],
+    ["Despesas", r?.expenses_total],
+    ["Perdas", r && r.losses],
+    ["Lucro gerencial", r && r.profit],
   ];
 
   return (
@@ -35,10 +36,10 @@ export function OverviewPage() {
 
       <div className="kpis">
         {kpis.map(([k, v]) => v !== undefined ? (
-          <Link key={k} to="/finance/closing" className="kpi card">
+          <Link key={k} to="/reports" className="kpi card">
             <span className="kpi-label">{k} (mês)</span>
-            <span className="kpi-value">{formatMoney(v)}</span>
-            <span className="muted small">Resultado gerencial por competência</span>
+            <span className="kpi-value">{v === null ? "oculto" : formatMoney(v)}</span>
+            <span className="muted small">{v === null ? "Oculto pela sua permissão (custo/margem)" : "Resultado gerencial por competência"}</span>
           </Link>
         ) : (
           <div key={k} className="kpi card kpi-pending">

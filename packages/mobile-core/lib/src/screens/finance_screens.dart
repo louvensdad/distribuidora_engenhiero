@@ -72,7 +72,7 @@ class _FinanceSummaryScreenState extends State<FinanceSummaryScreen> {
     final s = _s;
     if (s == null) return const LoadingState();
     final cash = s['cash'] as Map<String, dynamic>;
-    final profit = s['profit'] as String;
+    final profit = s['profit'] as String?; // null = oculto pela política de campo (custo/margem)
     final recOk = _rec?['status'] == 'OK';
     return RefreshIndicator(
       onRefresh: _load,
@@ -88,11 +88,14 @@ class _FinanceSummaryScreenState extends State<FinanceSummaryScreen> {
           const Text('Resultado gerencial (competência)', style: TextStyle(color: EngColors.muted)),
           _line('Vendas cumpridas', s['gross_revenue'] as String?),
           _line('(−) Descontos e devoluções', _sum(s['discounts'] as String?, s['returns'] as String?)),
-          _line('(−) CMV', s['cogs'] as String?),
+          if (s['cogs'] != null) _line('(−) CMV', s['cogs'] as String?),
           for (final e in (s['expenses'] as List).cast<Map<String, dynamic>>()) _line('(−) ${e['label']}', e['amount'] as String?),
-          _line('(−) Perdas de estoque', s['losses'] as String?),
+          if (s['losses'] != null) _line('(−) Perdas de estoque', s['losses'] as String?),
           const Divider(),
-          _line(profit.startsWith('-') ? 'Prejuízo do período' : 'Lucro do período', profit, strong: true),
+          if (profit == null)
+            const Text('CMV, perdas e lucro ocultos pela sua permissão.', style: TextStyle(color: EngColors.muted))
+          else
+            _line(profit.startsWith('-') ? 'Prejuízo do período' : 'Lucro do período', profit, strong: true),
           if (s['margin_percent'] != null)
             Text('Margem: ${(s['margin_percent'] as String).replaceAll('-', '−').replaceAll('.', ',')}%', style: const TextStyle(color: EngColors.muted)),
         ]))),

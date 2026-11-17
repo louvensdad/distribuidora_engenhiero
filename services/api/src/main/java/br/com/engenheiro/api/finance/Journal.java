@@ -28,9 +28,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class Journal {
     public static final ZoneId COMMERCIAL = ZoneId.of("America/Sao_Paulo");
     private final JdbcClient jdbc;
+    private final java.time.Clock clock;
 
-    public Journal(JdbcClient jdbc) {
+    public Journal(JdbcClient jdbc, java.time.Clock clock) {
         this.jdbc = jdbc;
+        this.clock = clock;
+    }
+
+    /** Data civil comercial de hoje (America/Sao_Paulo), nunca o fuso do servidor. */
+    public LocalDate today() {
+        return LocalDate.ofInstant(clock.instant(), COMMERCIAL);
     }
 
     public record Line(String account, BigDecimal debit, BigDecimal credit, UUID finAccountId) {
@@ -68,7 +75,7 @@ public class Journal {
         if (nonZero.isEmpty()) {
             return null;
         }
-        LocalDate today = LocalDate.now(COMMERCIAL);
+        LocalDate today = today();
         requireOpen(actor.organizationId(), today);
         if (competence != null) {
             requireOpen(actor.organizationId(), competence);

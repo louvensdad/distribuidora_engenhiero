@@ -381,13 +381,14 @@ export interface Receivable {
 export interface ReportItem { key: string; label: string; amount: string; accounts: string[] }
 export interface CashPosition { available: string; accounts: ReportItem[]; receivables_open: string; card_receivables_open: string; payables_open: string; customer_advances: string; note: string }
 export interface FinanceSummary {
-  from: string; to: string; basis: string; gross_revenue: string; discounts: string; returns: string; net_revenue: string; cogs: string;
-  expenses: ReportItem[]; expenses_total: string; losses: string; costs_expenses_losses: string; profit: string; margin_percent: string | null;
+  from: string; to: string; basis: string; policy_version: string; hidden: string[]; gross_revenue: string; discounts: string; returns: string; net_revenue: string; cogs: string | null;
+  expenses: ReportItem[]; expenses_total: string; losses: string | null; costs_expenses_losses: string | null; profit: string | null; margin_percent: string | null;
   owner_withdrawals: string; cash: CashPosition; drill: ReportItem[]; note: string;
 }
 export interface LedgerLines {
   accounts: string[]; from: string; to: string; basis: string; total_debit: string; total_credit: string; net: string;
-  items: { entry_id: string; entry_date: string; competence: string | null; event_kind: string; memo: string | null; source_type: string; source_id: string; account: string; debit: string; credit: string; fin_account: string | null; created_by_name: string; created_at: string; reversal_of: string | null }[];
+  items: { entry_id: string; entry_date: string; competence: string | null; event_kind: string; memo: string | null; source_type: string; source_id: string; account: string; debit: string; credit: string; fin_account: string | null; created_by_name: string; created_at: string; reversal_of: string | null;
+    origin_type: string | null; origin_id: string | null; origin_number: number | null; documents: number; document_id: string | null }[];
 }
 export interface FinanceCategories { from: string; to: string; categories: ReportItem[]; subcategories: { category: string; subcategory: string; amount: string; entries: number }[]; total: string }
 export interface Reconciliation { checked_at: string; status: "OK" | "DIVERGENT"; checks: { code: string; label: string; expected: string; actual: string; difference: string; status: "OK" | "ROUNDING" | "DIVERGENT"; explanation: string }[] }
@@ -479,4 +480,45 @@ export interface WebhookEvent {
   id: string; provider: string; event_id: string | null; signature_valid: boolean; event_type: string | null;
   reference: string | null; amount: string | null; status: string; detail: string | null; payment_id: string | null;
   received_at: string;
+}
+
+// ---- F09: relatórios, metas e ranking ----
+export type ReportPeriod = "DAY" | "WEEK" | "MONTH" | "CUSTOM";
+export interface ReportResult {
+  gross_revenue: string; discounts: string; returns: string; net_revenue: string; cogs: string | null; expenses_total: string;
+  losses: string | null; costs_expenses_losses: string | null; profit: string | null; margin_percent: string | null;
+  outcome: "PROFIT" | "LOSS" | "ZERO" | null;
+}
+export interface ReportColumn { key: string; label: string; amount: string }
+export interface ReportPoint { from: string; to: string; label: string; net_revenue: string; expenses_total: string; cogs: string | null; losses: string | null; profit: string | null; sold_quantity: string | null }
+export interface ReportSub { category: string; subcategory: string; amount: string; entries: number }
+export interface Report {
+  policy_version: string; timezone: string; period: ReportPeriod; from: string; to: string; label: string;
+  branch_id: string | null; branch_name: string | null; basis: string; source: "LIVE" | "SNAPSHOT";
+  closed: { closed_at: string | null; closed_by_name: string | null; policy_version: string; matches_live: boolean } | null;
+  hidden: string[]; result: ReportResult; expenses: ReportItem[]; subcategories: ReportSub[];
+  sold: { quantity_total: string | null; unit: string | null; by_unit: { unit: string; sold: string; backlog: string }[]; orders: number; note: string };
+  chart_unit: string; chart: ReportColumn[]; timeline_bucket: "DAY" | "WEEK" | "MONTH"; timeline: ReportPoint[];
+  comparison: { from: string; to: string; label: string; items: { key: string; label: string; current: string; previous: string; difference: string; percent: string | null }[]; formula: string };
+  drill: ReportItem[]; cash: CashPosition | null; formula: string; note: string; generated_by: string; generated_at: string;
+}
+export interface CustomerRankingRow {
+  position: number; customer_id: string; customer_name: string; net_revenue: string; quantity: string | null; margin: string | null;
+  margin_percent: string | null; orders: number; active_weeks: number; returns: number; receivables_due: number;
+  receivables_on_time: number; on_time_percent: string | null;
+}
+export interface CustomerRanking {
+  from: string; to: string; label: string; branch_id: string | null; sort: string; unit: string | null;
+  measures: { key: string; label: string; formula: string }[]; hidden: string[]; items: CustomerRankingRow[]; note: string;
+}
+export type GoalMetric = "NET_REVENUE" | "SOLD_QUANTITY" | "PROFIT";
+export interface Goal {
+  id: string; metric: GoalMetric; metric_label: string; unit: string | null; period_kind: "WEEK" | "MONTH"; period_start: string;
+  period_end: string; period_label: string; target: string; title: string; notes: string | null; branch_id: string | null;
+  branch_name: string | null; state: "DRAFT" | "ACTIVE" | "CANCELLED"; cancel_reason: string | null; created_by_name: string;
+  created_at: string; activated_by_name: string | null; activated_at: string | null; cancelled_by_name: string | null;
+  cancelled_at: string | null;
+  progress: { realized: string | null; remaining: string | null; percent: string | null; expected_by_now: string | null; days_elapsed: number;
+    days_total: number; status: "NOT_STARTED" | "ON_PACE" | "BEHIND_PACE" | "ACHIEVED" | "MISSED" | "HIDDEN"; formula: string };
+  version: number;
 }

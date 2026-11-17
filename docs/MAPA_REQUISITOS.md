@@ -56,7 +56,14 @@ Requisitos de F02 em diante seguem NOT_STARTED (lista completa em `docs/especifi
 | FIN-08 | Correção por estorno vinculado, sem exclusão | `pagamentoDeObrigacao...` (estorno de pagamento e de despesa), transferência estornada | PASS |
 | RESP-01 (pedido, ADR-021) | Folgas e férias com calendário de disponibilidade por setor (Equipe › Funcionários) | `feriasEFolgasComCalendarioPorSetorESemSobreposicao`, `Employees.test.tsx`, `team-openfinance.spec.ts` | PASS (web; app na F14) |
 | RESP-02 (pedido, ADR-021) | Open Finance pelo CNPJ: consentimento, extrato, conciliação, despesa sugerida | `extratoImportadoConciliaSugereDespesaENaoDuplica` (agregador de teste), `openFinanceSemAgregadorFicaNaoConfigurado`, E2E | PARTIAL — NÃO CONFIGURADO até contratar agregador |
-| REP-08 | Melhor funcionário por função com medidas e fórmula pública (sem nota única) | `desempenhoPorFuncaoComMedidasSeparadasEFormula`, `Employees.test.tsx` | PARTIAL — funcionários feito; cliente e metas na F09 |
+| REP-01 | Gastos primeiro por categoria/subcategoria e depois fechamento (Relatórios › Gastos por categoria, W13) | `fixtureDoPacote...` (categorias do pacote), `Reports.test.tsx`, `reports.spec.ts` | PASS |
+| REP-02 | Lucro/prejuízo, despesas, perdas, CMV e quantidade vendida (`ReportService`) | `fixtureDoPacoteResulta9500...` (FECHAMENTO-01: 9.500, margem 23,75, 2.000 dz), `mesFechadoVemDoRetrato...` | PASS |
+| REP-03 | Colunas 3D proporcionais, rótulos, unidades, versão 2D e tabela acessível (site SVG, app CustomPainter) | `Reports.test.tsx` (alturas proporcionais, 2D), `reports_test.dart`, `reports.spec.ts`, emulador | PASS |
+| REP-04 | Dia/semana/mês/período no fuso de São Paulo, início inclusivo/fim exclusivo, unidade por escopo | `filtroDeDiaRespeitaFronteiraDeSaoPaulo` (23:30 SP = 02:30 UTC), `escopoDeUnidadeNoRelatorio`, mutação M2 | PASS |
+| REP-05 | Drilldown até o registro de origem e comprovante | `fixtureDoPacote...` (linhas → pedido), `reports.spec.ts` (link do pedido) | PASS |
+| REP-06 | PDF/XLSX/CSV com os mesmos números e sem campo oculto; auditados | `fixtureDoPacote...` (CSV/XLSX/PDF lidos), `campoOcultoNaoVazaEmNenhumaSaida`, mutação M1, `reports.spec.ts` (download) | PASS (IA/busca: F15/F10) |
+| REP-07 | Metas semanais/mensais com realizado, faltante e fórmula | `metasComRealizadoFaltanteEFormula`, mutação M3, `Reports.test.tsx`, emulador | PASS |
+| REP-08 | Melhor cliente/funcionário só com medidas por função, sem nota única | `desempenhoPorFuncao...` (ADR-021), `fixtureDoPacote...`/`filtroDeDia...` (ranking por medida), `Reports.test.tsx` | PASS |
 | CONT-01 | Contador prepara guia com competência, vencimento, valor e anexo (app Contábil) | `guiaEmEtapasComUploadReal...`, `accounting_test.dart`, emulador (`F07-mobile.txt`) | PASS |
 | CONT-02 | Preparar, aprovar e pagar independentes; aprovada continua não paga | `guiaEmEtapas...`, mutação M1/M3, `accounting.spec.ts` | PASS |
 | CONT-03 | Folha por rubricas/importação validada; individual só com employee_salary (JSON e export) | `folhaPorRubricasComDadoIndividualProtegido`, mutação M2, emulador | PASS |

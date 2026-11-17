@@ -230,6 +230,15 @@ class ApiClient {
   Future<Map<String, dynamic>> financeSummary({required String from, required String to}) =>
       _get('/api/v1/reports/summary', {'from': from, 'to': to});
 
+  // ---- F09: relatório canônico e metas (mesmo cálculo do site, já sem os campos ocultos) ----
+  Future<Map<String, dynamic>> report({required String period, required String date, String? branchId}) =>
+      _get('/api/v1/reports/overview', {'period': period, 'date': date, 'branch_id': branchId});
+
+  Future<List<Map<String, dynamic>>> goals({required String from, required String to}) async {
+    final j = await _get('/api/v1/goals', {'from': from, 'to': to});
+    return (j['items'] as List).cast<Map<String, dynamic>>();
+  }
+
   Future<Map<String, dynamic>> reconciliation() => _get('/api/v1/finance/reconciliation');
 
   // ---- F07: contador ----

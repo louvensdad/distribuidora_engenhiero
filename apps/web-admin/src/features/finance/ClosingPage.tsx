@@ -25,7 +25,7 @@ export function ClosingPage() {
   if (sum.status === "forbidden") return <ForbiddenState />;
   if (sum.status === "error") return <ErrorState error={sum.error} onRetry={reloadSum} />;
   const s = sum.data;
-  const row = (label: string, amount: string, item?: ReportItem, strong = false) => (
+  const row = (label: string, amount: string | null, item?: ReportItem, strong = false) => (
     <tr>
       <th scope="row">{strong ? <strong>{label}</strong> : label}</th>
       <td className="num">{strong ? <strong>{formatMoney(amount)}</strong> : formatMoney(amount)}</td>
@@ -56,11 +56,11 @@ export function ClosingPage() {
                 {row("(−) Descontos", s.discounts, d("discounts"))}
                 {row("(−) Devoluções", s.returns, d("returns"))}
                 {row("Receita líquida", s.net_revenue, undefined, true)}
-                {row("(−) CMV", s.cogs, d("cogs"))}
+                {s.cogs != null && row("(−) CMV", s.cogs, d("cogs"))}
                 {s.expenses.map((e) => <tr key={e.key}><th scope="row">(−) {e.label}</th><td className="num">{formatMoney(e.amount)}</td>
                   <td><button className="btn btn-small btn-ghost" onClick={() => setDrill(e)} aria-label={`Abrir lançamentos de ${e.label}`}>Abrir lançamentos</button></td></tr>)}
-                {row("(−) Perdas e ajustes de estoque", s.losses, d("losses"))}
-                {row(s.profit.startsWith("-") ? "Prejuízo do período" : "Lucro do período", s.profit, undefined, true)}
+                {s.losses != null && row("(−) Perdas e ajustes de estoque", s.losses, d("losses"))}
+                {s.profit == null ? <tr><th scope="row">Lucro/prejuízo</th><td className="num">oculto pela sua permissão</td><td /></tr> : row(s.profit.startsWith("-") ? "Prejuízo do período" : "Lucro do período", s.profit, undefined, true)}
               </tbody>
             </table>
           </div>
