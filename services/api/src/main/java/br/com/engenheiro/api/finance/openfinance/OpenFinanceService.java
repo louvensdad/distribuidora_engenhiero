@@ -368,7 +368,7 @@ public class OpenFinanceService {
               FROM bank_connections c JOIN fin_accounts a ON a.id = c.fin_account_id JOIN app_users u ON u.id = c.created_by
             """;
 
-    static boolean validCnpj(String c) {
+    public static boolean validCnpj(String c) {
         if (c == null || !c.matches("\\d{14}") || c.chars().distinct().count() == 1) {
             return false;
         }

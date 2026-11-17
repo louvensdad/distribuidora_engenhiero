@@ -1,5 +1,4 @@
 import 'package:engenheiro_core/engenheiro_core.dart';
-import 'package:engenheiro_design/engenheiro_design.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Engenheiro Contábil (br.com.engenheiro.contabil): guias, folha, notas e documentos.
@@ -14,8 +13,8 @@ final config = AppConfig(
         builder: (_) => const AccountantAgendaScreen()),
     Destination(id: 'guias', label: 'Guias', icon: 'tax', anyOf: const ['taxes.view'], builder: (_) => const TaxesScreen()),
     Destination(id: 'folha', label: 'Folha', icon: 'wallet', anyOf: const ['payroll.view'], builder: (_) => const PayrollScreen()),
-    Destination(id: 'notas', label: 'Notas', icon: 'invoice', anyOf: const ['invoices.view'], pendingPhase: 'F08',
-        builder: (_) => const PendingModuleView(title: 'Notas fiscais', phase: 'F08')),
+    Destination(id: 'notas', label: 'Notas', icon: 'invoice', anyOf: const ['invoices.view'],
+        builder: (_) => const InvoicesScreen()),
     Destination(id: 'documentos', label: 'Documentos', icon: 'document', anyOf: const ['documents.view'],
         builder: (_) => const AccountingDocumentsScreen()),
   ],

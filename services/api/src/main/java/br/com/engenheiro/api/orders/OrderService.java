@@ -737,6 +737,12 @@ public class OrderService {
         return o;
     }
 
+    /** Trava do pedido para efeitos vindos de aviso assinado do provedor (sem pessoa; a autorização é a assinatura). */
+    Row lockForSystem(UUID id) {
+        return jdbc.sql(SELECT + " WHERE o.id = :id FOR UPDATE OF o").param("id", id).query(Row.class).optional()
+                .orElseThrow(ApiException::notFound);
+    }
+
     /** Valor efetivo do pedido: itens não cancelados nem devolvidos, pelo líquido proporcional. */
     BigDecimal effectiveTotal(UUID orderId) {
         return lines(orderId).stream().map(l -> l.net().subtract(

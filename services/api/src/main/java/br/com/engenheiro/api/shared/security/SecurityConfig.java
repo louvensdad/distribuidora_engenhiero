@@ -45,7 +45,7 @@ public class SecurityConfig {
 
     /** CSRF obrigatório em mutações sem bearer (isto é, autenticadas por cookie de sessão). */
     static final RequestMatcher CSRF_REQUIRED = (HttpServletRequest r) -> !SAFE_METHODS.contains(r.getMethod())
-            && !hasBearer(r);
+            && !hasBearer(r) && !r.getRequestURI().startsWith("/webhooks/");
 
     static boolean hasBearer(HttpServletRequest r) {
         String h = r.getHeader("Authorization");
@@ -62,6 +62,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(a -> a
                         .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
                         .requestMatchers("/bff/session").permitAll()
+                        // Avisos de provedores: sem sessão/token; a autorização é a assinatura conferida no serviço.
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/webhooks/payments/*").permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().denyAll())
                 .sessionManagement(s -> s

@@ -26,13 +26,16 @@ public class DocumentController {
     private final br.com.engenheiro.api.finance.ExpenseService finExpenses;
     private final br.com.engenheiro.api.accounting.TaxObligationService taxes;
     private final br.com.engenheiro.api.accounting.AccountingDocumentService accountingDocs;
+    private final br.com.engenheiro.api.integrations.InvoiceService invoices;
 
     public DocumentController(DocumentService documents, ReceiptService receipts,
                               br.com.engenheiro.api.logistics.TripService trips,
                               br.com.engenheiro.api.logistics.VehicleExpenseService expenses,
                               br.com.engenheiro.api.finance.ExpenseService finExpenses,
                               br.com.engenheiro.api.accounting.TaxObligationService taxes,
-                              br.com.engenheiro.api.accounting.AccountingDocumentService accountingDocs) {
+                              br.com.engenheiro.api.accounting.AccountingDocumentService accountingDocs,
+                              br.com.engenheiro.api.integrations.InvoiceService invoices) {
+        this.invoices = invoices;
         this.taxes = taxes;
         this.accountingDocs = accountingDocs;
         this.finExpenses = finExpenses;
@@ -53,6 +56,7 @@ public class DocumentController {
             case "expense" -> finExpenses.get(actor, d.ownerId());
             case "tax_obligation" -> taxes.requireVisible(actor, d.ownerId());
             case "accounting_document" -> accountingDocs.requireVisible(actor, d.ownerId());
+            case "invoice" -> invoices.requireXmlAccess(actor, d.ownerId());
             default -> throw ApiException.notFound();
         }
         DocumentService.Content c = documents.read(actor, d);

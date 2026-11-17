@@ -71,6 +71,11 @@ public class IdempotencyService {
         return result;
     }
 
+    /** Para comandos que chamam integração fora da transação (não usam {@link #execute}). */
+    public static void validateKeyFormat(String key) {
+        validateKey(key);
+    }
+
     private static void validateKey(String key) {
         if (key == null || key.length() < 16 || key.length() > 128 || !key.matches("[A-Za-z0-9._:-]+")) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR,

@@ -1,0 +1,10 @@
+# F08 — testes de mutação (2026-11-16, ./mvnw -o test -Dtest=IntegrationsIntegrationTest#..., código restaurado após cada uma)
+M1. InvoiceService.transmit: tempo esgotado devolve a nota a READY (permitiria reenviar às cegas)
+    → timeoutAposEnvioNaoViraEmissaoDuplicada FALHA: expected 202 but was 200. Pega.
+M2. PaymentIntegrationService.receive aceita aviso sem conferir a assinatura
+    → webhookAssinadoIdempotenteEInvalidoNaoAlteraCaixa FALHA: expected 401 but was 200. Pega.
+M3. InvoiceService.transmit sem a trava de estado/versão no UPDATE (dois cliques simultâneos)
+    → 1ª rodada: SOBREVIVEU (os 4 envios paralelos não caíram na janela entre a leitura e a gravação; as checagens
+      em Java cobriam o caso sequencial). Teste reforçado: o provedor de teste segura as 4 transmissões até todas
+      lerem a nota como conferida (CyclicBarrier), tornando a corrida determinística.
+    → 2ª rodada: FALHA: "Expected size: 1 but was: 4" (4 envios ao provedor). Pega. Sem a mutação: passa.

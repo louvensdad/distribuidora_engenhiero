@@ -12,6 +12,7 @@ import org.springframework.context.annotation.ClassPathScanningCandidateComponen
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import tools.jackson.databind.JsonNode;
@@ -42,6 +43,10 @@ class OpenApiContractTest {
                 }
                 if (p != null) {
                     implemented.add("POST " + prefix + (p.value().length == 0 ? "" : p.value()[0]));
+                }
+                PutMapping u = m.getAnnotation(PutMapping.class);
+                if (u != null) {
+                    implemented.add("PUT " + prefix + (u.value().length == 0 ? "" : u.value()[0]));
                 }
             }
         }

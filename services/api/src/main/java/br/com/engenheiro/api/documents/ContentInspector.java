@@ -39,6 +39,21 @@ final class ContentInspector {
             }
             return new Result("application/pdf", text.contains("%%EOF") ? null : "PDF incompleto ou corrompido");
         }
-        return new Result(null, "Tipo não aceito: envie JPEG, PNG ou PDF");
+        int i = 0;
+        if (b.length >= 3 && (b[0] & 0xFF) == 0xEF && (b[1] & 0xFF) == 0xBB && (b[2] & 0xFF) == 0xBF) {
+            i = 3; // BOM UTF-8
+        }
+        while (i < b.length && (b[i] == ' ' || b[i] == '\n' || b[i] == '\r' || b[i] == '\t')) {
+            i++;
+        }
+        if (b.length - i >= 5 && new String(b, i, 5, StandardCharsets.ISO_8859_1).equals("<?xml")) {
+            // XML fiscal (NF-e/NFC-e). DTD/entidades recusados (XXE, expansão); nunca é servido inline.
+            String text = new String(b, StandardCharsets.UTF_8);
+            if (text.contains("<!DOCTYPE") || text.contains("<!ENTITY")) {
+                return new Result("application/xml", "XML com DTD/entidades não é aceito");
+            }
+            return new Result("application/xml", null);
+        }
+        return new Result(null, "Tipo não aceito: envie JPEG, PNG, PDF ou XML");
     }
 }

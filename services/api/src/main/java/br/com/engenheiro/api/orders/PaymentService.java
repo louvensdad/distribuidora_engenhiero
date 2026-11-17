@@ -27,6 +27,7 @@ import java.util.UUID;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -357,6 +358,108 @@ public class PaymentService {
                     "amount", p.amount().toPlainString(), "note", note)));
             return view(find(id).orElseThrow());
         });
+    }
+
+    // ---------------- provedor de pagamentos (F08, ADR-023) ----------------
+    public record ProviderPayment(UUID id, UUID organizationId, UUID branchId, UUID orderId, String method,
+                                  String state, BigDecimal amount, String providerName, String providerReference,
+                                  String chargeCode, OffsetDateTime chargeExpiresAt) {
+    }
+
+    private static final String PROVIDER_SELECT = """
+            SELECT id, organization_id, branch_id, order_id, method, state, amount, provider_name, provider_reference,
+                   charge_code, charge_expires_at FROM payments
+            """;
+
+    /** Pagamento pendente que pode receber cobrança no provedor (Pix). */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public ProviderPayment lockForCharge(Actor actor, UUID id) {
+        authz.require(actor, "payments", "create");
+        ProviderPayment p = jdbc.sql(PROVIDER_SELECT + " WHERE id = :id AND organization_id = :o FOR UPDATE")
+                .param("id", id).param("o", actor.organizationId()).query(ProviderPayment.class).optional()
+                .orElseThrow(ApiException::notFound);
+        orders.lockForPayment(actor, p.orderId()); // escopo do pedido
+        return p;
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void attachCharge(Actor actor, UUID id, String provider, String reference, String code, OffsetDateTime expires) {
+        int n = jdbc.sql("""
+                        UPDATE payments SET confirmation_kind = 'PROVIDER', provider_name = :pn, provider_reference = :r,
+                               charge_code = :c, charge_expires_at = :e, version = version + 1
+                         WHERE id = :id AND state = 'PENDING'
+                        """)
+                .param("pn", provider).param("r", reference).param("c", code).param("e", expires).param("id", id).update();
+        if (n == 0) {
+            throw new ApiException(ErrorCode.INVALID_TRANSITION, "O pagamento não está mais pendente.");
+        }
+        audit.record(entry(actor, "payments.charge", id, "payment", Map.of("provider", provider)));
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Optional<ProviderPayment> lockByProviderRef(String provider, String reference) {
+        return jdbc.sql(PROVIDER_SELECT + " WHERE provider_name = :p AND provider_reference = :r FOR UPDATE")
+                .param("p", provider).param("r", reference).query(ProviderPayment.class).optional();
+    }
+
+    /** Confirmação pelo aviso assinado: mesmo lançamento da conferência manual, autor = identidade de integração. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void confirmByProvider(Actor system, ProviderPayment p, String eventId) {
+        Row o = orders.lockForSystem(p.orderId());
+        int n = jdbc.sql("""
+                        UPDATE payments SET state = 'CONFIRMED', confirmed_by = :by, confirmed_at = now(),
+                               decided_note = :n, version = version + 1 WHERE id = :id AND state = 'PENDING'
+                        """)
+                .param("by", system.userId()).param("n", "Aviso do provedor " + p.providerName() + " (" + eventId + ")")
+                .param("id", p.id()).update();
+        if (n == 0) {
+            throw new ApiException(ErrorCode.INVALID_TRANSITION, "Pagamento não está pendente.");
+        }
+        postConfirmed(system, o, p.id(), p.method(), p.amount(), BigDecimal.ZERO);
+        orders.refreshPayment(o.id());
+        audit.record(serviceEntry(system, "payments.confirm", p.id(), Map.of("method", p.method(),
+                "amount", p.amount().toPlainString(), "event_id", eventId)));
+    }
+
+    /** Devolução informada pelo provedor (estorno do Pix): lançamento espelhado, uma vez. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void reverseByProvider(Actor system, ProviderPayment p, String eventId) {
+        Row o = orders.lockForSystem(p.orderId());
+        int n = jdbc.sql("""
+                        UPDATE payments SET state = 'REVERSED', reversed_at = now(), reversed_by = :by, decided_note = :n,
+                               version = version + 1 WHERE id = :id AND state = 'CONFIRMED'
+                        """)
+                .param("by", system.userId()).param("n", "Devolução avisada pelo provedor (" + eventId + ")")
+                .param("id", p.id()).update();
+        if (n == 0) {
+            throw new ApiException(ErrorCode.INVALID_TRANSITION, "Pagamento não está confirmado.");
+        }
+        UUID original = jdbc.sql("SELECT id FROM journal_entries WHERE source_type = 'payment' AND source_id = :s "
+                        + "AND event_kind = 'PAYMENT_CONFIRMED'")
+                .param("s", p.id()).query(UUID.class).optional().orElse(null);
+        journal.post(system, o.branchId(), "payment", p.id(), "PAYMENT_REVERSED", "Devolução avisada pelo provedor",
+                original, List.of(Line.debit("CLIENTES", p.amount()), Line.credit("BANCO", p.amount())));
+        orders.refreshPayment(o.id());
+        audit.record(serviceEntry(system, "payments.reverse", p.id(), Map.of("method", p.method(),
+                "amount", p.amount().toPlainString(), "event_id", eventId)));
+    }
+
+    /** Cobrança expirada/recusada no provedor: pagamento pendente vira recusado (sem lançamento). */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void failByProvider(Actor system, ProviderPayment p, String eventId) {
+        Row o = orders.lockForSystem(p.orderId());
+        jdbc.sql("""
+                        UPDATE payments SET state = 'REJECTED', decided_note = :n, version = version + 1
+                         WHERE id = :id AND state = 'PENDING'
+                        """).param("n", "Cobrança não paga, avisada pelo provedor (" + eventId + ")").param("id", p.id())
+                .update();
+        orders.refreshPayment(o.id());
+        audit.record(serviceEntry(system, "payments.reject", p.id(), Map.of("event_id", eventId)));
+    }
+
+    private static AuditEntry serviceEntry(Actor system, String action, UUID id, Map<String, Object> changes) {
+        return new AuditEntry(system.organizationId(), system.branchId(), system.userId(), "SERVICE", system.clientId(),
+                action, "payment", id.toString(), "SUCCESS", null, new HashMap<>(changes), "webhook");
     }
 
     @Transactional(readOnly = true)

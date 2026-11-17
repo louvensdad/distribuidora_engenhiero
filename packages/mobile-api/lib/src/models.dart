@@ -739,3 +739,67 @@ class DocRequestInfo {
         fulfilledByName: j['fulfilled_by_name'] as String?,
       );
 }
+
+// ---- F08: notas fiscais ----
+class FiscalSettingsInfo {
+  const FiscalSettingsInfo({this.documentType, required this.providerState, this.provider, required this.missing});
+  final String? documentType;
+  final String providerState;
+  final String? provider;
+  final List<String> missing;
+  bool get blocked => providerState != 'CONFIGURED';
+  factory FiscalSettingsInfo.fromJson(Map<String, dynamic> j) => FiscalSettingsInfo(
+        documentType: j['document_type'] as String?,
+        providerState: j['provider_state'] as String,
+        provider: j['provider'] as String?,
+        missing: [for (final m in (j['missing'] as List?) ?? const []) m as String],
+      );
+}
+
+class InvoiceLineInfo {
+  const InvoiceLineInfo({required this.lineNo, required this.productId, required this.description, this.ncm, required this.total});
+  final int lineNo;
+  final String productId;
+  final String description;
+  final String? ncm;
+  final String total;
+  factory InvoiceLineInfo.fromJson(Map<String, dynamic> j) => InvoiceLineInfo(
+        lineNo: j['line_no'] as int,
+        productId: j['product_id'] as String,
+        description: j['description'] as String,
+        ncm: j['ncm'] as String?,
+        total: j['total'] as String,
+      );
+}
+
+class InvoiceInfo {
+  const InvoiceInfo({required this.id, required this.orderNumber, required this.customerName, required this.documentType,
+      required this.state, required this.total, this.accessKey, this.protocol, this.rejectionReason, required this.lines,
+      required this.issues, required this.version});
+  final String id;
+  final int orderNumber;
+  final String customerName;
+  final String documentType;
+  final String state;
+  final String total;
+  final String? accessKey;
+  final String? protocol;
+  final String? rejectionReason;
+  final List<InvoiceLineInfo> lines;
+  final List<String> issues;
+  final int version;
+  factory InvoiceInfo.fromJson(Map<String, dynamic> j) => InvoiceInfo(
+        id: j['id'] as String,
+        orderNumber: j['order_number'] as int,
+        customerName: j['customer_name'] as String,
+        documentType: j['document_type'] as String,
+        state: j['state'] as String,
+        total: j['total'] as String,
+        accessKey: j['access_key'] as String?,
+        protocol: j['protocol'] as String?,
+        rejectionReason: j['rejection_reason'] as String?,
+        lines: [for (final l in (j['lines'] as List?) ?? const []) InvoiceLineInfo.fromJson(l as Map<String, dynamic>)],
+        issues: [for (final m in (j['issues'] as List?) ?? const []) m as String],
+        version: j['version'] as int,
+      );
+}

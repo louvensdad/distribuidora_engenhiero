@@ -62,13 +62,18 @@ Requisitos de F02 em diante seguem NOT_STARTED (lista completa em `docs/especifi
 | CONT-03 | Folha por rubricas/importação validada; individual só com employee_salary (JSON e export) | `folhaPorRubricasComDadoIndividualProtegido`, mutação M2, emulador | PASS |
 | CONT-04 | Documentos privados reais, solicitações, versões, download autorizado | `centralDeDocumentosComVersoesESolicitacoes`, `accounting.spec.ts` | PASS (antivírus NÃO CONFIGURADO; S3 F16) |
 | CONT-05 | Patrão acompanha cada movimento do contador (autor e app) | `guiaEmEtapas...` (audit-events por client_id), trilha no banco (`F07-mobile.txt`) | PASS |
+| INT-01 | Tipo fiscal e provedor definidos com contador e dados da empresa | configuração fiscal + `semProvedorTudoBloqueado...` (sem tipo = BLOQUEADO) | BLOCKED — decisão D02/D03 pendente (implementação pronta) |
+| INT-02 | Autorizada/rejeitada com XML, protocolo e chave | `autorizadaComXmlProtocoloEChave...` (provedor de teste), `Invoices.test.tsx` | PASS com provedor de teste; sandbox real BLOCKED (sem credencial) |
+| INT-03 | Cancelamento separado com resultado confirmado | `autorizadaComXml...` (recusado mantém autorizada; pendente; cancelada com protocolo) | PASS com provedor de teste; sandbox real BLOCKED |
+| INT-04 | Webhooks assinados e reenvios idempotentes | `webhookAssinadoIdempotenteEInvalidoNaoAlteraCaixa` (5 simultâneos = 1 efeito), mutação M2 | PASS (provedor de teste); real BLOCKED (D04) |
+| INT-05 | Indisponibilidade/incerto não viram sucesso | `timeoutAposEnvioNaoViraEmissaoDuplicada`, `semProvedor...`, mutações M1/M3, `invoices.spec.ts`, emulador | PASS |
 
 | UX-01 | `apps/web-admin` abas horizontais + subabas por capacidade | `navigation.test.ts`, `site.spec.ts` (ordem das 7 abas) | PASS (web) |
 | UX-02 | CSS responsivo; tabelas viram cartões ≤720 px | `layout.spec.ts` em 360/768/1440 (sem rolagem horizontal, ações visíveis) | PASS (web); apps em F11–F14 |
 | UX-03 | Ícones/nomes/IDs dos 4 apps | realm + `F00_INVENTARIO.md`; ícones em `docs/especificacao/assets/apps` | PARTIAL — builds dos apps em F11–F14 |
 | UX-04 | Estados carregando/vazio/erro/sem permissão/conflito/offline/pendente | `App.test.tsx` (403, 412, pendente), `States.tsx` | PASS (web) |
 | UX-05 | Skip link, foco visível, labels, aria-live, alvo 44 px, movimento reduzido | `site.spec.ts` (teclado) | PARTIAL — falta auditoria com leitor de tela |
-| WEB-01..03 | Site integrado a serviços reais (sem botões falsos; módulos futuros rotulados por fase) | Playwright 95 testes (`F07-web-playwright.txt`) | PARTIAL — só módulos já existentes no backend |
+| WEB-01..03 | Site integrado a serviços reais (sem botões falsos; módulos futuros rotulados por fase) | Playwright 103 testes (`F08-web-playwright.txt`) | PARTIAL — só módulos já existentes no backend |
 
 Testes adicionais de F01: imutabilidade de `audit_events` (trigger), paginação por cursor, 412 por versão,
 concorrência entre administradores (`ConcurrencyIntegrationTest`, com teste de mutação).

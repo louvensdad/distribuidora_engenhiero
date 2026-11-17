@@ -556,3 +556,96 @@ class _AccountingDocumentsScreenState extends State<AccountingDocumentsScreen> {
     ]);
   }
 }
+
+const invoiceStateLabels = {
+  'DRAFT': 'Rascunho — conferir', 'READY': 'Conferida', 'TRANSMITTING': 'Enviada — aguardando a SEFAZ',
+  'UNCERTAIN': 'Resultado incerto', 'AUTHORIZED': 'Autorizada', 'REJECTED': 'Rejeitada',
+  'CANCEL_PENDING': 'Cancelamento pendente', 'CANCELLED': 'Cancelada', 'DISCARDED': 'Descartada',
+};
+
+/// F08 — notas fiscais para o contador: confere o rascunho (NCM dos produtos) e acompanha o resultado.
+/// Transmitir é do patrão; sem provedor contratado a emissão aparece BLOQUEADA (nada é simulado).
+class InvoicesScreen extends StatelessWidget {
+  const InvoicesScreen({super.key});
+  @override
+  Widget build(BuildContext context) => _Loader<({FiscalSettingsInfo settings, List<InvoiceInfo> items})>(
+        load: (api) async => (settings: await api.fiscalSettings(), items: await api.invoices()),
+        empty: (d) => false,
+        builder: (context, d, reload) => ListView(padding: const EdgeInsets.all(16), children: [
+          if (d.settings.blocked)
+            Card(child: Padding(padding: const EdgeInsets.all(12), child: Text(
+              'Emissão BLOQUEADA: provedor fiscal NÃO CONFIGURADO. Rascunho e conferência funcionam; nada é transmitido.',
+              style: const TextStyle(color: EngColors.warning, fontWeight: FontWeight.w600)))),
+          if (d.settings.missing.isNotEmpty)
+            Text('Falta definir: ${d.settings.missing.join(' · ')}', style: const TextStyle(color: EngColors.muted)),
+          if (d.items.where((n) => n.state != 'DISCARDED').isEmpty)
+            const EmptyState(title: 'Nenhuma nota'),
+          for (final n in d.items.where((n) => n.state != 'DISCARDED')) _InvoiceCard(n: n, onChanged: reload),
+        ]),
+      );
+}
+
+class _InvoiceCard extends StatefulWidget {
+  const _InvoiceCard({required this.n, required this.onChanged});
+  final InvoiceInfo n;
+  final VoidCallback onChanged;
+  @override
+  State<_InvoiceCard> createState() => _InvoiceCardState();
+}
+
+class _InvoiceCardState extends State<_InvoiceCard> {
+  final _ncm = <String, TextEditingController>{};
+  ApiException? _error;
+
+  Future<void> _do(Future<void> Function(ApiClient api) fn, String ok) async {
+    final api = EngScope.of(context).api;
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _error = null);
+    try {
+      await fn(api);
+      messenger.showSnackBar(SnackBar(content: Text(ok)));
+      widget.onChanged();
+    } on ApiException catch (e) {
+      setState(() => _error = e);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final n = widget.n;
+    final me = EngScope.of(context).me;
+    final missing = n.state == 'DRAFT' ? n.lines.where((l) => l.ncm == null).toList() : const <InvoiceLineInfo>[];
+    return Card(child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('Pedido #${n.orderNumber} · ${n.customerName} · ${formatMoney(n.total)}',
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+      Text('${n.documentType == 'NFE' ? 'NF-e' : 'NFC-e'} · ${labelOf(invoiceStateLabels, n.state)}',
+          style: TextStyle(color: n.state == 'AUTHORIZED' ? EngColors.green
+              : n.state == 'REJECTED' ? EngColors.error : n.state == 'UNCERTAIN' ? EngColors.warning : EngColors.violet)),
+      if (n.accessKey != null) Text('Chave ${n.accessKey} · protocolo ${n.protocol}', style: const TextStyle(fontSize: 12)),
+      if (n.rejectionReason != null) Text(n.rejectionReason!, style: const TextStyle(color: EngColors.error)),
+      if (n.state == 'UNCERTAIN')
+        const Text('O provedor não respondeu: pode ter sido emitida. Não se reenvia; o patrão consulta.',
+            style: TextStyle(color: EngColors.warning)),
+      for (final i in n.issues) Text('• $i', style: const TextStyle(color: EngColors.warning)),
+      if (me.can('invoices.request'))
+        for (final l in missing) ...[
+          TextField(
+            controller: _ncm.putIfAbsent(l.productId, TextEditingController.new),
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(labelText: 'NCM de ${l.description}'),
+          ),
+          OutlinedButton(
+            onPressed: () => _do((api) => api.setProductNcm(productId: l.productId, ncm: _ncm[l.productId]!.text),
+                'NCM do produto salvo.'),
+            child: const Text('Salvar NCM'),
+          ),
+        ],
+      if (n.state == 'DRAFT' && me.can('invoices.request'))
+        Padding(padding: const EdgeInsets.only(top: 8), child: FilledButton(
+          onPressed: () => _do((api) => api.reviewInvoice(id: n.id, version: n.version), 'Nota conferida.'),
+          child: const Text('Conferir nota'),
+        )),
+      _err(_error),
+    ])));
+  }
+}

@@ -121,4 +121,46 @@ void main() {
         scrollable: find.descendant(of: find.byType(PayrollScreen), matching: find.byType(Scrollable)).first);
     expect(find.textContaining('Valores por pessoa: só com permissão individual'), findsOneWidget);
   });
+
+  testWidgets('notas: emissão BLOQUEADA visível; contador informa NCM e confere; não há botão de transmitir', (tester) async {
+    final posts = <http.Request>[];
+    Map<String, dynamic> nota(String state, {String? ncm}) => {'id': 'n1', 'order_id': 'o1', 'order_number': 42,
+      'customer_name': 'Mercado Exemplo', 'document_type': 'NFCE', 'environment': 'HOMOLOGACAO', 'state': state, 'total': '75.00',
+      'lines': [{'line_no': 1, 'product_id': 'p1', 'description': 'Cana caiana', 'ncm': ncm, 'cfop': '5102', 'unit': 'DUZIA',
+        'quantity': '10', 'unit_price': '7.5', 'total': '75.00'}],
+      'issues': ncm == null ? ['Item 1 (Cana caiana): NCM não cadastrado no produto'] : [], 'provider_state': 'NOT_CONFIGURED',
+      'history': [], 'version': 2};
+    var current = nota('DRAFT');
+    await login(tester, (_) => const InvoicesScreen(), ['invoices.view', 'invoices.request'], (r) async {
+      if (r.method != 'GET') posts.add(r);
+      switch ('${r.method} ${r.url.path}') {
+        case 'GET /api/v1/fiscal-settings':
+          return j(200, {'document_type': 'BOTH', 'environment': 'HOMOLOGACAO', 'provider_state': 'NOT_CONFIGURED', 'provider': null,
+            'missing': [], 'version': 1});
+        case 'GET /api/v1/invoices':
+          return j(200, {'items': [current]});
+        case 'PUT /api/v1/products/p1/fiscal-data':
+          current = nota('DRAFT', ncm: '12129300');
+          return j(200, {'product_id': 'p1', 'name': 'Cana caiana', 'ncm': '12129300', 'fiscal_origin': 0});
+        case 'POST /api/v1/invoices/n1/review':
+          current = nota('READY', ncm: '12129300');
+          return j(200, current);
+      }
+      return j(404, {});
+    });
+    expect(find.textContaining('Emissão BLOQUEADA'), findsOneWidget);
+    expect(find.text('NFC-e · Rascunho — conferir'), findsOneWidget);
+    await tester.enterText(find.widgetWithText(TextField, 'NCM de Cana caiana'), '1212.93.00');
+    await tester.tap(find.text('Salvar NCM'));
+    await tester.pumpAndSettle();
+    expect(posts.first.method, 'PUT');
+    expect(jsonDecode(posts.first.body), {'ncm': '1212.93.00'});
+    expect(find.textContaining('NCM não cadastrado'), findsNothing);
+    await tester.pump(const Duration(seconds: 5));
+    await tester.tap(find.text('Conferir nota'));
+    await tester.pumpAndSettle();
+    expect(posts[1].headers['If-Match'], '"2"');
+    expect(find.text('NFC-e · Conferida'), findsOneWidget);
+    expect(find.textContaining('Transmitir'), findsNothing);
+  });
 }

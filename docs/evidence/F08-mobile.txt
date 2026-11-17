@@ -1,0 +1,23 @@
+# F08 — app Engenheiro Contábil (contador) no emulador + patrão no site, Keycloak 26.8.1 + API real (V11) — 2026-11-16
+Pilha local SEM provedor fiscal nem de pagamentos (estado real do projeto; D02/D03/D04 abertas).
+flutter analyze: No issues found! Dart: 42 testes, 0 falhas (mobile-core 19, mobile-api 6, mobile-auth 6, owner 3,
+counter 2, delivery 3, accountant 3). Novo em accounting_test.dart: "notas: emissão BLOQUEADA visível; contador informa
+NCM e confere; não há botão de transmitir".
+
+Site (patrão, Playwright invoices.spec.ts): configuração fiscal "NF-e e NFC-e (pelo cliente)", homologação, Simples
+Nacional, CNPJ fictício de exemplo; rascunho do pedido #46 (cliente sem CPF/CNPJ → NFC-e); NCM informado; conferida;
+Transmitir → "Emissão BLOQUEADA: Provedor fiscal NÃO CONFIGURADO (D03). Nada foi enviado nem emitido."; a nota
+continua "Conferida pelo contador", sem chave/protocolo/XML; histórico "Transmissão: Bloqueado"
+(telas-web/F08-nota-bloqueada.png, telas-web/F08-integracoes.png). Aviso de pagamento para provedor inexistente:
+HTTP 404 {"status":"NOT_CONFIGURED"} e nada gravado.
+
+App Contábil (usuário contador), aba Notas (antes "pendente F08"):
+- "Emissão BLOQUEADA: provedor fiscal NÃO CONFIGURADO. Rascunho e conferência funcionam; nada é transmitido."
+- "Pedido #46 · Mercado E2E … · R$ 75,00 — NFC-e · Rascunho — conferir" (telas-mobile/F08-contabil-notas-rascunho.png)
+- Conferir nota → "NFC-e · Conferida" (telas-mobile/F08-contabil-nota-conferida.png). Sem botão de transmitir
+  (invoices.confirm é do patrão).
+Trilha: invoices.review | Contador Exemplo | engenheiro-contabil; invoices.create | Patrão Fictício | engenheiro-web.
+Banco: invoices READY | NFCE | reviewed_by preenchido.
+
+Autorização, XML/protocolo/chave, rejeição, cancelamento, timeout e avisos assinados: provados com provedores de TESTE
+(só no código de teste; desligados por padrão) em IntegrationsIntegrationTest — não há sandbox real sem credencial.

@@ -1,0 +1,9 @@
+# F08 — ./mvnw -o clean verify — 2026-11-16T22:50:24-03:00
+[INFO] Tests run: 138, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+
+Novos (IntegrationsIntegrationTest):
+  - "autorizadaComXmlProtocoloEChaveECancelamentoSeparado"
+  - "semProvedorTudoBloqueadoComHistoricoENadaSimulado"
+  - "webhookAssinadoIdempotenteEInvalidoNaoAlteraCaixa"
+  - "timeoutAposEnvioNaoViraEmissaoDuplicada"

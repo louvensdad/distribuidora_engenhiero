@@ -42,6 +42,22 @@ public final class Api {
         return send(b.build());
     }
 
+    public Res put(String path, String token, Object body, String ifMatch) {
+        HttpRequest.Builder b = req(path, token).header("Content-Type", "application/json")
+                .PUT(HttpRequest.BodyPublishers.ofString(JSON.writeValueAsString(body)));
+        if (ifMatch != null) {
+            b.header("If-Match", ifMatch);
+        }
+        return send(b.build());
+    }
+
+    /** POST com corpo bruto (bytes exatos) e cabeçalhos livres, sem token — usado pelos avisos de provedor. */
+    public Res raw(String path, byte[] body, Map<String, String> headers) {
+        HttpRequest.Builder b = req(path, null).POST(HttpRequest.BodyPublishers.ofByteArray(body));
+        headers.forEach(b::header);
+        return send(b.build());
+    }
+
     /** POST com cabeçalhos extras (Idempotency-Key, If-Match). */
     public Res postWith(String path, String token, Object body, Map<String, String> headers) {
         HttpRequest.Builder b = req(path, token).header("Content-Type", "application/json")

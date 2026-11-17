@@ -54,8 +54,9 @@ export const TABS: Tab[] = [
       { id: "mycash", label: "Caixa do turno", path: "/finance/my-cash", anyOf: ["own_cash.view", "admin"] },
       { id: "taxes", label: "Guias", path: "/finance/taxes", anyOf: ["taxes.view"] },
       { id: "payroll", label: "Folha", path: "/finance/payroll", anyOf: ["payroll.view"] },
-      { id: "invoices", label: "Notas fiscais", path: "/finance/invoices", anyOf: ["invoices.view"], pendingPhase: "F08" },
+      { id: "invoices", label: "Notas fiscais", path: "/finance/invoices", anyOf: ["invoices.view"] },
       { id: "documents", label: "Documentos", path: "/finance/documents", anyOf: ["documents.view"] },
+      { id: "integrations", label: "Integrações", path: "/finance/integrations", anyOf: ["invoices.view", "payments.confirm", "admin"] },
     ],
   },
   {

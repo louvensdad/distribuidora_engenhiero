@@ -443,3 +443,40 @@ export interface DocumentRequest {
   due_date: string | null; state: "OPEN" | "FULFILLED" | "CANCELLED"; fulfilled_document_id: string | null; fulfilled_by_name: string | null;
   fulfilled_at: string | null; created_by_name: string; created_at: string; version: number;
 }
+
+// ---- F08: notas fiscais e integrações ----
+export type IntegrationOutcome = "BLOCKED" | "SENT" | "SUCCESS" | "REJECTED" | "TIMEOUT" | "ERROR";
+export interface IntegrationAttempt {
+  id: string; integration: string; operation: string; entity_type: string; entity_id: string; outcome: IntegrationOutcome;
+  detail: string | null; actor_name: string | null; started_at: string; finished_at: string | null;
+}
+export interface FiscalSettings {
+  document_type: "NFE" | "NFCE" | "BOTH" | null; environment: "HOMOLOGACAO" | "PRODUCAO"; series: number | null;
+  default_cfop: string | null; issuer_document: string | null; state_registration: string | null; tax_regime: string | null;
+  notes: string | null; provider_state: "CONFIGURED" | "NOT_CONFIGURED"; provider: string | null; missing: string[]; version: number;
+}
+export type InvoiceState = "DRAFT" | "READY" | "TRANSMITTING" | "UNCERTAIN" | "AUTHORIZED" | "REJECTED" | "CANCEL_PENDING"
+  | "CANCELLED" | "DISCARDED";
+export interface InvoiceLine {
+  line_no: number; product_id: string; description: string; ncm: string | null; cfop: string | null; unit: string;
+  quantity: string; unit_price: string; total: string;
+}
+export interface Invoice {
+  id: string; order_id: string; order_number: number; customer_name: string; document_type: "NFE" | "NFCE";
+  environment: string; state: InvoiceState; total: string; provider: string | null; number: number | null;
+  series: number | null; access_key: string | null; protocol: string | null; xml_document_id: string | null;
+  rejection_code: string | null; rejection_reason: string | null; cancel_reason: string | null; cancel_protocol: string | null;
+  attempts: number; reviewed_by_name: string | null; reviewed_at: string | null; transmitted_at: string | null;
+  authorized_at: string | null; created_by_name: string; created_at: string; lines: InvoiceLine[]; issues: string[];
+  provider_state: "CONFIGURED" | "NOT_CONFIGURED"; history: IntegrationAttempt[]; version: number;
+}
+export interface IntegrationStatusItem {
+  integration: "FISCAL" | "PAYMENTS" | "OPEN_FINANCE"; label: string; state: "CONFIGURED" | "NOT_CONFIGURED";
+  provider: string | null; message: string; pending: number; pending_label: string;
+}
+export interface IntegrationStatus { items: IntegrationStatusItem[]; recent: IntegrationAttempt[] }
+export interface WebhookEvent {
+  id: string; provider: string; event_id: string | null; signature_valid: boolean; event_type: string | null;
+  reference: string | null; amount: string | null; status: string; detail: string | null; payment_id: string | null;
+  received_at: string;
+}

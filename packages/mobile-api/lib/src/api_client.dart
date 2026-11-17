@@ -254,6 +254,18 @@ class ApiClient {
   Future<TaxInfo> submitTax({required String id, required int version}) async =>
       TaxInfo.fromJson(await _post('/api/v1/tax-obligations/$id/submit', null, ifMatch: '"$version"'));
 
+  // ---- F08: notas fiscais ----
+  Future<FiscalSettingsInfo> fiscalSettings() async => FiscalSettingsInfo.fromJson(await _get('/api/v1/fiscal-settings'));
+
+  Future<List<InvoiceInfo>> invoices() async =>
+      [for (final i in (await _get('/api/v1/invoices'))['items'] as List) InvoiceInfo.fromJson(i as Map<String, dynamic>)];
+
+  Future<InvoiceInfo> reviewInvoice({required String id, required int version}) async =>
+      InvoiceInfo.fromJson(await _post('/api/v1/invoices/$id/review', null, ifMatch: '"$version"'));
+
+  Future<void> setProductNcm({required String productId, required String ncm}) async =>
+      await _post('/api/v1/products/$productId/fiscal-data', {'ncm': ncm}, method: 'PUT');
+
   Future<DocumentInfo> uploadTaxFile({required String id, required String fileName, required List<int> bytes,
           required String contentType}) async =>
       DocumentInfo.fromJson(await _multipart('/api/v1/tax-obligations/$id/attachments', const {}, fileName, bytes, contentType));
@@ -314,8 +326,9 @@ class ApiClient {
     return _send(() => http.Request('GET', baseUrl.replace(path: path, queryParameters: q.isEmpty ? null : q)));
   }
 
-  Future<Map<String, dynamic>> _post(String path, Object? body, {String? ifMatch, String? idempotencyKey}) => _send(() {
-        final r = http.Request('POST', baseUrl.replace(path: path));
+  Future<Map<String, dynamic>> _post(String path, Object? body, {String? ifMatch, String? idempotencyKey, String method = 'POST'}) =>
+      _send(() {
+        final r = http.Request(method, baseUrl.replace(path: path));
         if (body != null) {
           r
             ..headers['Content-Type'] = 'application/json'

@@ -27,7 +27,7 @@ function readCookie(name: string): string | undefined {
 }
 
 export interface RequestOptions {
-  method?: "GET" | "POST";
+  method?: "GET" | "POST" | "PUT";
   body?: unknown;
   ifMatch?: string;
   /** Comandos de estoque/financeiros: a mesma chave em nova tentativa nunca duplica o efeito. */
@@ -90,6 +90,7 @@ function safeJson(text: string): unknown {
 export const api = {
   get: <T,>(path: string, signal?: AbortSignal) => request<T>(path, { signal }),
   post: <T,>(path: string, body: unknown, ifMatch?: string) => request<T>(path, { method: "POST", body, ifMatch }),
+  put: <T,>(path: string, body: unknown, ifMatch?: string) => request<T>(path, { method: "PUT", body, ifMatch }),
   command: <T,>(path: string, body: unknown, idempotencyKey: string, ifMatch?: string) =>
     request<T>(path, { method: "POST", body, ifMatch, idempotencyKey }),
 };

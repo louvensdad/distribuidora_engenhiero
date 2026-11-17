@@ -142,6 +142,7 @@ public class DocumentService {
         String ext = switch (mime) {
             case "image/jpeg" -> ".jpg";
             case "image/png" -> ".png";
+            case "application/xml" -> ".xml";
             default -> ".pdf";
         };
         String lower = name.toLowerCase(java.util.Locale.ROOT);

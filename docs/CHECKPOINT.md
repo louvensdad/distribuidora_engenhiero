@@ -3,8 +3,8 @@
 Data/hora e fuso: 16/11/2026 16:20 America/Sao_Paulo
 Agente e repositório: Claude Code (Opus 5.5) — `/home/louvens/Ivan/distribuidora-engenheiro` (movido de `~/distribuidora-engenheiro`)
 Branch e commit atual: `main` — ver `git log -1`
-Fase: F07 concluída (contabilidade, folha e documentos); próxima F08
-Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **PASS** (pendências abaixo) · F06 **PASS** (pendências abaixo) · F07 **PASS** (pendências abaixo) · F08 **NOT_STARTED**
+Fase: F08 concluída (integrações fiscais e de pagamento — reais BLOQUEADAS sem provedor); próxima F09
+Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **PASS** (pendências abaixo) · F06 **PASS** (pendências abaixo) · F07 **PASS** (pendências abaixo) · F08 **PASS** (critérios provados; integração real BLOCKED: D02/D03/D04) · F09 **NOT_STARTED**
 
 ## Entregue e comprovado
 
@@ -108,6 +108,30 @@ Pendências F04:
 - App: Pix pendente é registrado, mas conferir Pix, retirada parcial, cancelamento e devolução estão só no site; app
   Patrão com Pedidos/Caixa compilado e com teste de widget, não exercitado no emulador nesta fase.
 - Concessões do balcão no emulador aplicadas direto no banco local (equivalentes ao mapa de acessos).
+
+## F08 — integrações fiscais e de pagamento (16/11/2026, ADR-023)
+
+Respostas do responsável: provedor fiscal, tipo de nota e provedor de pagamentos ainda não definidos → tudo pronto
+por adaptador e BLOQUEADO até contratar (nada simulado).
+Entregue (migration V11): configuração fiscal (só administrador) e NCM do produto pelo contador; nota a partir do
+pedido com estados distintos (rascunho, conferida, transmitindo, incerta, autorizada, rejeitada, cancelamento pendente,
+cancelada, descartada); XML/protocolo/chave na autorizada; envio fora da transação com trava de estado/versão e
+referência estável (sem emissão duplicada); incerta só se consulta (manual ou job), nunca reenvia; cobrança Pix por
+provedor e avisos assinados idempotentes (inválido/repetido/valor diferente não mexem no caixa; autor = identidade
+técnica SERVICE); histórico de tentativas por integração; painel de integrações com estado honesto e triagem.
+Superfícies: site (Financeiro › Notas fiscais, Integrações), app Contábil (aba Notas: conferir e informar NCM).
+Validação: `./mvnw clean verify` **138** (`F08-mvnw-verify.txt`), mutação 3/3 pegas — M3 só depois de tornar a corrida
+determinística (`F08-testes-de-mutacao.txt`), Vitest **48**, Playwright **103** (+2 do fluxo cruzado da F07),
+Dart **42**, emulador contador + patrão (`F08-mobile.txt`).
+Defeitos encontrados e corrigidos: NCM corrigido no produto não aparecia no rascunho aberto; telas novas rolavam para o
+lado no celular (360 px). Observação: uma execução do Playwright falhou no login por reaproveitar o código TOTP da mesma
+janela de 30 s (repetição passou; não é defeito do produto).
+
+Pendências F08:
+- INT-01: definir com o contador o documento fiscal, regime e dados do emitente (D02) e contratar provedor + certificado
+  (D03); depois, adaptador real e evidência em HOMOLOGAÇÃO. Pagamentos automáticos: contratar provedor Pix/adquirente
+  (D04). Até lá, conferência manual autorizada.
+- Cartão por provedor usa o mesmo contrato de aviso, sem adaptador ainda. Notas no app Patrão: F14.
 
 ## F07 — contabilidade, folha e documentos (16/11/2026, ADR-022)
 
@@ -252,5 +276,5 @@ ENGENHEIRO_SENHA_LOCAL=... python3 -I ../../infra/local/e2e_login_web.py
 
 ## Próxima ação
 
-1. **F08**: integrações fiscais e de pagamento — notas fiscais (rascunho → conferência → transmissão pelo adaptador
-   contratado; autorizado/rejeitado/cancelado distintos; XML/protocolo), Pix/cartão por provedor; sem provedor = NÃO CONFIGURADO.
+1. **F09**: relatórios, metas e gráficos — relatórios com filtros e limite de período, metas por pessoa/setor e o que
+   ficou parcial do REP-08 (cliente e metas), sobre os lançamentos reais das fases anteriores.

@@ -123,6 +123,8 @@ tbody tr:last-child > * { border-bottom: none; }
 .badge-ok { color: var(--eng-green); border-color: rgb(179 241 138 / 40%); margin: 0; }
 .badge-error { color: var(--eng-error); border-color: rgb(250 154 154 / 40%); }
 .badge-violet { color: var(--eng-violet); border-color: rgb(169 180 250 / 40%); }
+.badge-warn { color: var(--eng-warning); border-color: rgb(232 190 117 / 45%); }
+.badge-muted { color: var(--eng-muted, #8a96a3); }
 .notice { padding: 12px 16px; border-radius: var(--radius-control); border: 1px solid var(--eng-border); background: var(--eng-surfaceRaised); margin: 0; }
 .notice-ok { border-color: var(--eng-green); }
 .notice-error { border-color: var(--eng-error); }
@@ -248,3 +250,12 @@ a.kpi:hover, a.kpi:focus-visible { border-color: var(--eng-cyan); }
 .calendar td, .calendar th { padding: 6px 8px; vertical-align: top; }
 .cell-warn { background: color-mix(in srgb, var(--eng-warning, #e8be75) 12%, transparent); }
 .cell-alert { background: color-mix(in srgb, var(--eng-error, #fa9a9a) 18%, transparent); }
+
+/* F08 — integrações e dados da nota */
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 16px; }
+.cards-grid .card { margin: 0; }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 8px 0; }
+.kv dt { color: var(--eng-muted); }
+.kv dd { margin: 0; overflow-wrap: anywhere; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.02em; }
+@media (max-width: 600px) { .kv { grid-template-columns: 1fr; } }
