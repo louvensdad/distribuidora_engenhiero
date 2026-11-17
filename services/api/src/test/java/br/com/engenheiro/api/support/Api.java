@@ -63,6 +63,26 @@ public final class Api {
                 .POST(HttpRequest.BodyPublishers.ofByteArray(out.toByteArray())).build());
     }
 
+    /** Multipart com campos de texto + arquivo. */
+    public Res uploadWith(String path, String token, java.util.Map<String, String> fields, String fileName, String contentType,
+                          byte[] bytes) {
+        String boundary = "----engenheiro" + System.nanoTime();
+        var out = new java.io.ByteArrayOutputStream();
+        for (var f : fields.entrySet()) {
+            out.writeBytes(("--" + boundary + "\r\nContent-Disposition: form-data; name=\"" + f.getKey() + "\"\r\n\r\n"
+                    + f.getValue() + "\r\n").getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
+        if (bytes != null) {
+            out.writeBytes(("--" + boundary + "\r\nContent-Disposition: form-data; name=\"file\"; filename=\"" + fileName
+                    + "\"\r\nContent-Type: " + contentType + "\r\n\r\n").getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            out.writeBytes(bytes);
+            out.writeBytes("\r\n".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
+        out.writeBytes(("--" + boundary + "--\r\n").getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        return send(req(path, token).header("Content-Type", "multipart/form-data; boundary=" + boundary)
+                .POST(HttpRequest.BodyPublishers.ofByteArray(out.toByteArray())).build());
+    }
+
     public Res getBytes(String path, String token) {
         try {
             HttpResponse<byte[]> res = http.send(req(path, token).GET().build(), HttpResponse.BodyHandlers.ofByteArray());

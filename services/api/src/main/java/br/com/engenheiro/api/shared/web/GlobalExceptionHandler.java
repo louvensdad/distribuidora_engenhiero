@@ -36,6 +36,18 @@ public class GlobalExceptionHandler {
                 List.of(new ApiProblem.FieldError("file", "Arquivo obrigatório")));
     }
 
+    /** Envio sem arquivo real (ex.: só o nome em JSON) ou campo de formulário ausente: recusa clara, não erro 500. */
+    @ExceptionHandler({org.springframework.web.HttpMediaTypeNotSupportedException.class,
+            org.springframework.web.bind.MissingServletRequestParameterException.class})
+    ResponseEntity<ApiProblem> wrongBody(Exception e) {
+        if (e instanceof org.springframework.web.bind.MissingServletRequestParameterException m) {
+            return respond(ErrorCode.VALIDATION_ERROR, "Campo obrigatório ausente: " + m.getParameterName() + ".",
+                    List.of(new ApiProblem.FieldError(m.getParameterName(), "Obrigatório")));
+        }
+        return respond(ErrorCode.VALIDATION_ERROR, "Formato não aceito: envie o arquivo em multipart/form-data (só o nome não basta).",
+                List.of(new ApiProblem.FieldError("file", "Arquivo obrigatório")));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<ApiProblem> invalid(MethodArgumentNotValidException e) {
         List<ApiProblem.FieldError> errors = e.getBindingResult().getFieldErrors().stream()

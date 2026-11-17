@@ -643,3 +643,99 @@ class VehicleExpenseInfo {
         occurredOn: j['occurred_on'] as String,
       );
 }
+
+// ---- F07: guias, folha e documentos (contador) ----
+class TaxInfo {
+  const TaxInfo({required this.id, required this.kind, required this.description, required this.competence, required this.dueDate,
+      required this.amount, required this.state, this.payableState, this.decidedByName, this.decidedNote, required this.attachments,
+      required this.version});
+  final String id;
+  final String kind;
+  final String description;
+  final String competence;
+  final String dueDate;
+  final String amount;
+  final String state;
+  final String? payableState;
+  final String? decidedByName;
+  final String? decidedNote;
+  final List<DocumentInfo> attachments;
+  final int version;
+  factory TaxInfo.fromJson(Map<String, dynamic> j) => TaxInfo(
+        id: j['id'] as String,
+        kind: j['kind'] as String,
+        description: j['description'] as String,
+        competence: j['competence'] as String,
+        dueDate: j['due_date'] as String,
+        amount: j['amount'] as String,
+        state: j['state'] as String,
+        payableState: j['payable_state'] as String?,
+        decidedByName: j['decided_by_name'] as String?,
+        decidedNote: j['decided_note'] as String?,
+        attachments: [for (final d in (j['attachments'] as List?) ?? const []) DocumentInfo.fromJson(d as Map<String, dynamic>)],
+        version: j['version'] as int,
+      );
+}
+
+class PayrollRunInfo {
+  const PayrollRunInfo({required this.id, required this.competence, required this.description, required this.state,
+      required this.source, required this.totals, required this.rubrics, required this.individualVisible, this.decidedNote,
+      required this.version});
+  final String id;
+  final String competence;
+  final String description;
+  final String state;
+  final String source;
+  final Map<String, dynamic> totals;
+  final List<Map<String, dynamic>> rubrics;
+  final bool individualVisible;
+  final String? decidedNote;
+  final int version;
+  factory PayrollRunInfo.fromJson(Map<String, dynamic> j) => PayrollRunInfo(
+        id: j['id'] as String,
+        competence: j['competence'] as String,
+        description: j['description'] as String,
+        state: j['state'] as String,
+        source: j['source'] as String,
+        totals: j['totals'] as Map<String, dynamic>,
+        rubrics: [for (final r in (j['rubrics'] as List?) ?? const []) r as Map<String, dynamic>],
+        individualVisible: j['people'] != null,
+        decidedNote: j['decided_note'] as String?,
+        version: j['version'] as int,
+      );
+}
+
+class AccDocInfo {
+  const AccDocInfo({required this.id, required this.kind, required this.title, this.competence, required this.currentVersion,
+      required this.createdByName});
+  final String id;
+  final String kind;
+  final String title;
+  final String? competence;
+  final int currentVersion;
+  final String createdByName;
+  factory AccDocInfo.fromJson(Map<String, dynamic> j) => AccDocInfo(
+        id: j['id'] as String,
+        kind: j['kind'] as String,
+        title: j['title'] as String,
+        competence: j['competence'] as String?,
+        currentVersion: j['current_version'] as int,
+        createdByName: j['created_by_name'] as String,
+      );
+}
+
+class DocRequestInfo {
+  const DocRequestInfo({required this.id, required this.title, required this.state, this.requestedFromName, this.fulfilledByName});
+  final String id;
+  final String title;
+  final String state;
+  final String? requestedFromName;
+  final String? fulfilledByName;
+  factory DocRequestInfo.fromJson(Map<String, dynamic> j) => DocRequestInfo(
+        id: j['id'] as String,
+        title: j['title'] as String,
+        state: j['state'] as String,
+        requestedFromName: j['requested_from_name'] as String?,
+        fulfilledByName: j['fulfilled_by_name'] as String?,
+      );
+}

@@ -168,6 +168,47 @@ public class PayableService {
         });
     }
 
+    /**
+     * Pagamento chamado por guia/folha (o chamador já autorizou pela capacidade dele: `taxes.confirm`,
+     * `payroll.confirm`). Mesma regra: baixa FORNECEDORES contra caixa/banco, sem nova despesa.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public UUID payFor(Actor actor, UUID payableId, BigDecimal amount, UUID finAccountId, LocalDate paidOn, String note) {
+        PRow p = jdbc.sql(SELECT + " WHERE p.id = :id FOR UPDATE OF p").param("id", payableId).query(PRow.class).single();
+        if (!p.state().equals("OPEN") && !p.state().equals("PARTIALLY_PAID")) {
+            throw new ApiException(ErrorCode.INVALID_TRANSITION, "Conta " + p.state() + " não recebe pagamento.");
+        }
+        List<FieldError> errors = new ArrayList<>();
+        Acc acc = accounts.moneyAccount(actor, finAccountId, "fin_account_id", errors);
+        LocalDate today = LocalDate.now(Journal.COMMERCIAL);
+        LocalDate on = paidOn == null ? today : paidOn;
+        if (on.isAfter(today)) {
+            errors.add(new FieldError("paid_on", "Pagamento não pode ser no futuro"));
+        }
+        if (amount.compareTo(p.balance()) > 0) {
+            errors.add(new FieldError("amount", "Maior que o saldo em aberto (" + Decimals.moneyStr(p.balance()) + ")"));
+        }
+        if (!errors.isEmpty()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "Corrija os campos indicados.", errors);
+        }
+        accounts.requireFunds(acc, amount, "amount");
+        UUID sid = Ids.newId();
+        jdbc.sql("""
+                        INSERT INTO payable_settlements (id, payable_id, kind, amount, fin_account_id, paid_on, note, created_by)
+                        VALUES (:id, :p, 'PAYMENT', :a, :f, :d, :n, :by)
+                        """).param("id", sid).param("p", p.id()).param("a", amount).param("f", acc.id())
+                .param("d", on).param("n", note).param("by", actor.userId()).update();
+        journal.post(actor, p.branchId(), "payable_payment", sid, "PAYABLE_PAYMENT", p.description(), null,
+                List.of(Line.debit("FORNECEDORES", amount), Line.credit(acc.ledgerAccount(), amount).at(acc.id())));
+        applyBalance(p.id(), amount.negate());
+        return sid;
+    }
+
+    @Transactional(readOnly = true)
+    public BigDecimal balanceOf(UUID payableId) {
+        return jdbc.sql("SELECT balance FROM payables WHERE id = :id").param("id", payableId).query(BigDecimal.class).single();
+    }
+
     @Transactional
     public Detail reverseSettlement(Actor actor, UUID settlementId, ReasonCommand cmd) {
         authz.require(actor, "expenses", "reverse");

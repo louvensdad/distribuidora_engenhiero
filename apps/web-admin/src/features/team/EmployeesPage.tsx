@@ -3,7 +3,7 @@ import { ApiError, api } from "../../api/http";
 import { SECTOR_LABELS } from "../../api/labels";
 import type { Absence, PerformanceReport, TeamCalendar } from "../../api/types";
 import { useResource } from "../../api/useResource";
-import { formatDecimal, formatMoney } from "../../app/format";
+import { formatDecimal, formatMoney, monthStartBr } from "../../app/format";
 import { Field, FormError, fieldError } from "../../components/Form";
 import { ErrorState, ForbiddenState, LoadingState } from "../../components/States";
 import { useSession } from "../../session/SessionContext";
@@ -12,10 +12,7 @@ const KIND: Record<string, string> = { VACATION: "Férias", DAY_OFF: "Folga", LE
 const STATE: Record<string, string> = { REQUESTED: "Aguardando aprovação", APPROVED: "Aprovada", REJECTED: "Recusada", CANCELLED: "Cancelada" };
 const br = (d: string) => d.split("-").reverse().join("/");
 const asError = (e: unknown) => (e instanceof ApiError ? e : new ApiError({ status: 0, code: "UNKNOWN" }));
-const monthStart = (offset: number) => {
-  const d = new Date();
-  return new Date(Date.UTC(d.getFullYear(), d.getMonth() + offset, 1)).toISOString().slice(0, 10);
-};
+const monthStart = (offset: number) => monthStartBr(offset);
 const WEEKDAY = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
 
 /** Equipe › Funcionários: folgas e férias no calendário (quem está disponível em cada dia e setor) e desempenho por função. */

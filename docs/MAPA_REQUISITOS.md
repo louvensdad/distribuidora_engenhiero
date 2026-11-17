@@ -57,13 +57,18 @@ Requisitos de F02 em diante seguem NOT_STARTED (lista completa em `docs/especifi
 | RESP-01 (pedido, ADR-021) | Folgas e férias com calendário de disponibilidade por setor (Equipe › Funcionários) | `feriasEFolgasComCalendarioPorSetorESemSobreposicao`, `Employees.test.tsx`, `team-openfinance.spec.ts` | PASS (web; app na F14) |
 | RESP-02 (pedido, ADR-021) | Open Finance pelo CNPJ: consentimento, extrato, conciliação, despesa sugerida | `extratoImportadoConciliaSugereDespesaENaoDuplica` (agregador de teste), `openFinanceSemAgregadorFicaNaoConfigurado`, E2E | PARTIAL — NÃO CONFIGURADO até contratar agregador |
 | REP-08 | Melhor funcionário por função com medidas e fórmula pública (sem nota única) | `desempenhoPorFuncaoComMedidasSeparadasEFormula`, `Employees.test.tsx` | PARTIAL — funcionários feito; cliente e metas na F09 |
+| CONT-01 | Contador prepara guia com competência, vencimento, valor e anexo (app Contábil) | `guiaEmEtapasComUploadReal...`, `accounting_test.dart`, emulador (`F07-mobile.txt`) | PASS |
+| CONT-02 | Preparar, aprovar e pagar independentes; aprovada continua não paga | `guiaEmEtapas...`, mutação M1/M3, `accounting.spec.ts` | PASS |
+| CONT-03 | Folha por rubricas/importação validada; individual só com employee_salary (JSON e export) | `folhaPorRubricasComDadoIndividualProtegido`, mutação M2, emulador | PASS |
+| CONT-04 | Documentos privados reais, solicitações, versões, download autorizado | `centralDeDocumentosComVersoesESolicitacoes`, `accounting.spec.ts` | PASS (antivírus NÃO CONFIGURADO; S3 F16) |
+| CONT-05 | Patrão acompanha cada movimento do contador (autor e app) | `guiaEmEtapas...` (audit-events por client_id), trilha no banco (`F07-mobile.txt`) | PASS |
 
 | UX-01 | `apps/web-admin` abas horizontais + subabas por capacidade | `navigation.test.ts`, `site.spec.ts` (ordem das 7 abas) | PASS (web) |
 | UX-02 | CSS responsivo; tabelas viram cartões ≤720 px | `layout.spec.ts` em 360/768/1440 (sem rolagem horizontal, ações visíveis) | PASS (web); apps em F11–F14 |
 | UX-03 | Ícones/nomes/IDs dos 4 apps | realm + `F00_INVENTARIO.md`; ícones em `docs/especificacao/assets/apps` | PARTIAL — builds dos apps em F11–F14 |
 | UX-04 | Estados carregando/vazio/erro/sem permissão/conflito/offline/pendente | `App.test.tsx` (403, 412, pendente), `States.tsx` | PASS (web) |
 | UX-05 | Skip link, foco visível, labels, aria-live, alvo 44 px, movimento reduzido | `site.spec.ts` (teclado) | PARTIAL — falta auditoria com leitor de tela |
-| WEB-01..03 | Site integrado a serviços reais (sem botões falsos; módulos futuros rotulados por fase) | Playwright 84 testes (`ADR021-web-playwright.txt`) | PARTIAL — só módulos já existentes no backend |
+| WEB-01..03 | Site integrado a serviços reais (sem botões falsos; módulos futuros rotulados por fase) | Playwright 95 testes (`F07-web-playwright.txt`) | PARTIAL — só módulos já existentes no backend |
 
 Testes adicionais de F01: imutabilidade de `audit_events` (trigger), paginação por cursor, 412 por versão,
 concorrência entre administradores (`ConcurrencyIntegrationTest`, com teste de mutação).

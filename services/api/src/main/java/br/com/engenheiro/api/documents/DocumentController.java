@@ -24,11 +24,17 @@ public class DocumentController {
     private final br.com.engenheiro.api.logistics.TripService trips;
     private final br.com.engenheiro.api.logistics.VehicleExpenseService expenses;
     private final br.com.engenheiro.api.finance.ExpenseService finExpenses;
+    private final br.com.engenheiro.api.accounting.TaxObligationService taxes;
+    private final br.com.engenheiro.api.accounting.AccountingDocumentService accountingDocs;
 
     public DocumentController(DocumentService documents, ReceiptService receipts,
                               br.com.engenheiro.api.logistics.TripService trips,
                               br.com.engenheiro.api.logistics.VehicleExpenseService expenses,
-                              br.com.engenheiro.api.finance.ExpenseService finExpenses) {
+                              br.com.engenheiro.api.finance.ExpenseService finExpenses,
+                              br.com.engenheiro.api.accounting.TaxObligationService taxes,
+                              br.com.engenheiro.api.accounting.AccountingDocumentService accountingDocs) {
+        this.taxes = taxes;
+        this.accountingDocs = accountingDocs;
         this.finExpenses = finExpenses;
         this.documents = documents;
         this.receipts = receipts;
@@ -45,6 +51,8 @@ public class DocumentController {
             case "trip_stop" -> trips.requireStopVisible(actor, d.ownerId());
             case "vehicle_expense" -> expenses.get(actor, d.ownerId());
             case "expense" -> finExpenses.get(actor, d.ownerId());
+            case "tax_obligation" -> taxes.requireVisible(actor, d.ownerId());
+            case "accounting_document" -> accountingDocs.requireVisible(actor, d.ownerId());
             default -> throw ApiException.notFound();
         }
         DocumentService.Content c = documents.read(actor, d);

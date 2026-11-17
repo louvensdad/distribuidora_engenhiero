@@ -17,6 +17,7 @@ dependencies:
   engenheiro_auth:
     path: ../mobile-auth
   image_picker: 1.2.4
+  file_picker: 13.4.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

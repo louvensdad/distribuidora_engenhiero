@@ -2,17 +2,13 @@ import { useState } from "react";
 import { ApiError, api } from "../../api/http";
 import type { FinanceCategories, FinanceSummary, LedgerLines, Period, Reconciliation, ReportItem } from "../../api/types";
 import { useResource } from "../../api/useResource";
-import { formatDateTime, formatMoney } from "../../app/format";
+import { formatDateTime, formatMoney, monthStartBr } from "../../app/format";
 import { ErrorState, ForbiddenState, LoadingState } from "../../components/States";
 import { useSession } from "../../session/SessionContext";
 import { CATEGORY, EVENT, PERIOD_EVENT, brDate, monthLabel } from "./financeLabels";
 
 const asError = (e: unknown) => (e instanceof ApiError ? e : new ApiError({ status: 0, code: "UNKNOWN" }));
-const monthStart = (offset: number) => {
-  const d = new Date();
-  const m = new Date(Date.UTC(d.getFullYear(), d.getMonth() + offset, 1));
-  return m.toISOString().slice(0, 10);
-};
+const monthStart = (offset: number) => monthStartBr(offset);
 
 /** FIN-04/FIN-07 — resultado por competência com drilldown, caixa à parte, categorias, conciliação e fechamento. */
 export function ClosingPage() {
@@ -158,7 +154,7 @@ function DrillCard({ item, from, to, onClose }: { item: ReportItem; from: string
 function PeriodActions({ p, canClose, canReopen, onDone }: { p: Period; canClose: boolean; canReopen: boolean; onDone: () => void }) {
   const [reason, setReason] = useState("");
   const [error, setError] = useState<ApiError | null>(null);
-  const current = p.month >= new Date().toISOString().slice(0, 8) + "01";
+  const current = p.month >= monthStartBr(0);
   const run = async (path: string) => {
     setError(null);
     try {

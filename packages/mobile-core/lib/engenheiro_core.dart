@@ -15,3 +15,4 @@ export 'src/screens/inventory_screens.dart';
 export 'src/screens/orders_screens.dart';
 export 'src/screens/delivery_screens.dart';
 export 'src/screens/finance_screens.dart';
+export 'src/screens/accounting_screens.dart';

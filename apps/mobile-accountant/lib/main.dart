@@ -10,16 +10,14 @@ final config = AppConfig(
   clientId: 'engenheiro-contabil',
   audienceDescription: 'Contador e auxiliares autorizados',
   destinations: [
-    Destination(id: 'agenda', label: 'Agenda', icon: 'clock', anyOf: const ['taxes.view', 'payroll.view'], pendingPhase: 'F07',
-        builder: (_) => const PendingModuleView(title: 'Agenda de obrigações', phase: 'F07')),
-    Destination(id: 'guias', label: 'Guias', icon: 'tax', anyOf: const ['taxes.view'], pendingPhase: 'F07',
-        builder: (_) => const PendingModuleView(title: 'Guias e impostos', phase: 'F07')),
-    Destination(id: 'folha', label: 'Folha', icon: 'wallet', anyOf: const ['payroll.view'], pendingPhase: 'F07',
-        builder: (_) => const PendingModuleView(title: 'Folha de pagamento', phase: 'F07')),
+    Destination(id: 'agenda', label: 'Agenda', icon: 'clock', anyOf: const ['taxes.view', 'payroll.view', 'documents.view'],
+        builder: (_) => const AccountantAgendaScreen()),
+    Destination(id: 'guias', label: 'Guias', icon: 'tax', anyOf: const ['taxes.view'], builder: (_) => const TaxesScreen()),
+    Destination(id: 'folha', label: 'Folha', icon: 'wallet', anyOf: const ['payroll.view'], builder: (_) => const PayrollScreen()),
     Destination(id: 'notas', label: 'Notas', icon: 'invoice', anyOf: const ['invoices.view'], pendingPhase: 'F08',
         builder: (_) => const PendingModuleView(title: 'Notas fiscais', phase: 'F08')),
-    Destination(id: 'documentos', label: 'Documentos', icon: 'document', anyOf: const ['documents.view'], pendingPhase: 'F07',
-        builder: (_) => const PendingModuleView(title: 'Documentos privados', phase: 'F07')),
+    Destination(id: 'documentos', label: 'Documentos', icon: 'document', anyOf: const ['documents.view'],
+        builder: (_) => const AccountingDocumentsScreen()),
   ],
 );
 

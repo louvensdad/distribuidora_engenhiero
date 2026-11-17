@@ -3,7 +3,7 @@ import { Link } from "react-router";
 import { ApiError, api, newIdempotencyKey } from "../../api/http";
 import type { Page, Payable, PayableDetail } from "../../api/types";
 import { useResource } from "../../api/useResource";
-import { formatDateTime, formatMoney, toDecimal } from "../../app/format";
+import { formatDateTime, formatMoney, toDecimal, todayBr } from "../../app/format";
 import { Field, FormError, fieldError } from "../../components/Form";
 import { EmptyState, ErrorState, ForbiddenState, LoadingState } from "../../components/States";
 import { useSession } from "../../session/SessionContext";
@@ -87,7 +87,7 @@ function PayableCard({ id, onChange }: { id: string; onChange: () => void }) {
 function PayForm({ p, onDone }: { p: Payable; onDone: () => void }) {
   const [amount, setAmount] = useState(p.balance);
   const [account, setAccount] = useState("");
-  const [paidOn, setPaidOn] = useState(new Date().toISOString().slice(0, 10));
+  const [paidOn, setPaidOn] = useState(todayBr);
   const [key, setKey] = useState(newIdempotencyKey);
   const [error, setError] = useState<ApiError | null>(null);
   const submit = async (e: FormEvent) => {

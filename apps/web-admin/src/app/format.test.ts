@@ -15,3 +15,14 @@ describe("toDecimal (entrada pt-BR sem float)", () => {
     expect(toDecimal("  ")).toBeNull();
   });
 });
+
+describe("datas no fuso de São Paulo", () => {
+  it("às 22h30 de Brasília (01h30 UTC do dia seguinte) hoje ainda é o dia de Brasília", async () => {
+    const { todayBr, monthStartBr } = await import("./format");
+    const late = new Date("2026-11-30T01:30:00Z"); // 29/11 22:30 em São Paulo
+    expect(todayBr(late)).toBe("2026-11-29");
+    expect(monthStartBr(0, late)).toBe("2026-11-01");
+    expect(monthStartBr(1, late)).toBe("2026-12-01");
+    expect(monthStartBr(-11, late)).toBe("2025-12-01");
+  });
+});

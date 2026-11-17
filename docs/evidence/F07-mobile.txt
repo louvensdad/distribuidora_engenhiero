@@ -1,0 +1,27 @@
+# F07 — app Engenheiro Contábil (contador) no emulador + patrão no site, Keycloak 26.8.1 + API real (V10) — 2026-11-16
+flutter analyze: No issues found!  Dependência nova: file_picker 13.4.0 (versão exata; 10.3.3 conflitava com
+flutter_secure_storage_windows/win32). Dart: 41 testes, 0 falhas (mobile-core 18, mobile-api 6, mobile-auth 6, owner 3,
+counter 2, delivery 3, accountant 3). Novo: packages/mobile-core/test/accounting_test.dart (2).
+
+Arquivos fictícios enviados ao emulador (/sdcard/Download): guia-ficticia.pdf (PDF mínimo, sem dado real) e
+folha-ficticia.csv (2 funcionários fictícios do seed: Balcão Exemplo e Motorista A Exemplo).
+
+App Contábil (usuário contador): destinos Agenda, Guias, Folha, Notas (F08, pendente) e Documentos — sem dashboard,
+sem lucro, sem saldo (telas-mobile/F07-contabil-login.png).
+- Guias › Preparar guia: DAS, "Simples Nacional teste", competência 11/2026, vencimento 06/12/2026, R$ 850,00 →
+  Em preparação, "Nenhum arquivo" (F07-contabil-preparar.png).
+- Anexar arquivo da guia: seletor do Android (Downloads › guia-ficticia.pdf) → "guia-ficticia.pdf — ok" (conteúdo
+  validado pelo servidor) (F07-contabil-guia-anexada.png) → Enviar para aprovação → "Aguardando aprovação do patrão"
+  (F07-contabil-guia-enviada.png).
+- Folha: importar folha-ficticia.csv (competência 11/2026) → "Folha importada: 2 pessoa(s), custo R$ 6.124,00";
+  proventos R$ 5.300,00, benefícios R$ 400,00, encargos R$ 424,00; "Valores por pessoa: só com permissão individual do
+  dono" (F07-contabil-folha.png) → Enviar ao patrão → Aguardando aprovação.
+Site (patrão, Playwright accounting.spec.ts): guia do app aprovada → "Aprovada — pagamento pendente"
+(telas-web/F07-guia-aprovada-pendente.png) → pagamento pelo Banco principal → Paga. Folha do app: patrão vê por pessoa,
+aprova e paga os salários líquidos.
+App Contábil depois: "DAS · 11/2026 · R$ 850,00 — Paga" (F07-contabil-guia-paga.png).
+Banco: tax_obligations DAS "Simples Nacional teste" PAID; payroll_runs "Folha mensal" PAID.
+Trilha (CONT-05): taxes.create, taxes.attach, taxes.submit, payroll.create, payroll.submit por Contador Exemplo via
+engenheiro-contabil; taxes.approve, taxes.pay, payroll.approve, payroll.pay por Patrão Fictício via engenheiro-web.
+Auditoria da folha sem valor individual: {"lines": 6, "people": 2, "source": "IMPORT", "competence": "2026-11-01"}.
+O arquivo CSV da folha não é guardado (só o hash SHA-256), por conter salários individuais.

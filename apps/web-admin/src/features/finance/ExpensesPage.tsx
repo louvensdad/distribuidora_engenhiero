@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { ApiError, api, newIdempotencyKey } from "../../api/http";
 import type { Expense, Page } from "../../api/types";
 import { useResource } from "../../api/useResource";
-import { formatDateTime, formatMoney, toDecimal } from "../../app/format";
+import { formatDateTime, formatMoney, toDecimal, todayBr } from "../../app/format";
 import { Field, FormError, fieldError } from "../../components/Form";
 import { Icon } from "../../components/Icon";
 import { EmptyState, ErrorState, ForbiddenState, LoadingState } from "../../components/States";
@@ -70,7 +70,7 @@ export function ExpensesPage() {
 }
 
 function ExpenseForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => void }) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayBr();
   const [f, setF] = useState({ category: "ESTRUTURA", subcategory: "", description: "", payee: "", amount: "", competence: today, due_date: "" });
   const [key] = useState(newIdempotencyKey);
   const [busy, setBusy] = useState(false);

@@ -22,6 +22,9 @@ import { ClosingPage } from "../features/finance/ClosingPage";
 import { ExpensesPage } from "../features/finance/ExpensesPage";
 import { ReceivablesPage } from "../features/finance/ReceivablesPage";
 import { OpenFinancePage } from "../features/finance/OpenFinancePage";
+import { TaxesPage } from "../features/finance/TaxesPage";
+import { PayrollPage } from "../features/finance/PayrollPage";
+import { DocumentsCenterPage } from "../features/finance/DocumentsCenterPage";
 import { EmployeesPage } from "../features/team/EmployeesPage";
 import { OrdersPage } from "../features/sales/OrdersPage";
 import { OrderFormPage } from "../features/sales/OrderFormPage";
@@ -49,6 +52,9 @@ const IMPLEMENTED: Record<string, () => React.JSX.Element> = {
   "/finance/expenses": ExpensesPage,
   "/finance/receivables": ReceivablesPage,
   "/finance/open-finance": OpenFinancePage,
+  "/finance/taxes": TaxesPage,
+  "/finance/payroll": PayrollPage,
+  "/finance/documents": DocumentsCenterPage,
   "/team/employees": EmployeesPage,
   "/sales/orders": OrdersPage,
   "/team/branches": BranchesPage,

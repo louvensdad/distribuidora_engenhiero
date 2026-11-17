@@ -27,3 +27,4 @@ ou de provedores; mudanças exigem novo ADR com o modelo `docs/especificacao/tem
 | ADR-019 | Regras de frota, viagens, entregas, prestação e rateio da F05 | ADOTADA (validar com dono/contador) | Ver `ADR-019.md` |
 | ADR-020 | Subledger financeiro gerencial da F06 (contas, competência, despesas, a pagar/receber, períodos) | ADOTADA (validar com dono/contador, D12) | Ver `ADR-020.md`; substitui ADR-017 para contas a pagar |
 | ADR-021 | Funcionários (folgas, férias, desempenho por função) e Open Finance — pedido do responsável | ADOTADA (validar férias com o contador) | Ver `ADR-021.md` |
+| ADR-022 | Guias, folha e central de documentos da F07 | ADOTADA (validar com o contador) | Ver `ADR-022.md` |

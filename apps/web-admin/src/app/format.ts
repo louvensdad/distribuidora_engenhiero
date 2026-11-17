@@ -37,3 +37,14 @@ export function toDecimal(v: string): string | null {
   if (t.includes(",")) return t.replace(/\./g, "").replace(",", ".");
   return /^\d{1,3}(\.\d{3})+$/.test(t) ? t.replace(/\./g, "") : t;
 }
+
+// ---- Datas civis no fuso comercial (America/Sao_Paulo), nunca pelo UTC do navegador ----
+const ISO_BR = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" });
+/** Hoje (AAAA-MM-DD) em São Paulo — às 22h de Brasília o UTC já é o dia seguinte. */
+export const todayBr = (now: Date = new Date()) => ISO_BR.format(now);
+/** Primeiro dia do mês (AAAA-MM-01) em São Paulo, deslocado em meses. */
+export function monthStartBr(offset = 0, now: Date = new Date()): string {
+  const [y, m] = todayBr(now).split("-").map(Number);
+  const d = new Date(Date.UTC(y!, m! - 1 + offset, 1));
+  return d.toISOString().slice(0, 10);
+}

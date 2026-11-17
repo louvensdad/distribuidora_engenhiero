@@ -232,6 +232,77 @@ class ApiClient {
 
   Future<Map<String, dynamic>> reconciliation() => _get('/api/v1/finance/reconciliation');
 
+  // ---- F07: contador ----
+  Future<List<TaxInfo>> taxes() async {
+    final j = await _get('/api/v1/tax-obligations');
+    return [for (final t in j['items'] as List) TaxInfo.fromJson(t as Map<String, dynamic>)];
+  }
+
+  Future<TaxInfo> tax(String id) async => TaxInfo.fromJson(await _get('/api/v1/tax-obligations/$id'));
+
+  Future<TaxInfo> createTax({required String idempotencyKey, required String kind, required String description,
+          required String competence, required String dueDate, required String amount, String? notes}) async =>
+      TaxInfo.fromJson(await _post('/api/v1/tax-obligations', {
+        'kind': kind,
+        'description': description.trim(),
+        'competence': competence.trim(),
+        'due_date': dueDate.trim(),
+        'amount': decimalText(amount),
+        if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
+      }, idempotencyKey: idempotencyKey));
+
+  Future<TaxInfo> submitTax({required String id, required int version}) async =>
+      TaxInfo.fromJson(await _post('/api/v1/tax-obligations/$id/submit', null, ifMatch: '"$version"'));
+
+  Future<DocumentInfo> uploadTaxFile({required String id, required String fileName, required List<int> bytes,
+          required String contentType}) async =>
+      DocumentInfo.fromJson(await _multipart('/api/v1/tax-obligations/$id/attachments', const {}, fileName, bytes, contentType));
+
+  Future<List<PayrollRunInfo>> payrollRuns() async {
+    final j = await _get('/api/v1/payroll-runs');
+    return [for (final r in j['items'] as List) PayrollRunInfo.fromJson(r as Map<String, dynamic>)];
+  }
+
+  /// Arquivo do sistema da contabilidade (CSV funcionario;rubrica;tipo;valor), validado pelo servidor (tudo ou nada).
+  Future<PayrollRunInfo> importPayroll({required String competence, required String description, required String payDate,
+          required String fileName, required List<int> bytes}) async =>
+      PayrollRunInfo.fromJson(await _multipart('/api/v1/payroll-runs/imports',
+          {'competence': competence.trim(), 'description': description.trim(), 'pay_date': payDate.trim()}, fileName, bytes, 'text/csv'));
+
+  Future<PayrollRunInfo> submitPayroll({required String id, required int version}) async =>
+      PayrollRunInfo.fromJson(await _post('/api/v1/payroll-runs/$id/submit', null, ifMatch: '"$version"'));
+
+  Future<List<AccDocInfo>> accountingDocuments() async {
+    final j = await _get('/api/v1/documents');
+    return [for (final d in j['items'] as List) AccDocInfo.fromJson(d as Map<String, dynamic>)];
+  }
+
+  Future<AccDocInfo> uploadAccountingDocument({required String kind, required String title, String? competence,
+          String? requestId, required String fileName, required List<int> bytes, required String contentType}) async =>
+      AccDocInfo.fromJson(await _multipart('/api/v1/documents/uploads', {
+        'kind': kind,
+        'title': title.trim(),
+        if (competence != null && competence.trim().isNotEmpty) 'competence': competence.trim(),
+        'request_id': ?requestId,
+      }, fileName, bytes, contentType));
+
+  Future<List<DocRequestInfo>> documentRequests() async {
+    final j = await _get('/api/v1/document-requests');
+    return [for (final r in j['items'] as List) DocRequestInfo.fromJson(r as Map<String, dynamic>)];
+  }
+
+  Future<DocRequestInfo> requestDocument({required String title, String? description}) async =>
+      DocRequestInfo.fromJson(await _post('/api/v1/document-requests', {
+        'title': title.trim(),
+        if (description != null && description.trim().isNotEmpty) 'description': description.trim(),
+      }));
+
+  Future<Map<String, dynamic>> _multipart(String path, Map<String, String> fields, String fileName, List<int> bytes,
+          String contentType) =>
+      _send(() => http.MultipartRequest('POST', baseUrl.replace(path: path))
+        ..fields.addAll(fields)
+        ..files.add(http.MultipartFile.fromBytes('file', bytes, filename: fileName, contentType: MediaType.parse(contentType))));
+
   /// Chave aleatória para um comando (uma por intenção do usuário).
   static String newIdempotencyKey() {
     final r = Random.secure();

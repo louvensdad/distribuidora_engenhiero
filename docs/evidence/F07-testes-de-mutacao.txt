@@ -1,0 +1,7 @@
+# F07 — testes de mutação (2026-11-16, ./mvnw -o test -Dtest=AccountingIntegrationTest#..., código restaurado após cada uma)
+M1. TaxObligationService.approve grava a guia como PAID (aprovar = pagar)
+    → guiaEmEtapas... FALHA: expected "APPROVED" but was "PAID". Pega.
+M2. PayrollService.view devolve valores por pessoa sempre (ignora employee_salary)
+    → folhaPorRubricasComDadoIndividualProtegido FALHA: "people" não é nulo para o contador. Pega.
+M3. TaxObligationService.submit não exige o arquivo da guia
+    → guiaEmEtapas... FALHA: expected 422 but was 200. Pega.

@@ -95,11 +95,12 @@ export const api = {
 };
 
 /** Envio de arquivo (multipart). Sessão por cookie + CSRF, como as demais mutações. */
-export async function uploadFile<T>(path: string, file: File): Promise<T> {
+export async function uploadFile<T>(path: string, file: File, fields: Record<string, string> = {}): Promise<T> {
   const headers: Record<string, string> = { Accept: "application/json" };
   const csrf = readCookie("XSRF-TOKEN");
   if (csrf) headers["X-XSRF-TOKEN"] = decodeURIComponent(csrf);
   const form = new FormData();
+  for (const [k, v] of Object.entries(fields)) form.append(k, v);
   form.append("file", file);
   let res: Response;
   try {

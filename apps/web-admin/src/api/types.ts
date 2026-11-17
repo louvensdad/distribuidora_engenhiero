@@ -416,3 +416,30 @@ export interface PerformanceReport {
 export interface BankConnection { id: string; fin_account_id: string; account_name: string; provider: string; institution: string; company_document: string; state: string; consent_url: string | null; last_sync_at: string | null; last_error: string | null; provider_balance: string | null; ledger_balance: string | null; created_by_name: string; created_at: string }
 export interface OpenFinanceStatus { state: "CONFIGURADO" | "NAO_CONFIGURADO"; provider: string | null; message: string; connections: BankConnection[] }
 export interface BankTransaction { id: string; fin_account_id: string; account_name: string; booked_on: string; amount: string; direction: "IN" | "OUT"; description: string; counterpart: string | null; state: "MATCHED" | "SUGGESTED" | "UNMATCHED" | "IGNORED"; matched_type: string | null; matched_id: string | null; suggested_expense_id: string | null; suggested_category: string | null; expense_state: string | null; decided_note: string | null }
+
+// ---- F07: guias, folha e documentos ----
+export interface TaxObligation {
+  id: string; kind: string; description: string; competence: string; due_date: string; amount: string; notes: string | null;
+  payroll_run_id: string | null; state: "DRAFT" | "SUBMITTED" | "RETURNED" | "APPROVED" | "PAID" | "CANCELLED"; payable_id: string | null;
+  payable_state: string | null; created_by_name: string; created_at: string; submitted_by_name: string | null; submitted_at: string | null;
+  decided_by_name: string | null; decided_at: string | null; decided_note: string | null; attachments: DocumentView[]; version: number;
+}
+export interface RubricTotal { kind: string; rubric: string; amount: string; people: number }
+export interface PayrollRun {
+  id: string; competence: string; description: string; pay_date: string; state: TaxObligation["state"]; source: "MANUAL" | "IMPORT";
+  totals: { earnings: string; benefits: string; deductions: string; advances: string; employer_charges: string; net_pay: string; company_cost: string; people: number };
+  rubrics: RubricTotal[];
+  people: { membership_id: string; person: string; earnings: string; benefits: string; deductions: string; advances: string; employer_charges: string; net: string; rubrics: RubricTotal[] }[] | null;
+  masked_fields: string[]; net_payable_id: string | null; net_payable_state: string | null; created_by_name: string; created_at: string;
+  submitted_by_name: string | null; decided_by_name: string | null; decided_at: string | null; decided_note: string | null; version: number;
+}
+export interface AccountingDocument {
+  id: string; kind: string; title: string; competence: string | null; related_type: string | null; related_id: string | null;
+  current_version: number; state: string; created_by_name: string; created_at: string;
+  versions: { version_no: number; reason: string | null; created_by_name: string; created_at: string; file: DocumentView }[]; version: number;
+}
+export interface DocumentRequest {
+  id: string; title: string; description: string | null; kind: string; competence: string | null; requested_from_name: string | null;
+  due_date: string | null; state: "OPEN" | "FULFILLED" | "CANCELLED"; fulfilled_document_id: string | null; fulfilled_by_name: string | null;
+  fulfilled_at: string | null; created_by_name: string; created_at: string; version: number;
+}

@@ -43,6 +43,9 @@ public class DocumentService {
 
     public record DocumentView(UUID id, String file_name, String mime, long size_bytes, String sha256, String state,
                                String scan_state, String rejection, String created_by_name, OffsetDateTime created_at) {
+        public boolean available() {
+            return "AVAILABLE".equals(state);
+        }
     }
 
     public record Stored(UUID id, UUID organizationId, String ownerType, UUID ownerId, String fileName, String mime,

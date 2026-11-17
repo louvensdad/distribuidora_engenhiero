@@ -2,14 +2,14 @@ import { useState, type FormEvent } from "react";
 import { ApiError, api, newIdempotencyKey } from "../../api/http";
 import type { FinAccount, FinanceSummary, Statement, Transfer } from "../../api/types";
 import { useResource } from "../../api/useResource";
-import { formatDateTime, formatMoney, toDecimal } from "../../app/format";
+import { formatDateTime, formatMoney, toDecimal, monthStartBr } from "../../app/format";
 import { Field, FormError, fieldError } from "../../components/Form";
 import { EmptyState, ErrorState, ForbiddenState, LoadingState } from "../../components/States";
 import { useSession } from "../../session/SessionContext";
 import { ACCOUNT_KIND, EVENT, brDate } from "./financeLabels";
 
 const asError = (e: unknown) => (e instanceof ApiError ? e : new ApiError({ status: 0, code: "UNKNOWN" }));
-const firstOfMonth = () => new Date().toISOString().slice(0, 8) + "01";
+const firstOfMonth = () => monthStartBr(0);
 
 /** W08 — financeiro por conta: saldos, extrato, transferências; resultado do mês ao lado (caixa ≠ lucro). */
 export function CashAccountsPage() {

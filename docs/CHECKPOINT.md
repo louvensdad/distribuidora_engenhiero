@@ -3,8 +3,8 @@
 Data/hora e fuso: 16/11/2026 16:20 America/Sao_Paulo
 Agente e repositório: Claude Code (Opus 5.5) — `/home/louvens/Ivan/distribuidora-engenheiro` (movido de `~/distribuidora-engenheiro`)
 Branch e commit atual: `main` — ver `git log -1`
-Fase: F06 concluída (financeiro e reconciliação); próxima F07
-Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **PASS** (pendências abaixo) · F06 **PASS** (pendências abaixo) · F07 **NOT_STARTED**
+Fase: F07 concluída (contabilidade, folha e documentos); próxima F08
+Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **PASS** (pendências abaixo) · F06 **PASS** (pendências abaixo) · F07 **PASS** (pendências abaixo) · F08 **NOT_STARTED**
 
 ## Entregue e comprovado
 
@@ -108,6 +108,27 @@ Pendências F04:
 - App: Pix pendente é registrado, mas conferir Pix, retirada parcial, cancelamento e devolução estão só no site; app
   Patrão com Pedidos/Caixa compilado e com teste de widget, não exercitado no emulador nesta fase.
 - Concessões do balcão no emulador aplicadas direto no banco local (equivalentes ao mapa de acessos).
+
+## F07 — contabilidade, folha e documentos (16/11/2026, ADR-022)
+
+Entregue (migration V10): guias em etapas (preparar → enviar com arquivo → aprovar/devolver → pagar), despesa uma vez
+na aprovação, guia aprovada continua não paga; guia de encargos ligada à folha paga o passivo sem nova despesa; folha por
+rubricas (lançada ou importada de CSV validado, tudo ou nada) com aprovação, passivos de líquido/benefícios/encargos e
+compensação de adiantamento; valores por pessoa só com `employee_salary` (JSON e exportação); central de documentos com
+versões, solicitações e download autorizado/auditado; envio sem arquivo real recusado (422, antes 500).
+Superfícies: app Contábil (Agenda, Guias, Folha, Documentos; seletor de arquivo do Android), site (Financeiro › Guias,
+Folha, Documentos), Central do app Patrão (aba Contabilidade).
+Validação: `./mvnw clean verify` **134** (`F07-mvnw-verify.txt`), mutação 3/3 pegas (`F07-testes-de-mutacao.txt`),
+Vitest **44** (`F07-web-vitest.txt`), Playwright **95** + 2 do fluxo cruzado que dependem de pendência vinda do app
+(executados com sucesso no fluxo do emulador; `F07-web-playwright.txt`), Dart **41**, emulador com contador + patrão no
+site (`F07-mobile.txt`).
+Defeito encontrado e corrigido: o site sugeria "hoje" pelo UTC do navegador; às 21h+ de Brasília o pagamento era
+recusado como "no futuro". Agora todas as datas padrão usam o fuso de São Paulo (`todayBr`/`monthStartBr`, com teste).
+
+Pendências F07:
+- Notas fiscais: F08 (adaptador fiscal). Antivírus de anexos: NÃO CONFIGURADO; armazenamento S3 privado: F16.
+- Layout do CSV da folha a confirmar com o sistema do contador; folha e guias no app Patrão (aprovar pelo celular): F14.
+- Fluxo cruzado app→site no Playwright depende de pendência criada no app (marcado como "skipped" quando não há).
 
 ## Pedido do responsável após a F06 — funcionários e Open Finance (16/11/2026, ADR-021)
 
@@ -231,5 +252,5 @@ ENGENHEIRO_SENHA_LOCAL=... python3 -I ../../infra/local/e2e_login_web.py
 
 ## Próxima ação
 
-1. **F07**: contabilidade, folha e documentos — guias e folha como obrigações por competência (mesmo caminho da F06:
-   reconhecer uma vez, pagar sem nova despesa), documentos do contador com quarentena/antivírus NÃO CONFIGURADO explícito.
+1. **F08**: integrações fiscais e de pagamento — notas fiscais (rascunho → conferência → transmissão pelo adaptador
+   contratado; autorizado/rejeitado/cancelado distintos; XML/protocolo), Pix/cartão por provedor; sem provedor = NÃO CONFIGURADO.
