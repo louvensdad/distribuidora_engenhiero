@@ -152,7 +152,7 @@ public class ApprovalCenterService {
                             SELECT 'ABSENCE' AS kind, 'TEAM' AS sector, a.id, 'Ausência: ' || u.display_name AS title,
                                    a.kind || ' de ' || a.start_date || ' a ' || a.end_date AS detail, NULL AS amount,
                                    cb.display_name AS requested_by, a.created_at AS requested_at,
-                                   '/team/employees' AS path, NULL AS note
+                                   '/team/absences' AS path, NULL AS note
                               FROM employee_absences a JOIN memberships m ON m.id = a.membership_id
                               JOIN app_users u ON u.id = m.user_id JOIN app_users cb ON cb.id = a.created_by
                              WHERE a.organization_id = :o AND a.state = 'REQUESTED'

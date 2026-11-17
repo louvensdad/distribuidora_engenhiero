@@ -47,8 +47,10 @@ test("entrega: despacho com capacidade, saída, dinheiro na entrega, retorno e p
   // Pedido de entrega (LOG-01): endereço vem do cliente, pagamento combinado obrigatório.
   await page.goto("/sales/orders/new");
   await page.getByLabel("Tipo *").selectOption("DELIVERY");
+  await page.getByLabel("Buscar cliente").fill(`Mercado E2E ${tag}`);
   await page.getByLabel("Cliente *").selectOption({ label: `Mercado E2E ${tag}` });
   await expect(page.getByLabel("Endereço de entrega *")).toHaveValue("Rua Exemplo, 100 — Centro");
+  await page.getByLabel("Buscar produto").fill(`Cana E ${tag}`);
   await page.getByLabel("Produto *").selectOption({ label: `Cana E ${tag}` });
   await page.getByLabel("Quantidade *").fill("10");
   await page.getByRole("button", { name: "Salvar e reservar" }).click();

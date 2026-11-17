@@ -44,12 +44,19 @@ else
       --user "$KC_BOOTSTRAP_ADMIN_USERNAME" --password "$KC_BOOTSTRAP_ADMIN_PASSWORD" >/dev/null 2>&1
     ID=$($K get clients -r engenheiro -q clientId=engenheiro-web --fields id --format csv --noquotes)
     $K get clients/$ID/client-secret -r engenheiro --fields value --format csv --noquotes')
+  # Criação de contas de funcionários (ADR-027): só se o client de serviço existir (definir-provisionamento-local.sh).
+  SEGREDO_PROV=$(docker exec engenheiro-local-keycloak-1 sh -c '
+    K=/opt/keycloak/bin/kcadm.sh
+    ID=$($K get clients -r engenheiro -q clientId=engenheiro-provisioner --fields id --format csv --noquotes 2>/dev/null)
+    [ -n "$ID" ] && $K get clients/$ID/client-secret -r engenheiro --fields value --format csv --noquotes || true')
+  PROV_ID=""; [[ -n "$SEGREDO_PROV" ]] && PROV_ID=engenheiro-provisioner
   (cd services/api && ./mvnw -q -o clean package -DskipTests 2>&1 | tail -5 || ./mvnw -q clean package -DskipTests)
   # exec + todas as saídas redirecionadas: nada fica preso ao terminal de quem chamou.
   (cd services/api && PORT=8081 SPRING_PROFILES_ACTIVE=local ENGENHEIRO_WEB_CLIENT_SECRET="$SEGREDO" \
+    ENGENHEIRO_PROVISIONER_CLIENT_ID="$PROV_ID" ENGENHEIRO_PROVISIONER_CLIENT_SECRET="$SEGREDO_PROV" \
     exec nohup java -jar target/engenheiro-api-0.1.0-SNAPSHOT.jar) >"$LOGS/api.log" 2>&1 </dev/null &
   disown
-  unset SEGREDO
+  unset SEGREDO SEGREDO_PROV
   espera "API pronta" "curl -sf http://localhost:8081/actuator/health/readiness" 120
   grep -oE 'now at version v[0-9]+|Schema "public" is up to date[^"]*' "$LOGS/api.log" | tail -1 | sed 's/^/  migrations: /' || true
 fi

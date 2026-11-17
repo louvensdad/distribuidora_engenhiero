@@ -3,7 +3,7 @@
 Data/hora e fuso: 17/11/2026 10:15 America/Sao_Paulo
 Agente e repositório: Claude Code (Opus 5.5) — `/home/louvens/Ivan/distribuidora-engenheiro` (movido de `~/distribuidora-engenheiro`)
 Branch e commit atual: `main` — ver `git log -1`
-Fase: F11 concluída (app Retirada); a seguir: cadastro de funcionários, funções e cargos (pedido do responsável), depois F12
+Fase: F11 concluída + cadastro de funcionários e cargos (pedido do responsável, ADR-027); próxima F12
 Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **PASS** (pendências abaixo) · F06 **PASS** (pendências abaixo) · F07 **PASS** (pendências abaixo) · F08 **PASS** (critérios provados; integração real BLOCKED: D02/D03/D04) · F09 **PASS** (IA depende da F15) · F10 **PASS** (IA real: F15) · F11 **PASS** (homologação HTTPS: F16)
 
 ## Entregue e comprovado
@@ -108,6 +108,23 @@ Pendências F04:
 - App: Pix pendente é registrado, mas conferir Pix, retirada parcial, cancelamento e devolução estão só no site; app
   Patrão com Pedidos/Caixa compilado e com teste de widget, não exercitado no emulador nesta fase.
 - Concessões do balcão no emulador aplicadas direto no banco local (equivalentes ao mapa de acessos).
+
+## Pedido do responsável — funcionários, funções e cargos (17/11/2026, ADR-027)
+
+Entregue (migration V13): Equipe › **Funcionários** (lista com busca/situação/cargo, ficha, novo, edição com versão,
+desligamento) e **Cargos** (nome, setor, acesso sugerido); calendário de folgas foi para **Folgas e férias**.
+Funcionário existe sem login; CPF/nascimento/endereço, telefone e salário são campos protegidos (mascarados, recusados
+na gravação, mantidos ao salvar, fora da trilha). "Dar acesso aos apps" cria a conta individual no Keycloak por um
+client de serviço (`engenheiro-provisioner`; local: `infra/local/definir-provisionamento-local.sh`), senha temporária
+mostrada uma vez e troca obrigatória; sem credencial = NÃO CONFIGURADO (também em Integrações). Desligamento bloqueia a
+conta na hora.
+Validação: `./mvnw verify` **156** + caso de escalada (`ADR027-mvnw-verify.txt`), mutação 3/3, Vitest **69**,
+Playwright completo (`ADR027-web-playwright.txt`), Dart mobile-core 26; telas `telas-web/ADR027-*.png`.
+Defeito real encontrado na rodada completa e corrigido: formulários de pedido, recebimento, perda e contagem
+carregavam só os 100 primeiros clientes/produtos/fornecedores — com a base crescendo, o item novo sumia. Agora são
+seletores com busca no servidor (`usePicker`), testados (`usePicker.test.tsx`) e usados pelos E2E.
+Pendências: validar com o dono os cargos e com o contador os campos de RH/folha (folha segue por vínculo); App Patrão
+(F14); client de serviço e política de e-mail no realm de produção (F16).
 
 ## F11 — app Retirada, balcão e fornecedores (17/11/2026, ADR-026)
 
@@ -353,5 +370,5 @@ ENGENHEIRO_SENHA_LOCAL=... python3 -I ../../infra/local/e2e_login_web.py
 
 ## Próxima ação
 
-1. **Pedido do responsável (17/11)**: cadastro de funcionários, funções e cargos no site (e base para os apps).
-2. **F12**: aplicativo Entregas (pedidos, despacho, motoristas e veículos).
+1. **F12**: aplicativo Entregas (pedidos, despacho, motoristas e veículos).
+2. Validar com o dono/contador os cargos e campos de RH (ADR-027).

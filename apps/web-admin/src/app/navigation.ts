@@ -85,6 +85,8 @@ export const TABS: Tab[] = [
     subtabs: [
       { id: "people", label: "Pessoas", path: "/team/people", anyOf: ["users.view"] },
       { id: "employees", label: "Funcionários", path: "/team/employees", anyOf: ["users.view"] },
+      { id: "positions", label: "Cargos", path: "/team/positions", anyOf: ["users.view"] },
+      { id: "absences", label: "Folgas e férias", path: "/team/absences", anyOf: ["users.view"] },
       { id: "access", label: "Mapa de acessos", path: "/team/access", anyOf: ["permissions.view"] },
       { id: "audit", label: "Histórico", path: "/team/audit", anyOf: ["audit.view"] },
       { id: "branches", label: "Unidades", path: "/team/branches", anyOf: ["admin"] },

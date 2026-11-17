@@ -32,8 +32,10 @@ test.describe("estoque — pilha real", () => {
 
     // W06: 10 feixes previstos, 9 recebidos a R$ 30,00 + frete R$ 15,00 → R$ 285,00; entra 27 dúzias
     await page.goto("/operation/receipts/new");
+    await page.getByLabel("Buscar fornecedor").fill(fornecedor);
     await page.getByLabel("Fornecedor *").selectOption({ label: fornecedor });
     await page.getByLabel("Documento (nota ou romaneio)").fill(`NF-${tag}`);
+    await page.getByLabel("Buscar produto").first().fill(produto);
     await page.getByLabel("Produto *").selectOption({ label: produto });
     await page.getByLabel("Medida").selectOption("FEIXE");
     await page.getByLabel("Prevista").fill("10");
@@ -59,6 +61,7 @@ test.describe("estoque — pilha real", () => {
 
     // Perda: registro não baixa; aprovação baixa 2 dúzias pelo custo médio
     await page.getByRole("button", { name: /registrar perda/i }).click();
+    await page.getByLabel("Buscar produto").fill(produto);
     await page.getByLabel("Produto *").selectOption({ label: `${produto} (E2E-${tag})` });
     await page.getByLabel("Quantidade *").fill("2");
     await page.getByLabel("Motivo *").selectOption("QUEBRA");

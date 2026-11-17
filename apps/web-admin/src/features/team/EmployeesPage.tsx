@@ -34,7 +34,7 @@ export function EmployeesPage() {
     <section className="page" aria-labelledby="titulo-func">
       <header className="page-head">
         <div>
-          <h1 id="titulo-func">Funcionários: folgas, férias e desempenho</h1>
+          <h1 id="titulo-func">Folgas, férias e desempenho</h1>
           <p className="muted">A escala mostra quem está disponível em cada dia por setor. Aprovar uma ausência que deixa um setor sem ninguém gera aviso. Regras de férias da CLT e pagamento ficam com o contador e a folha.</p>
         </div>
         <div className="actions">

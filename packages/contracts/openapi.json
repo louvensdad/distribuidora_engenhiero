@@ -9511,6 +9511,509 @@
           "items",
           "searched"
         ]
+      },
+      "JobPosition": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sector": {
+            "enum": [
+              "ADMINISTRACAO",
+              "RETIRADA",
+              "ENTREGAS",
+              "CONTABILIDADE"
+            ]
+          },
+          "suggested_template": {
+            "enum": [
+              "BALCAO",
+              "RECEBIMENTO",
+              "COORDENADOR_ENTREGAS",
+              "MOTORISTA",
+              "CONTADOR",
+              null
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "enum": [
+              "ACTIVE",
+              "ARCHIVED"
+            ]
+          },
+          "employees": {
+            "type": "integer"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "sector",
+          "status",
+          "version"
+        ]
+      },
+      "JobPositionList": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JobPosition"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "JobPositionInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "sector": {
+            "enum": [
+              "ADMINISTRACAO",
+              "RETIRADA",
+              "ENTREGAS",
+              "CONTABILIDADE"
+            ]
+          },
+          "suggested_template": {
+            "enum": [
+              "BALCAO",
+              "RECEBIMENTO",
+              "COORDENADOR_ENTREGAS",
+              "MOTORISTA",
+              "CONTADOR",
+              null
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "enum": [
+              "ACTIVE",
+              "ARCHIVED",
+              null
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "sector"
+        ]
+      },
+      "Employee": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "full_name": {
+            "type": "string"
+          },
+          "branch_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "branch": {
+            "type": "string"
+          },
+          "job_position_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "job_position": {
+            "type": "string"
+          },
+          "sector": {
+            "type": "string"
+          },
+          "duties": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "admission_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "termination_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "status": {
+            "enum": [
+              "ACTIVE",
+              "ON_LEAVE",
+              "TERMINATED"
+            ]
+          },
+          "work_schedule": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cpf": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9]{11}$"
+          },
+          "birth_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "address": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "base_salary": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9]+\\.[0-9]{2}$"
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "account": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "user_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "display_name": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "enum": [
+                      "ACTIVE",
+                      "DISABLED"
+                    ]
+                  },
+                  "role_template": {
+                    "type": "string"
+                  },
+                  "sector": {
+                    "type": "string"
+                  }
+                }
+              }
+            ]
+          },
+          "version": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_by_name": {
+            "type": "string"
+          },
+          "masked_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "full_name",
+          "job_position_id",
+          "admission_date",
+          "status",
+          "version",
+          "masked_fields"
+        ]
+      },
+      "EmployeePage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Employee"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "EmployeeInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "full_name": {
+            "type": "string"
+          },
+          "branch_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "job_position_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "duties": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "admission_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "enum": [
+              "ACTIVE",
+              "ON_LEAVE",
+              null
+            ]
+          },
+          "work_schedule": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cpf": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "birth_date": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "address": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "base_salary": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "full_name",
+          "job_position_id",
+          "admission_date"
+        ]
+      },
+      "EmployeeTermination": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "termination_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "termination_date",
+          "reason"
+        ]
+      },
+      "EmployeeAccessInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "username": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,39}$"
+          },
+          "role_template": {
+            "enum": [
+              "BALCAO",
+              "RECEBIMENTO",
+              "COORDENADOR_ENTREGAS",
+              "MOTORISTA",
+              "CONTADOR"
+            ]
+          }
+        },
+        "required": [
+          "username",
+          "role_template"
+        ]
+      },
+      "EmployeeAccessResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "employee": {
+            "$ref": "#/components/schemas/Employee"
+          },
+          "username": {
+            "type": "string"
+          },
+          "temporary_password": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "employee",
+          "username",
+          "temporary_password"
+        ]
+      },
+      "EmployeeLink": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "user_id"
+        ]
+      },
+      "UnlinkedAccounts": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "user_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "display_name": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": [
+                    "ACTIVE",
+                    "DISABLED"
+                  ]
+                },
+                "role_template": {
+                  "type": "string"
+                },
+                "sector": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "account_creation": {
+            "enum": [
+              "CONFIGURED",
+              "NOT_CONFIGURED"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "account_creation"
+        ]
       }
     }
   },
@@ -19722,6 +20225,562 @@
             "$ref": "#/components/responses/Problem"
           },
           "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/job-positions": {
+      "get": {
+        "summary": "Cargos",
+        "x-capability": "users.view",
+        "parameters": [
+          {
+            "name": "include_archived",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobPositionList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      },
+      "post": {
+        "summary": "Cria cargo (nome único; ADMIN não é sugerível)",
+        "x-capability": "users.edit_draft",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobPosition"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobPositionInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/job-positions/{id}": {
+      "put": {
+        "summary": "Edita/arquiva cargo (não arquiva com funcionários ativos)",
+        "x-capability": "users.edit_draft",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobPosition"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobPositionInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/employees": {
+      "get": {
+        "summary": "Funcionários no escopo; campos pessoais/salário mascarados conforme a política",
+        "x-capability": "users.view",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "ACTIVE",
+                "ON_LEAVE",
+                "TERMINATED"
+              ]
+            }
+          },
+          {
+            "name": "job_position_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeePage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      },
+      "post": {
+        "summary": "Cadastra funcionário (sem conta de login)",
+        "x-capability": "users.edit_draft",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Employee"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmployeeInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/employees/{id}": {
+      "get": {
+        "summary": "Funcionário",
+        "x-capability": "users.view",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Employee"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      },
+      "put": {
+        "summary": "Edita (campo oculto não é enviado e fica como está)",
+        "x-capability": "users.edit_draft",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Employee"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmployeeInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/employees/{id}/termination": {
+      "post": {
+        "summary": "Desligamento: data e motivo; bloqueia a conta ligada na hora",
+        "x-capability": "users.edit_draft",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Employee"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmployeeTermination"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/employees/{id}/access": {
+      "post": {
+        "summary": "Cria a conta individual no provedor de identidade (503 NÃO CONFIGURADO sem credencial); senha temporária só nesta resposta",
+        "x-capability": "users.edit_draft + permissions.edit_draft",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeAccessResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmployeeAccessInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/employees/{id}/account-link": {
+      "post": {
+        "summary": "Liga a uma conta já existente na empresa",
+        "x-capability": "users.edit_draft",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Employee"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "412": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmployeeLink"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/employees/unlinked-accounts": {
+      "get": {
+        "summary": "Contas sem cadastro de funcionário e se a criação de conta está configurada",
+        "x-capability": "users.edit_draft",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnlinkedAccounts"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
             "$ref": "#/components/responses/Problem"
           }
         }

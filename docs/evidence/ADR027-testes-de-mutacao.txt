@@ -1,0 +1,5 @@
+# ADR-027 — testes de mutação (EmployeesIntegrationTest; arquivo restaurado depois de cada uma), 17/11/2026
+M1 salário aparece para quem não tem employee_salary: PEGA — EmployeesIntegrationTest.cadastroComCamposProtegidosEEscopoDeUnidade
+M2 concede capacidade que o concedente não tem: PEGA — EmployeesIntegrationTest.darAcessoCriaContaNoProvedorENaoEscalaPermissao
+M3 desligamento não bloqueia a conta: PEGA — EmployeesIntegrationTest.darAcessoCriaContaNoProvedorENaoEscalaPermissao
+Resultado: 3/3 mutações pegas.

@@ -118,6 +118,14 @@ const auditActionLabels = {
   'vehicles.expense.reject': 'Recusou gasto do veículo',
   'vehicles.odometer_correction': 'Corrigiu odômetro',
   'vehicles.status': 'Alterou situação do veículo',
+  'employees.access_granted': 'Criou conta de acesso do funcionário',
+  'employees.account_linked': 'Ligou conta ao funcionário',
+  'employees.create': 'Cadastrou funcionário',
+  'employees.terminate': 'Registrou desligamento',
+  'employees.update': 'Alterou cadastro de funcionário',
+  'job_positions.archive': 'Arquivou cargo',
+  'job_positions.create': 'Cadastrou cargo',
+  'job_positions.update': 'Alterou cargo',
 };
 
 const clientLabels = {

@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router";
 import { ApiError, api, newIdempotencyKey } from "../../api/http";
-import type { Page, Product, Receipt, Supplier } from "../../api/types";
-import { useResource } from "../../api/useResource";
+import type { Product, Receipt, Supplier } from "../../api/types";
+import { PickerSearch, usePicker } from "../../api/usePicker";
 import { formatDecimal, unitLabel, toDecimal } from "../../app/format";
 import { Field, FormError, fieldError } from "../../components/Form";
 import { Icon } from "../../components/Icon";
@@ -18,8 +18,8 @@ export function ReceiptFormPage() {
   const { can, canSeeField, me } = useSession();
   const navigate = useNavigate();
   const seesCost = canSeeField("purchase_cost");
-  const [suppliers, reloadSuppliers] = useResource<Page<Supplier>>("/api/v1/suppliers?limit=100");
-  const [products, reloadProducts] = useResource<Page<Product>>("/api/v1/products?limit=100");
+  const suppliers = usePicker<Supplier>("/api/v1/suppliers");
+  const products = usePicker<Product>("/api/v1/products");
   const [head, setHead] = useState({ supplier_id: "", document_number: "", notes: "", freight_amount: "" });
   const [lines, setLines] = useState<LineForm[]>([emptyLine()]);
   const [createKey] = useState(newIdempotencyKey);
@@ -30,9 +30,8 @@ export function ReceiptFormPage() {
 
   if (suppliers.status === "loading" || products.status === "loading") return <LoadingState />;
   if (suppliers.status === "forbidden" || products.status === "forbidden") return <ForbiddenState />;
-  if (suppliers.status === "error") return <ErrorState error={suppliers.error} onRetry={reloadSuppliers} />;
-  if (products.status === "error") return <ErrorState error={products.error} onRetry={reloadProducts} />;
-  const productList = products.data.items;
+  if (suppliers.status === "error") return <ErrorState error={suppliers.error!} onRetry={suppliers.reload} />;
+  if (products.status === "error") return <ErrorState error={products.error!} onRetry={products.reload} />;
   const setLine = (i: number, patch: Partial<LineForm>) => setLines(lines.map((l, j) => (j === i ? { ...l, ...patch } : l)));
 
   const submit = async (mode: "draft" | "confirm", e?: FormEvent) => {
@@ -78,9 +77,10 @@ export function ReceiptFormPage() {
       {created && <p className="notice" role="status">Rascunho salvo. A confirmação ainda não aconteceu.</p>}
       <form className="card form-grid" onSubmit={(e) => void submit("draft", e)} noValidate aria-describedby="rec-ajuda">
         <Field id="rec-fornecedor" label="Fornecedor *" error={fieldError(error, "supplier_id")}>
+          <PickerSearch id="rec-fornecedor-busca" label="Buscar fornecedor" picker={suppliers} disabled={!!created} />
           <select id="rec-fornecedor" value={head.supplier_id} disabled={!!created} onChange={(e) => setHead({ ...head, supplier_id: e.target.value })}>
             <option value="">Selecione</option>
-            {suppliers.data.items.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            {suppliers.options(head.supplier_id).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         </Field>
         <Field id="rec-doc" label="Documento (nota ou romaneio)" error={fieldError(error, "document_number")}>
@@ -90,14 +90,15 @@ export function ReceiptFormPage() {
         <fieldset className="span-2 lines" disabled={!!created}>
           <legend className="h3">Produto e medida · quantidade prevista / recebida</legend>
           {lines.map((l, i) => {
-            const p = productList.find((x) => x.id === l.product_id);
+            const p = l.product_id ? products.byId(l.product_id) : undefined;
             const f = `lines[${i}]`;
             return (
               <div className="line-grid" key={i} role="group" aria-label={`Linha ${i + 1}`}>
                 <Field id={`l${i}-prod`} label="Produto *" error={fieldError(error, f + ".product_id")}>
+                  <PickerSearch id={`l${i}-prod-busca`} label="Buscar produto" picker={products} />
                   <select id={`l${i}-prod`} value={l.product_id} onChange={(e) => setLine(i, { product_id: e.target.value, unit: "" })}>
                     <option value="">Selecione</option>
-                    {productList.map((x) => <option key={x.id} value={x.id} disabled={!x.base_unit_confirmed}>{x.name}{x.base_unit_confirmed ? "" : " — unidade não confirmada"}</option>)}
+                    {products.options(l.product_id).map((x) => <option key={x.id} value={x.id} disabled={!x.base_unit_confirmed}>{x.name}{x.base_unit_confirmed ? "" : " — unidade não confirmada"}</option>)}
                   </select>
                 </Field>
                 <Field id={`l${i}-un`} label="Medida" error={fieldError(error, f + ".unit")}>

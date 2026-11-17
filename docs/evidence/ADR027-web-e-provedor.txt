@@ -1,0 +1,10 @@
+# ADR-027 — Vitest (site), 17/11/2026
+
+ Test Files  15 passed (15)
+      Tests  68 passed (68)
+
+# Keycloak local (integração real do IdentityProvisioner)
+$ infra/local/definir-provisionamento-local.sh
+client engenheiro-provisioner criado; papéis manage-users/view-users/query-users na conta de serviço; e-mail opcional no perfil local
+API local: migração 13 aplicada; criação de contas CONFIGURED (segredo lido do Keycloak, só no ambiente do processo)
+E2E employees.spec.ts: cargo → funcionário → conta criada no Keycloak → login da pessoa com a senha temporária → troca obrigatória → site recusa (conta de balcão) → desligamento bloqueia. Senha mascarada na captura.

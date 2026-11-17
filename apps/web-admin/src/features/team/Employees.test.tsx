@@ -33,7 +33,7 @@ describe("Equipe › Funcionários", () => {
           leader: "Carlos Motorista", note: null }] } },
       "POST /api/v1/team/absences/a1/approve": { body: { ...absence, state: "APPROVED", warnings: ["2026-11-20: setor ENTREGAS sem ninguém disponível"] } },
     });
-    renderAt("/team/employees");
+    renderAt("/team/absences");
     expect(await screen.findByText("sem ninguém")).toBeInTheDocument();
     expect(screen.getByText("Ana Balcão (férias)")).toBeInTheDocument();
     expect(screen.getByText(/Férias aprovadas nos últimos 12 meses: 10 dia/)).toBeInTheDocument();
@@ -54,7 +54,7 @@ describe("Equipe › Funcionários", () => {
       "GET /api/v1/me/capabilities": { body: me({ admin: false, user: { id: "u3", display_name: "Carlos Motorista" }, capabilities: caps("users.view", "users.edit_draft") }) },
       "GET /api/v1/team/calendar": { body: calendar },
     });
-    renderAt("/team/employees");
+    renderAt("/team/absences");
     const row = (await screen.findByRole("rowheader", { name: /Carlos Motorista/ })).closest("tr")!;
     expect(within(row).queryByRole("button", { name: "Aprovar" })).not.toBeInTheDocument();
     expect(within(row).getByRole("button", { name: "Recusar" })).toBeInTheDocument();

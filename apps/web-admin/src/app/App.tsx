@@ -33,6 +33,9 @@ import { IntegrationsPage } from "../features/finance/IntegrationsPage";
 import { PayrollPage } from "../features/finance/PayrollPage";
 import { DocumentsCenterPage } from "../features/finance/DocumentsCenterPage";
 import { EmployeesPage } from "../features/team/EmployeesPage";
+import { EmployeesRegistryPage } from "../features/team/EmployeesRegistryPage";
+import { EmployeeDetailPage, NewEmployeePage } from "../features/team/EmployeeDetailPage";
+import { PositionsPage } from "../features/team/PositionsPage";
 import { OrdersPage } from "../features/sales/OrdersPage";
 import { OrderFormPage } from "../features/sales/OrderFormPage";
 import { OrderDetailPage } from "../features/sales/OrderDetailPage";
@@ -74,7 +77,9 @@ const IMPLEMENTED: Record<string, () => React.JSX.Element> = {
   "/finance/integrations": IntegrationsPage,
   "/finance/payroll": PayrollPage,
   "/finance/documents": DocumentsCenterPage,
-  "/team/employees": EmployeesPage,
+  "/team/employees": EmployeesRegistryPage,
+  "/team/positions": PositionsPage,
+  "/team/absences": EmployeesPage,
   "/sales/orders": OrdersPage,
   "/team/branches": BranchesPage,
   "/team/people": PeoplePage,
@@ -111,6 +116,8 @@ function ReadyApp({ can }: { can: (c: string) => boolean }) {
         <Route path="/operation/receipts/new" element={<Guard anyOf={["inventory.receipts.create"]}><ReceiptFormPage /></Guard>} />
         <Route path="/operation/fleet/:id" element={<Guard anyOf={["vehicles.view"]}><VehicleDetailPage /></Guard>} />
         <Route path="/operation/trips/:id" element={<Guard anyOf={["trips.view"]}><TripDetailPage /></Guard>} />
+        <Route path="/team/employees/new" element={<Guard anyOf={["users.edit_draft"]}><NewEmployeePage /></Guard>} />
+        <Route path="/team/employees/:id" element={<Guard anyOf={["users.view"]}><EmployeeDetailPage /></Guard>} />
         <Route path="/operation/receipts/:id" element={<Guard anyOf={["inventory.receipts.view"]}><ReceiptDetailPage /></Guard>} />
         {TABS.filter((t) => !t.subtabs.some((s) => s.path === t.path)).map((t) => (
           <Route key={t.path} path={t.path} element={<Navigate to={t.subtabs[0]!.path} replace />} />

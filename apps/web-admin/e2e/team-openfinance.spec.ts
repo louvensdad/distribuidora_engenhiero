@@ -6,7 +6,7 @@ test("funcionários: folga registrada, aprovada e visível no calendário; depoi
   const d = new Date(Date.now() + (40 + Math.floor(Math.random() * 200)) * 86400000);
   const iso = d.toISOString().slice(0, 10);
   const monthsAhead = (d.getUTCFullYear() - new Date().getFullYear()) * 12 + d.getUTCMonth() - new Date().getMonth();
-  await page.goto("/team/employees");
+  await page.goto("/team/absences");
   const form = page.getByRole("form", { name: "Registrar folga ou férias" });
   await form.getByLabel("Funcionário *").selectOption({ label: "Recebimento Exemplo" });
   await form.getByLabel("Tipo *").selectOption("DAY_OFF");

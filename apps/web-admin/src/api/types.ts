@@ -557,3 +557,60 @@ export interface SearchResult {
   searched: string[];
   items: SearchHit[];
 }
+
+// ---------- ADR-027: funcionários e cargos ----------
+export type TemplateKey = "BALCAO" | "RECEBIMENTO" | "COORDENADOR_ENTREGAS" | "MOTORISTA" | "CONTADOR";
+
+export interface JobPosition {
+  id: string;
+  name: string;
+  sector: "ADMINISTRACAO" | "RETIRADA" | "ENTREGAS" | "CONTABILIDADE";
+  suggested_template: TemplateKey | null;
+  description: string | null;
+  status: "ACTIVE" | "ARCHIVED";
+  employees: number;
+  version: number;
+  created_at: string;
+}
+
+export interface EmployeeAccount {
+  user_id: string;
+  display_name: string;
+  status: "ACTIVE" | "DISABLED";
+  role_template: string;
+  sector: string;
+}
+
+export interface Employee {
+  id: string;
+  full_name: string;
+  branch_id: string;
+  branch: string;
+  job_position_id: string;
+  job_position: string;
+  sector: string;
+  duties: string | null;
+  admission_date: string;
+  termination_date: string | null;
+  status: "ACTIVE" | "ON_LEAVE" | "TERMINATED";
+  work_schedule: string | null;
+  phone: string | null;
+  cpf: string | null;
+  birth_date: string | null;
+  address: string | null;
+  base_salary: string | null;
+  notes: string | null;
+  account: EmployeeAccount | null;
+  version: number;
+  created_at: string;
+  created_by_name: string;
+  masked_fields: string[];
+}
+
+export interface EmployeeAccessResult {
+  employee: Employee;
+  username: string;
+  temporary_password: string;
+  provider: string;
+  note: string;
+}

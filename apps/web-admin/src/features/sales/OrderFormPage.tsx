@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router";
 import { ApiError, api, newIdempotencyKey } from "../../api/http";
-import type { Customer, Order, Page, Product } from "../../api/types";
-import { useResource } from "../../api/useResource";
+import type { Customer, Order, Product } from "../../api/types";
+import { PickerSearch, usePicker } from "../../api/usePicker";
 import { formatMoney, unitLabel, toDecimal } from "../../app/format";
 import { Field, FormError, fieldError } from "../../components/Form";
 import { Icon } from "../../components/Icon";
@@ -17,8 +17,8 @@ const empty = (): Item => ({ product_id: "", unit: "", quantity: "", discount: "
 export function OrderFormPage() {
   const { can, me } = useSession();
   const navigate = useNavigate();
-  const [customers, reloadC] = useResource<Page<Customer>>("/api/v1/customers?limit=100");
-  const [products, reloadP] = useResource<Page<Product>>("/api/v1/products?limit=100");
+  const customers = usePicker<Customer>("/api/v1/customers");
+  const products = usePicker<Product>("/api/v1/products");
   const types = [can("orders.pickup.create") && "PICKUP", can("orders.delivery.create") && "DELIVERY"].filter(Boolean) as string[];
   const [type, setType] = useState(types[0] ?? "PICKUP");
   const [customer, setCustomer] = useState("");
@@ -34,8 +34,8 @@ export function OrderFormPage() {
 
   if (customers.status === "loading" || products.status === "loading") return <LoadingState />;
   if (customers.status === "forbidden" || products.status === "forbidden") return <ForbiddenState />;
-  if (customers.status === "error") return <ErrorState error={customers.error} onRetry={reloadC} />;
-  if (products.status === "error") return <ErrorState error={products.error} onRetry={reloadP} />;
+  if (customers.status === "error") return <ErrorState error={customers.error!} onRetry={customers.reload} />;
+  if (products.status === "error") return <ErrorState error={products.error!} onRetry={products.reload} />;
   const set = (i: number, patch: Partial<Item>) => setItems(items.map((x, j) => (j === i ? { ...x, ...patch } : x)));
 
   const submit = async (e: FormEvent) => {
@@ -76,13 +76,14 @@ export function OrderFormPage() {
           </select>
         </Field>
         <Field id="np-cliente" label="Cliente *" error={fieldError(error, "customer_id")}>
+          <PickerSearch id="np-cliente-busca" label="Buscar cliente" picker={customers} />
           <select id="np-cliente" value={customer} onChange={(e) => {
             setCustomer(e.target.value);
-            const c = customers.data.items.find((x) => x.id === e.target.value);
+            const c = customers.byId(e.target.value);
             if (c && type === "DELIVERY") setDlv((d) => ({ ...d, address: d.address || c.address || "", contact: d.contact || c.contact || "" }));
           }}>
             <option value="">Selecione</option>
-            {customers.data.items.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            {customers.options(customer).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </Field>
         {type === "DELIVERY" && (
@@ -121,16 +122,17 @@ export function OrderFormPage() {
         <fieldset className="span-2 lines">
           <legend className="h3">Itens</legend>
           {items.map((it, i) => {
-            const p = products.data.items.find((x) => x.id === it.product_id);
+            const p = it.product_id ? products.byId(it.product_id) : undefined;
             const unit = it.unit || p?.base_unit;
             const price = p?.prices?.find((x) => x.unit === unit);
             const f = `items[${i}]`;
             return (
               <div className="line-grid" key={i} role="group" aria-label={`Item ${i + 1}`}>
                 <Field id={`np-p${i}`} label="Produto *" error={fieldError(error, f + ".product_id")}>
+                  <PickerSearch id={`np-p${i}-busca`} label="Buscar produto" picker={products} />
                   <select id={`np-p${i}`} value={it.product_id} onChange={(e) => set(i, { product_id: e.target.value, unit: "" })}>
                     <option value="">Selecione</option>
-                    {products.data.items.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+                    {products.options(it.product_id).map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
                   </select>
                 </Field>
                 <Field id={`np-u${i}`} label="Medida" error={fieldError(error, f + ".unit")}>

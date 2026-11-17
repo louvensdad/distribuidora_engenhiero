@@ -7,6 +7,7 @@ const DETAIL: Record<string, string> = {
   trip: "/operation/trips/",
   vehicle: "/operation/fleet/",
   inventory_receipt: "/operation/receipts/",
+  employee: "/team/employees/",
 };
 
 const LIST: Record<string, string> = {
@@ -24,7 +25,8 @@ const LIST: Record<string, string> = {
   document: "/finance/documents",
   cash_session: "/finance/my-cash",
   goal: "/reports/goals",
-  employee_absence: "/team/employees",
+  employee_absence: "/team/absences",
+  job_position: "/team/positions",
   membership: "/team/people",
   branch: "/team/branches",
   bank_transaction: "/finance/open-finance",
@@ -42,7 +44,7 @@ export const ENTITY_LABELS: Record<string, string> = {
   supplier: "Fornecedor", product: "Produto", inventory_loss: "Perda", inventory_adjustment: "Ajuste de estoque",
   vehicle_expense: "Gasto de veículo", tax_obligation: "Guia", payroll_run: "Folha", expense: "Despesa",
   payable: "Conta a pagar", receivable: "Conta a receber", document: "Documento", cash_session: "Caixa",
-  goal: "Meta", employee_absence: "Ausência", membership: "Acesso", branch: "Unidade", payment: "Pagamento",
+  goal: "Meta", employee_absence: "Ausência", employee: "Funcionário", job_position: "Cargo", membership: "Acesso", branch: "Unidade", payment: "Pagamento",
   bank_transaction: "Lançamento bancário", bank_connection: "Conexão bancária", invoice: "Nota fiscal",
 };
 

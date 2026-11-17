@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { ApiError, api, newIdempotencyKey } from "../../api/http";
 import type { Balance, Loss, LossReason, Page, Product, StockMovement } from "../../api/types";
 import { useResource } from "../../api/useResource";
+import { PickerSearch, usePicker } from "../../api/usePicker";
 import { formatDateTime, formatDecimal, formatMoney, formatQty, unitLabel, toDecimal } from "../../app/format";
 import { Field, FormError, Hidden, fieldError } from "../../components/Form";
 import { Icon } from "../../components/Icon";
@@ -159,12 +160,12 @@ function Movements({ productId }: { productId: string }) {
 }
 
 function LossForm({ onDone }: { onDone: (ok: boolean) => void }) {
-  const [products] = useResource<Page<Product>>("/api/v1/products?limit=100");
+  const products = usePicker<Product>("/api/v1/products");
   const [form, setForm] = useState({ product_id: "", unit: "", quantity: "", reason: "" as LossReason | "", notes: "" });
   const [key] = useState(newIdempotencyKey);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
-  const product = products.status === "ready" ? products.data.items.find((p) => p.id === form.product_id) : undefined;
+  const product = form.product_id ? products.byId(form.product_id) : undefined;
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -187,9 +188,10 @@ function LossForm({ onDone }: { onDone: (ok: boolean) => void }) {
       <h2 id="titulo-perda" className="h3 span-2">Registrar perda</h2>
       <p className="muted span-2">O registro não baixa o estoque: a baixa acontece quando alguém com alçada aprova, pelo custo médio do momento.</p>
       <Field id="perda-produto" label="Produto *" error={fieldError(error, "loss.product_id")}>
+        <PickerSearch id="perda-produto-busca" label="Buscar produto" picker={products} />
         <select id="perda-produto" value={form.product_id} onChange={(e) => setForm({ ...form, product_id: e.target.value, unit: "" })}>
           <option value="">Selecione</option>
-          {products.status === "ready" && products.data.items.map((p) => <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>)}
+          {products.options(form.product_id).map((p) => <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>)}
         </select>
       </Field>
       <Field id="perda-medida" label="Medida" error={fieldError(error, "loss.unit")}>

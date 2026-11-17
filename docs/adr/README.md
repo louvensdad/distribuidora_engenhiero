@@ -32,3 +32,4 @@ ou de provedores; mudanças exigem novo ADR com o modelo `docs/especificacao/tem
 | ADR-024 | Relatório canônico (fuso, escopo, campos ocultos), PDF/XLSX/CSV, gráficos 3D, metas e ranking por medida | ADOTADA (validar metas/política com dono e contador, D12) | Ver `ADR-024.md` |
 | ADR-025 | Site integral do patrão: setores, central de aprovações, busca, histórico com origem, listas paginadas e sessão expirada sem perda | ADOTADA | Ver `ADR-025.md` |
 | ADR-026 | App Retirada: funções por capacidade, resultado incerto sem confirmação local, meus pedidos por período, comprovante não fiscal, APK de homologação | ADOTADA (servidor HTTPS de homologação e chave de produção: F16) | Ver `ADR-026.md` |
+| ADR-027 | Cadastro de funcionários e cargos (campos protegidos), conta de acesso opcional pelo provedor de identidade (NÃO CONFIGURADO sem credencial), desligamento bloqueia | ADOTADA (validar cargos/campos de RH com dono e contador) | Ver `ADR-027.md` |

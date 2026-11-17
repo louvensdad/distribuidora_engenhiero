@@ -323,3 +323,4 @@ a.kpi:hover, a.kpi:focus-visible { border-color: var(--eng-cyan); }
 .event .row-actions { justify-content: flex-start; margin-top: 8px; }
 .sector-card > p a { display: inline-flex; align-items: center; gap: 8px; }
 .sector-card > p .badge { margin: 0; }
+.picker-search { width: 100%; margin-bottom: 6px; min-height: 40px; }

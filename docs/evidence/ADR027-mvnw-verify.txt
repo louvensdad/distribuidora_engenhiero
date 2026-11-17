@@ -1,0 +1,29 @@
+# ADR-027 — ./mvnw -o verify (services/api), 17/11/2026 America/Sao_Paulo (migração V13 aplicada no Testcontainers)
+2026-11-17T10:25:35.545-03:00  INFO 1269475 --- [engenheiro-api] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "13 - employees positions"
+2026-11-17T10:25:53.731-03:00  INFO 1269475 --- [engenheiro-api] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "13 - employees positions"
+2026-11-17T10:25:57.228-03:00  INFO 1269475 --- [engenheiro-api] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "13 - employees positions"
+BUILD SUCCESS
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in br.com.engenheiro.api.identityaccess.AccessPolicyTest
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.962 s -- in br.com.engenheiro.api.identityaccess.WebBffIntegrationTest
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.328 s -- in br.com.engenheiro.api.catalogparties.CustomersIntegrationTest
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.168 s -- in br.com.engenheiro.api.orders.OrdersIntegrationTest
+Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.120 s -- in br.com.engenheiro.api.inventory.InventoryIntegrationTest
+Tests run: 156, Failures: 0, Errors: 0, Skipped: 0
+Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.145 s -- in br.com.engenheiro.api.identityaccess.AuthenticationIntegrationTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.043 s -- in br.com.engenheiro.api.identityaccess.OpenApiContractTest
+Tests run: 21, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.540 s -- in br.com.engenheiro.api.identityaccess.AuthorizationIntegrationTest
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.526 s -- in br.com.engenheiro.api.identityaccess.LocalSeedIntegrationTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in br.com.engenheiro.api.identityaccess.ContractConsistencyTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.381 s -- in br.com.engenheiro.api.accounting.AccountingIntegrationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in br.com.engenheiro.api.documents.DocumentsUnitTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.309 s -- in br.com.engenheiro.api.team.EmployeesIntegrationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.385 s -- in br.com.engenheiro.api.team.TeamAndOpenFinanceIntegrationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.441 s -- in br.com.engenheiro.api.central.CentralIntegrationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.480 s -- in br.com.engenheiro.api.orders.RetiradaAppIntegrationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.377 s -- in br.com.engenheiro.api.integrations.IntegrationsIntegrationTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.085 s -- in br.com.engenheiro.api.identityaccess.ConcurrencyIntegrationTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.619 s -- in br.com.engenheiro.api.inventory.F03LimitsIntegrationTest
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.158 s -- in br.com.engenheiro.api.reports.ReportsIntegrationTest
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.921 s -- in br.com.engenheiro.api.logistics.LogisticsIntegrationTest
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.187 s -- in br.com.engenheiro.api.finance.FinanceIntegrationTest
+Depois: EmployeesIntegrationTest ganhou o caso de RH sem capacidades de balcão (4/4 verde).

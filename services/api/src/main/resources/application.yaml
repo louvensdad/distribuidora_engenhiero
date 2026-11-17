@@ -32,6 +32,10 @@ server:
     include-stacktrace: never
 
 engenheiro:
+  # Criação de contas no provedor de identidade (ADR-027). Sem estes valores: NÃO CONFIGURADO.
+  provisioner:
+    client-id: ${ENGENHEIRO_PROVISIONER_CLIENT_ID:}
+    client-secret: ${ENGENHEIRO_PROVISIONER_CLIENT_SECRET:}
   storage:
     # Sem valor = anexos NÃO CONFIGURADOS (503). Produção: armazenamento privado S3-compatível (F16).
     local-dir: ${ENGENHEIRO_STORAGE_DIR:}

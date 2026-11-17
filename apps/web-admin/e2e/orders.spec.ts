@@ -36,7 +36,9 @@ test("pedido de R$ 75 pago com R$ 100: troco R$ 25, caixa +75, retirada e fecham
 
   // Novo pedido: 10 dúzias × R$ 7,50 do servidor
   await page.goto("/sales/orders/new");
+  await page.getByLabel("Buscar cliente").fill(`Ana E2E ${tag}`);
   await page.getByLabel("Cliente *").selectOption({ label: `Ana E2E ${tag}` });
+  await page.getByLabel("Buscar produto").fill(`Cana P ${tag}`);
   await page.getByLabel("Produto *").selectOption({ label: `Cana P ${tag}` });
   await expect(page.getByText("R$ 7,50 / dúzia")).toBeVisible();
   await page.getByLabel("Quantidade *").fill("10");

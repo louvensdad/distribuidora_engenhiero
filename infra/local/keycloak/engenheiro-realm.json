@@ -177,6 +177,16 @@
           }
         }
       ]
+    },
+    {
+      "clientId": "engenheiro-provisioner",
+      "name": "Criação de contas de funcionários (serviço da API, ADR-027)",
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "attributes": {}
     }
   ],
   "users": [
@@ -251,6 +261,18 @@
       "email": "contador@exemplo.invalid",
       "emailVerified": true,
       "requiredActions": []
+    },
+    {
+      "username": "service-account-engenheiro-provisioner",
+      "enabled": true,
+      "serviceAccountClientId": "engenheiro-provisioner",
+      "clientRoles": {
+        "realm-management": [
+          "manage-users",
+          "view-users",
+          "query-users"
+        ]
+      }
     }
   ]
 }

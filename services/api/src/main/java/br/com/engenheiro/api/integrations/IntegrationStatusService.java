@@ -22,16 +22,18 @@ public class IntegrationStatusService {
     private final PaymentIntegrationService payments;
     private final ObjectProvider<OpenFinanceProvider> openFinance;
     private final IntegrationAttempts attempts;
+    private final br.com.engenheiro.api.team.EmployeeService employees;
 
     public IntegrationStatusService(JdbcClient jdbc, AuthorizationService authz, InvoiceService invoices,
                                     PaymentIntegrationService payments, ObjectProvider<OpenFinanceProvider> openFinance,
-                                    IntegrationAttempts attempts) {
+                                    IntegrationAttempts attempts, br.com.engenheiro.api.team.EmployeeService employees) {
         this.jdbc = jdbc;
         this.authz = authz;
         this.invoices = invoices;
         this.payments = payments;
         this.openFinance = openFinance;
         this.attempts = attempts;
+        this.employees = employees;
     }
 
     public record Item(String integration, String label, String state, String provider, String message,
@@ -39,6 +41,16 @@ public class IntegrationStatusService {
     }
 
     public record Status(List<Item> items, List<IntegrationAttempts.AttemptView> recent) {
+    }
+
+    private Item identityItem(Actor actor) {
+        var prov = employees.provisioner();
+        long without = jdbc.sql("SELECT count(*) FROM employees WHERE organization_id = :o AND membership_id IS NULL"
+                + " AND status <> 'TERMINATED'").param("o", actor.organizationId()).query(Long.class).single();
+        return new Item("IDENTITY", "Contas de acesso (provedor de identidade)", prov == null ? "NOT_CONFIGURED" : "CONFIGURED",
+                prov == null ? null : prov.name(), prov == null ? "Credencial de serviço do provedor não configurada: "
+                        + "o cadastro de funcionários funciona, mas \"dar acesso aos apps\" fica BLOQUEADO (ADR-027)."
+                        : "Contas criadas com senha temporária de troca obrigatória.", without, "funcionários sem conta");
     }
 
     @Transactional(readOnly = true)
@@ -70,7 +82,8 @@ public class IntegrationStatusService {
                         unmatched, "avisos para triagem"),
                 new Item("OPEN_FINANCE", "Open Finance (extrato bancário)", of == null ? "NOT_CONFIGURED" : "CONFIGURED",
                         of == null ? null : of.name(), of == null ? "Agregador não contratado (ADR-021)."
-                                : "Extrato pelo agregador contratado.", ofPending, "transações sem par"));
+                                : "Extrato pelo agregador contratado.", ofPending, "transações sem par"),
+                identityItem(actor));
         return new Status(items, admin ? attempts.recent(actor.organizationId(), null, 50) : List.of());
     }
 }

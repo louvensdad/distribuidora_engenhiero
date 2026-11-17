@@ -43,6 +43,7 @@ test("recebimento confirmado gera conta a pagar; anexo privado; contagem aplicad
   // Contagem: sistema 20, contado 18 → falta 2 aplicada pelo médio (R$ 16,00)
   await page.goto("/operation/stock");
   await page.getByRole("button", { name: /registrar contagem/i }).click();
+  await page.getByLabel("Buscar produto").fill(`Cana L ${tag}`);
   await page.getByLabel("Produto *").selectOption({ label: `Cana L ${tag} (L-${tag})` });
   await page.getByLabel("Quantidade contada *").fill("18");
   await page.getByLabel("Observação da contagem *").fill("Contagem E2E");
