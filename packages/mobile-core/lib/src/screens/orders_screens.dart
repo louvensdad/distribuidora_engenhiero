@@ -3,6 +3,7 @@ import 'package:engenheiro_design/engenheiro_design.dart';
 import 'package:material_ui/material_ui.dart';
 import '../labels.dart';
 import '../scope.dart';
+import 'reports_screens.dart' show isoDate, todaySaoPaulo;
 
 const orderStateLabels = {
   'CONFIRMED': 'Reservado', 'READY': 'Pronto', 'PARTIALLY_FULFILLED': 'Entregue em parte', 'FULFILLED': 'Concluído',
@@ -26,16 +27,25 @@ Future<bool?> _push(BuildContext context, Widget child) {
   return Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => EngScope(config: s.config, session: s.session, child: child)));
 }
 
-/// R02 — atendimento de balcão: só os pedidos que a permissão alcança (próprios, para o balcão).
+/// R02/R09 — pedidos que a permissão alcança (próprios, para o balcão), com busca por número ou cliente, período
+/// (dia civil de São Paulo) e paginação. Situação e pagamento sempre vêm do servidor.
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
   @override
   State<OrdersScreen> createState() => _OrdersScreenState();
 }
 
+const orderPeriods = {'today': 'Hoje', 'week': '7 dias', 'month': '30 dias', 'all': 'Todos'};
+
 class _OrdersScreenState extends State<OrdersScreen> {
   List<OrderInfo>? _items;
+  String? _cursor;
   ApiException? _error;
+  ApiException? _moreError;
+  bool _loadingMore = false;
+  String _period = 'today';
+  String _query = '';
+  final _search = TextEditingController();
 
   @override
   void didChangeDependencies() {
@@ -43,39 +53,138 @@ class _OrdersScreenState extends State<OrdersScreen> {
     if (_items == null && _error == null) _load();
   }
 
+  ({String? from, String? to}) get _range {
+    final today = todaySaoPaulo();
+    final to = isoDate(today.add(const Duration(days: 1)));
+    return switch (_period) {
+      'today' => (from: isoDate(today), to: to),
+      'week' => (from: isoDate(today.subtract(const Duration(days: 6))), to: to),
+      'month' => (from: isoDate(today.subtract(const Duration(days: 29))), to: to),
+      _ => (from: null, to: null),
+    };
+  }
+
+  Future<ApiPage<OrderInfo>> _fetch({String? cursor}) {
+    final r = _range;
+    return EngScope.of(context).api.orders(limit: 25, query: _query.isEmpty ? null : _query, from: r.from, to: r.to, cursor: cursor);
+  }
+
   Future<void> _load() async {
     setState(() {
       _items = null;
       _error = null;
+      _moreError = null;
     });
     try {
-      final p = await EngScope.of(context).api.orders();
-      if (mounted) setState(() => _items = p.items);
+      final p = await _fetch();
+      if (mounted) {
+        setState(() {
+          _items = p.items;
+          _cursor = p.nextCursor;
+        });
+      }
     } on ApiException catch (e) {
       if (mounted) setState(() => _error = e);
     }
   }
 
+  Future<void> _more() async {
+    setState(() {
+      _loadingMore = true;
+      _moreError = null;
+    });
+    try {
+      final p = await _fetch(cursor: _cursor);
+      if (mounted) {
+        setState(() {
+          _items = [...?_items, ...p.items];
+          _cursor = p.nextCursor;
+        });
+      }
+    } on ApiException catch (e) {
+      // O que já foi carregado continua na tela.
+      if (mounted) setState(() => _moreError = e);
+    } finally {
+      if (mounted) setState(() => _loadingMore = false);
+    }
+  }
+
+  Widget _filters() => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          TextField(
+            controller: _search,
+            textInputAction: TextInputAction.search,
+            decoration: InputDecoration(
+              labelText: 'Buscar pelo número ou cliente',
+              prefixIcon: const Padding(padding: EdgeInsets.all(12), child: EngIcon('search', size: 18)),
+              suffixIcon: _query.isEmpty
+                  ? null
+                  : IconButton(
+                      tooltip: 'Limpar busca',
+                      icon: const EngIcon('close', size: 18, semanticLabel: 'Limpar busca'),
+                      onPressed: () {
+                        _search.clear();
+                        _query = '';
+                        _load();
+                      },
+                    ),
+            ),
+            onSubmitted: (v) {
+              _query = v.trim();
+              _load();
+            },
+          ),
+          const SizedBox(height: 8),
+          Wrap(spacing: 8, runSpacing: 4, children: [
+            for (final e in orderPeriods.entries)
+              ChoiceChip(
+                label: Text(e.value),
+                selected: _period == e.key,
+                onSelected: (_) {
+                  _period = e.key;
+                  _load();
+                },
+              ),
+          ]),
+        ]),
+      );
+
   @override
   Widget build(BuildContext context) {
     final me = EngScope.of(context).me;
-    Widget body;
+    Widget list;
     if (_error != null) {
-      body = _error!.isForbidden
+      list = _error!.isForbidden
           ? const ForbiddenStateView()
           : ErrorStateView(message: _error!.message, requestId: _error!.requestId, offline: _error!.isNetwork, onRetry: _load);
     } else if (_items == null) {
-      body = const LoadingState();
+      list = const LoadingState();
     } else if (_items!.isEmpty) {
-      body = const EmptyState(title: 'Nenhum pedido');
+      list = EmptyState(
+          title: _query.isNotEmpty ? 'Nada encontrado para “$_query”' : (_period == 'all' ? 'Nenhum pedido' : 'Nenhum pedido neste período'));
     } else {
-      body = RefreshIndicator(
+      final n = _items!.length;
+      list = RefreshIndicator(
         onRefresh: _load,
         child: ListView.separated(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-          itemCount: _items!.length,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+          itemCount: n + 1,
           separatorBuilder: (_, _) => const SizedBox(height: 8),
           itemBuilder: (context, i) {
+            if (i == n) {
+              if (_moreError != null) {
+                return Column(children: [
+                  Text(_moreError!.isNetwork ? 'Sem conexão. Os pedidos acima continuam valendo.' : _moreError!.message,
+                      style: const TextStyle(color: EngColors.error)),
+                  TextButton(onPressed: _more, child: const Text('Tentar novamente')),
+                ]);
+              }
+              if (_cursor != null) {
+                return OutlinedButton(onPressed: _loadingMore ? null : _more, child: Text(_loadingMore ? 'Carregando…' : 'Carregar mais'));
+              }
+              return Text('$n pedido(s) — fim da lista', textAlign: TextAlign.center, style: const TextStyle(color: EngColors.muted, fontSize: 12));
+            }
             final o = _items![i];
             return Card(
               child: InkWell(
@@ -87,7 +196,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   padding: const EdgeInsets.all(16),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text('#${o.number} ${o.customerName}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
-                    Text('${o.lines.isEmpty ? '' : formatQty(o.lines.first.quantity, o.lines.first.unit)} · ${formatMoney(o.total)}'),
+                    Text('${o.lines.isEmpty ? '' : formatQty(o.lines.first.quantity, o.lines.first.unit)} · ${formatMoney(o.total)}'
+                        '${o.createdAt == null ? '' : ' · ${formatDateTime(DateTime.parse(o.createdAt!))}'}'),
                     _row('Situação', Text(orderStateLabels[o.state] ?? o.state)),
                     _row('Pagamento', Text(paymentStateLabels[o.paymentState] ?? o.paymentState,
                         style: TextStyle(color: o.paymentState == 'PAID' ? EngColors.green : EngColors.violet))),
@@ -110,7 +220,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
               label: const Text('Novo pedido'),
             )
           : null,
-      body: body,
+      body: Column(children: [_filters(), Expanded(child: list)]),
     );
   }
 }
@@ -231,7 +341,12 @@ class _NewOrderScreenState extends State<NewOrderScreen> {
             decoration: InputDecoration(labelText: 'Quantidade *', errorText: _fe('items[0].quantity'))),
         if (_error != null && _error!.fieldErrors.isEmpty)
           Padding(padding: const EdgeInsets.only(top: 8),
-              child: Semantics(liveRegion: true, child: Text(_error!.message, style: const TextStyle(color: EngColors.error)))),
+              child: Semantics(liveRegion: true, child: Text(
+                  _error!.isNetwork
+                      ? 'Sem resposta do servidor: o pedido pode ou não ter sido salvo. Toque em salvar de novo — '
+                          'o mesmo pedido não é criado duas vezes.'
+                      : _error!.message,
+                  style: const TextStyle(color: EngColors.error)))),
         const SizedBox(height: 16),
         FilledButton(onPressed: _busy ? null : _save, child: Text(_busy ? 'Salvando…' : 'Salvar e reservar')),
         const SizedBox(height: 8),
@@ -260,6 +375,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   bool _busy = false;
   String? _change;
   String? _payMessage;
+  String? _uncertainMsg;
 
   @override
   void didChangeDependencies() {
@@ -284,15 +400,42 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       final r = await api.payOrder(orderId: widget.id, idempotencyKey: _payKey, method: _method, amount: _o!.balanceDue,
           presentedCash: _method == 'CASH' ? _presented.text : null);
       setState(() {
+        _uncertainMsg = null;
         _o = r.order;
         _change = r.payments.first.changeGiven;
         _payMessage = r.payments.first.state == 'PENDING' ? 'Pix registrado: aguardando conferência. Ainda não está pago.' : null;
         _payKey = ApiClient.newIdempotencyKey();
       });
     } on ApiException catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text(e.isNetwork ? 'Sem conexão. Nada foi registrado; tente de novo.' : e.message)));
+      if (e.isNetwork) {
+        await _uncertain('recebimento');
+      } else {
+        messenger.showSnackBar(SnackBar(content: Text(e.message)));
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// Sem resposta do servidor depois de enviar: NÃO sabemos se foi registrado. Nada é dado como pago/retirado no
+  /// aparelho; tentamos ler a situação real e mantemos a mesma chave — repetir nunca duplica.
+  Future<void> _uncertain(String what) async {
+    setState(() => _uncertainMsg = 'Sem resposta do servidor: não dá para saber se o $what foi registrado. '
+        'Conferindo a situação real do pedido…');
+    try {
+      final o = await EngScope.of(context).api.order(widget.id);
+      if (mounted) {
+        setState(() {
+          _o = o;
+          _uncertainMsg = 'A conexão caiu durante o envio. A situação abaixo é a do servidor agora. '
+              'Se ainda faltar, toque de novo: o mesmo envio não é registrado duas vezes.';
+        });
+      }
+    } on ApiException {
+      if (mounted) {
+        setState(() => _uncertainMsg = 'Sem conexão. Não sabemos se o $what foi registrado — não entregue a mercadoria '
+            'nem devolva troco ainda. Quando a conexão voltar, toque de novo: o mesmo envio não é duplicado.');
+      }
     }
   }
 
@@ -303,12 +446,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     try {
       final o = await api.fulfillOrder(orderId: widget.id, idempotencyKey: _fulfillKey);
       setState(() {
+        _uncertainMsg = null;
         _o = o;
         _fulfillKey = ApiClient.newIdempotencyKey();
       });
       messenger.showSnackBar(const SnackBar(content: Text('Retirada registrada.')));
     } on ApiException catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text(e.message)));
+      if (e.isNetwork) {
+        await _uncertain('registro da retirada');
+      } else {
+        messenger.showSnackBar(SnackBar(content: Text(e.message)));
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -332,6 +480,18 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         _row('Pagamento', Text(paymentStateLabels[o.paymentState] ?? o.paymentState,
             style: TextStyle(color: o.paymentState == 'PAID' ? EngColors.green : EngColors.violet))),
         _row('Cadastrado por', Text(o.createdByName)),
+        if (_uncertainMsg != null)
+          Semantics(
+            liveRegion: true,
+            child: Card(
+              color: EngColors.surfaceRaised,
+              child: Padding(padding: const EdgeInsets.all(12), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const EngIcon('offline', size: 20, color: EngColors.warning),
+                const SizedBox(width: 8),
+                Expanded(child: Text(_uncertainMsg!, style: const TextStyle(color: EngColors.warning))),
+              ])),
+            ),
+          ),
         const SizedBox(height: 8),
         for (final l in o.lines)
           Card(child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -373,6 +533,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           const SizedBox(height: 16),
           OutlinedButton(onPressed: _busy ? null : _fulfill, child: const Text('Registrar retirada')),
           const Text('Só é entregue o que está pago (Pix aguardando não conta).', style: TextStyle(color: EngColors.muted, fontSize: 12)),
+        ],
+        if (o.paid != '0.00' || o.state == 'FULFILLED') ...[
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: () => _push(context, OrderReceiptScreen(id: o.id)),
+            icon: const EngIcon('document', size: 18),
+            label: const Text('Comprovante para o cliente'),
+          ),
         ],
       ]);
     }
@@ -479,5 +647,111 @@ class _CashScreenState extends State<CashScreen> {
         ),
       ],
     ]);
+  }
+}
+
+const _methodLabels = {
+  'CASH': 'Dinheiro', 'PIX': 'Pix', 'DEBIT': 'Débito', 'CREDIT': 'Crédito', 'BANK_TRANSFER': 'Transferência', 'ON_ACCOUNT': 'A prazo',
+};
+const _paymentStateLabels = {'PENDING': 'aguardando conferência', 'CONFIRMED': 'confirmado', 'REJECTED': 'recusado', 'REVERSED': 'estornado'};
+
+/// Comprovante do pedido (não fiscal) para mostrar ao cliente: tudo vem do servidor — itens, total, pagamentos,
+/// troco e situação da retirada. Sem permissão de ver pagamentos, mostra só o pedido.
+class OrderReceiptScreen extends StatefulWidget {
+  const OrderReceiptScreen({super.key, required this.id});
+  final String id;
+  @override
+  State<OrderReceiptScreen> createState() => _OrderReceiptScreenState();
+}
+
+class _OrderReceiptScreenState extends State<OrderReceiptScreen> {
+  OrderInfo? _o;
+  List<PaymentInfo>? _payments;
+  ApiException? _error;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_o == null && _error == null) _load();
+  }
+
+  Future<void> _load() async {
+    final s = EngScope.of(context);
+    setState(() => _error = null);
+    try {
+      final o = await s.api.order(widget.id);
+      final pays = s.me.can('payments.view') ? await s.api.orderPayments(widget.id) : null;
+      if (mounted) {
+        setState(() {
+          _o = o;
+          _payments = pays;
+        });
+      }
+    } on ApiException catch (e) {
+      if (mounted) setState(() => _error = e);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final o = _o;
+    Widget body;
+    if (_error != null) {
+      body = _error!.isForbidden || _error!.status == 404
+          ? const ForbiddenStateView()
+          : ErrorStateView(message: _error!.message, requestId: _error!.requestId, offline: _error!.isNetwork, onRetry: _load);
+    } else if (o == null) {
+      body = const LoadingState();
+    } else {
+      const muted = TextStyle(color: EngColors.muted, fontSize: 12);
+      body = ListView(padding: const EdgeInsets.all(16), children: [
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  const EngBrand(height: 40),
+                  const SizedBox(height: 8),
+                  Text(engBrandLegalName, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w700)),
+                  if (o.branch != null) Text('Unidade ${o.branch}', textAlign: TextAlign.center, style: muted),
+                  const Divider(height: 24),
+                  Text('Pedido #${o.number}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+                  _row('Cliente', Text(o.customerName)),
+                  if (o.createdAt != null) _row('Data', Text(formatDateTime(DateTime.parse(o.createdAt!)))),
+                  _row('Atendido por', Text(o.createdByName)),
+                  const Divider(height: 24),
+                  for (final l in o.lines)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(children: [
+                        Expanded(child: Text('${l.productName}\n${formatQty(l.quantity, l.unit)} × ${formatMoney(l.unitPrice)}')),
+                        Text(formatMoney(l.net)),
+                      ]),
+                    ),
+                  const Divider(height: 24),
+                  _row('Total', Text(formatMoney(o.total), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18))),
+                  for (final p in _payments ?? const <PaymentInfo>[])
+                    if (p.state != 'REJECTED')
+                      _row(
+                          _methodLabels[p.method] ?? p.method,
+                          Text('${formatMoney(p.amount)} (${_paymentStateLabels[p.state] ?? p.state})'
+                              '${p.presentedCash != null ? ' · recebido ${formatMoney(p.presentedCash)}, troco ${formatMoney(p.changeGiven)}' : ''}')),
+                  _row('Pago', Text(formatMoney(o.paid))),
+                  if (o.pending != '0.00')
+                    _row('Aguardando', Text(formatMoney(o.pending), style: const TextStyle(color: EngColors.warning))),
+                  if (o.owes) _row('Falta pagar', Text(formatMoney(o.balanceDue), style: const TextStyle(color: EngColors.warning))),
+                  _row('Retirada', Text(o.state == 'FULFILLED' ? 'Concluída' : orderStateLabels[o.state] ?? o.state)),
+                  const SizedBox(height: 16),
+                  const Text('Comprovante de pedido — não é documento fiscal.', textAlign: TextAlign.center, style: muted),
+                ]),
+              ),
+            ),
+          ),
+        ),
+      ]);
+    }
+    return Scaffold(appBar: AppBar(title: const Text('Comprovante')), body: body);
   }
 }

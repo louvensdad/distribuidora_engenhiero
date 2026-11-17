@@ -654,7 +654,11 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public Page list(Actor actor, String type, String state, int limit, String cursor) {
-        return list(actor, type, state, null, limit, cursor);
+        return list(actor, type, state, null, null, null, limit, cursor);
+    }
+
+    public Page list(Actor actor, String type, String state, String query, int limit, String cursor) {
+        return list(actor, type, state, query, null, null, limit, cursor);
     }
 
     /**
@@ -662,8 +666,16 @@ public class OrderService {
      * pedido já mostra a quem o vê: endereço, contato e documento nunca entram na busca.
      */
     @Transactional(readOnly = true)
-    public Page list(Actor actor, String type, String state, String query, int limit, String cursor) {
+    public Page list(Actor actor, String type, String state, String query, java.time.LocalDate from,
+                     java.time.LocalDate to, int limit, String cursor) {
         Cursor.checkLimit(limit);
+        if (from != null && to != null && !to.isAfter(from)) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "Período inválido: fim exclusivo depois do início.");
+        }
+        // Data do cadastro em dia civil de São Paulo, [início, fim).
+        java.time.ZoneId sp = java.time.ZoneId.of("America/Sao_Paulo");
+        OffsetDateTime fromTs = from == null ? null : from.atStartOfDay(sp).toOffsetDateTime();
+        OffsetDateTime toTs = to == null ? null : to.atStartOfDay(sp).toOffsetDateTime();
         String q = br.com.engenheiro.api.shared.web.SearchText.normalize(query);
         Long number = q != null && q.replaceFirst("^#", "").matches("\\d{1,12}") ? Long.valueOf(q.replaceFirst("^#", "")) : null;
         List<String> parts = new ArrayList<>();
@@ -691,9 +703,11 @@ public class OrderService {
                         + " AND (CAST(:st AS text) IS NULL OR o.state = CAST(:st AS text))"
                         + " AND (CAST(:q AS text) IS NULL OR o.number = CAST(:qn AS bigint)"
                         + "      OR c.name ILIKE '%' || CAST(:q AS text) || '%' ESCAPE '\\')"
+                        + " AND (CAST(:fts AS timestamptz) IS NULL OR o.created_at >= CAST(:fts AS timestamptz))"
+                        + " AND (CAST(:tts AS timestamptz) IS NULL OR o.created_at < CAST(:tts AS timestamptz))"
                         + " AND (CAST(:cts AS text) IS NULL OR (o.created_at, o.id) < (CAST(:cts AS timestamptz), CAST(:cid AS uuid)))"
                         + " ORDER BY o.created_at DESC, o.id DESC LIMIT :lim")
-                .param("st", state).param("q", br.com.engenheiro.api.shared.web.SearchText.like(q)).param("qn", number).param("cts", c == null ? null : c.sort()).param("cid", c == null ? null : c.id())
+                .param("st", state).param("q", br.com.engenheiro.api.shared.web.SearchText.like(q)).param("qn", number).param("fts", fromTs).param("tts", toTs).param("cts", c == null ? null : c.sort()).param("cid", c == null ? null : c.id())
                 .param("lim", limit + 1);
         for (Map.Entry<String, Object> p : params.entrySet()) {
             spec = spec.param(p.getKey(), p.getValue());

@@ -360,9 +360,12 @@ class OrderLineInfo {
 class OrderInfo {
   const OrderInfo({required this.id, required this.number, required this.type, required this.state, required this.paymentState,
       required this.customerName, required this.total, required this.paid, required this.pending, required this.balanceDue,
-      required this.createdByName, required this.version, required this.lines});
+      required this.createdByName, required this.version, required this.lines, this.createdAt, this.branch});
   final String id;
   final int number;
+  /// Momento do cadastro (servidor, ISO-8601) e unidade — usados no comprovante.
+  final String? createdAt;
+  final String? branch;
   final String type;
   final String state;
   final String paymentState;
@@ -391,12 +394,18 @@ class OrderInfo {
         createdByName: j['created_by_name'] as String,
         version: j['version'] as int,
         lines: [for (final l in j['lines'] as List) OrderLineInfo.fromJson(l as Map<String, dynamic>)],
+        createdAt: j['created_at'] as String?,
+        branch: j['branch'] as String?,
       );
 }
 
 class PaymentInfo {
-  const PaymentInfo({required this.id, required this.method, required this.state, required this.amount, this.changeGiven});
+  const PaymentInfo({required this.id, required this.method, required this.state, required this.amount, this.changeGiven,
+      this.presentedCash, this.createdByName, this.createdAt});
   final String id;
+  final String? presentedCash;
+  final String? createdByName;
+  final String? createdAt;
   final String method;
   final String state;
   final String amount;
@@ -407,6 +416,9 @@ class PaymentInfo {
         state: j['state'] as String,
         amount: j['amount'] as String,
         changeGiven: j['change_given'] as String?,
+        presentedCash: j['presented_cash'] as String?,
+        createdByName: j['created_by_name'] as String?,
+        createdAt: j['created_at'] as String?,
       );
 }
 

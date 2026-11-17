@@ -1,0 +1,4 @@
+# F11 — testes de mutação (uma regra desligada por vez; arquivo restaurado depois), 17/11/2026
+M1 servidor ignora o início do período: PEGA — RetiradaAppIntegrationTest.meusPedidosPorBuscaEPeriodo
+M2 app troca a chave ao repetir pagamento após queda: PEGA — retirada_test.dart
+Resultado: 2/2 mutações pegas.

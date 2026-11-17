@@ -75,6 +75,10 @@ Requisitos de F02 em diante seguem NOT_STARTED (lista completa em `docs/especifi
 | INT-04 | Webhooks assinados e reenvios idempotentes | `webhookAssinadoIdempotenteEInvalidoNaoAlteraCaixa` (5 simultâneos = 1 efeito), mutação M2 | PASS (provedor de teste); real BLOCKED (D04) |
 | INT-05 | Indisponibilidade/incerto não viram sucesso | `timeoutAposEnvioNaoViraEmissaoDuplicada`, `semProvedor...`, mutações M1/M3, `invoices.spec.ts`, emulador | PASS |
 
+| APP-R-01 | `apps/mobile-counter` (br.com.engenheiro.retirada, client `engenheiro-retirada`, ícone próprio), APK release | `config_test.dart`, `funcoes_test.dart`, `F11-mobile.txt` (aapt2 + instalação release no emulador) | PASS (homologação HTTPS e chave de produção: F16) |
+| APP-R-02 | Balconista e recebedor no mesmo app por capacidade; custo de fornecedor oculto | `RetiradaAppIntegrationTest.balconistaERecebedorNoMesmoAppComFuncoesSeparadas`, `funcoes_test.dart`, emulador (recebedor) | PASS |
+| APP-R-03 | Tablet/celular, caixa, comprovante, desconexão sem confirmação local, meus pedidos | `novaTentativaAposPerderARespostaNaoDuplica`, `meusPedidosPorBuscaEPeriodo`, `pedidoDoBalcaoApareceNoSiteENoAppPatrao...`, `retirada_test.dart`, mutação 2/2, emulador | PASS |
+
 | UX-01 | `apps/web-admin` abas horizontais + subabas por capacidade | `navigation.test.ts`, `site.spec.ts` (ordem das 7 abas) | PASS (web) |
 | UX-02 | CSS responsivo; tabelas viram cartões ≤720 px | `layout.spec.ts` em 360/768/1440 (sem rolagem horizontal, ações visíveis) | PASS (web); apps em F11–F14 |
 | UX-03 | Ícones/nomes/IDs dos 4 apps | realm + `F00_INVENTARIO.md`; ícones em `docs/especificacao/assets/apps` | PARTIAL — builds dos apps em F11–F14 |

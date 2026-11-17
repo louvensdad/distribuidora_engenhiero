@@ -95,8 +95,17 @@ class ApiClient {
   // ---- F04 ----
   Future<ApiPage<Customer>> customersAll() async => ApiPage.fromJson(await _get('/api/v1/customers', {'limit': '100'}), Customer.fromJson);
 
-  Future<ApiPage<OrderInfo>> orders({int limit = 50}) async =>
-      ApiPage.fromJson(await _get('/api/v1/orders', {'limit': '$limit'}), OrderInfo.fromJson);
+  /// Pedidos no escopo do usuário. [query]: número ou nome do cliente; [from]/[to]: dia civil de São Paulo, fim exclusivo.
+  Future<ApiPage<OrderInfo>> orders({int limit = 50, String? query, String? from, String? to, String? cursor}) async =>
+      ApiPage.fromJson(
+          await _get('/api/v1/orders', {'limit': '$limit', 'q': ?query, 'from': ?from, 'to': ?to, 'cursor': ?cursor}),
+          OrderInfo.fromJson);
+
+  /// Pagamentos do pedido (para o comprovante). Exige ver pagamentos.
+  Future<List<PaymentInfo>> orderPayments(String orderId) async {
+    final j = await _get('/api/v1/orders/$orderId/payments');
+    return [for (final p in j['items'] as List) PaymentInfo.fromJson(p as Map<String, dynamic>)];
+  }
 
   Future<OrderInfo> order(String id) async => OrderInfo.fromJson(await _get('/api/v1/orders/$id'));
 

@@ -31,3 +31,4 @@ ou de provedores; mudanças exigem novo ADR com o modelo `docs/especificacao/tem
 | ADR-023 | Notas fiscais e pagamentos por adaptador; BLOQUEADO sem provedor; sem emissão duplicada; avisos assinados | ADOTADA (integração real BLOQUEADA: D02/D03/D04) | Ver `ADR-023.md` |
 | ADR-024 | Relatório canônico (fuso, escopo, campos ocultos), PDF/XLSX/CSV, gráficos 3D, metas e ranking por medida | ADOTADA (validar metas/política com dono e contador, D12) | Ver `ADR-024.md` |
 | ADR-025 | Site integral do patrão: setores, central de aprovações, busca, histórico com origem, listas paginadas e sessão expirada sem perda | ADOTADA | Ver `ADR-025.md` |
+| ADR-026 | App Retirada: funções por capacidade, resultado incerto sem confirmação local, meus pedidos por período, comprovante não fiscal, APK de homologação | ADOTADA (servidor HTTPS de homologação e chave de produção: F16) | Ver `ADR-026.md` |

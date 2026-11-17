@@ -42,9 +42,11 @@ public class OrderController {
     public ResponseEntity<OrderService.Page> list(Actor actor, @RequestParam(required = false) String type,
                                                   @RequestParam(required = false) String state,
                                                   @RequestParam(required = false) String q,
+                                                  @RequestParam(required = false) java.time.LocalDate from,
+                                                  @RequestParam(required = false) java.time.LocalDate to,
                                                   @RequestParam(defaultValue = "25") int limit,
                                                   @RequestParam(required = false) String cursor) {
-        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(orders.list(actor, type, state, q, limit, cursor));
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(orders.list(actor, type, state, q, from, to, limit, cursor));
     }
 
     @GetMapping("/{id}")

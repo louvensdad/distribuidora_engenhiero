@@ -11977,7 +11977,7 @@
     },
     "/api/v1/orders": {
       "get": {
-        "summary": "Pedidos no escopo (retirada/entrega por capacidade) Busca q: número (exato) ou nome do cliente; nunca endereço/contato/documento.",
+        "summary": "Pedidos no escopo (retirada/entrega por capacidade) Busca q: número (exato) ou nome do cliente; nunca endereço/contato/documento. Período from/to: data do cadastro em America/Sao_Paulo [from, to).",
         "x-capability": "orders.pickup.view|orders.delivery.view",
         "parameters": [
           {
@@ -12022,6 +12022,24 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 80
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
             }
           }
         ],

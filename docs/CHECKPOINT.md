@@ -1,10 +1,10 @@
 # Checkpoint
 
-Data/hora e fuso: 17/11/2026 09:50 America/Sao_Paulo
+Data/hora e fuso: 17/11/2026 10:15 America/Sao_Paulo
 Agente e repositório: Claude Code (Opus 5.5) — `/home/louvens/Ivan/distribuidora-engenheiro` (movido de `~/distribuidora-engenheiro`)
 Branch e commit atual: `main` — ver `git log -1`
-Fase: F10 concluída (site integral do patrão); próxima F11
-Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **PASS** (pendências abaixo) · F06 **PASS** (pendências abaixo) · F07 **PASS** (pendências abaixo) · F08 **PASS** (critérios provados; integração real BLOCKED: D02/D03/D04) · F09 **PASS** (IA depende da F15) · F10 **PASS** (IA real: F15)
+Fase: F11 concluída (app Retirada); a seguir: cadastro de funcionários, funções e cargos (pedido do responsável), depois F12
+Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **PASS** (pendências abaixo) · F06 **PASS** (pendências abaixo) · F07 **PASS** (pendências abaixo) · F08 **PASS** (critérios provados; integração real BLOCKED: D02/D03/D04) · F09 **PASS** (IA depende da F15) · F10 **PASS** (IA real: F15) · F11 **PASS** (homologação HTTPS: F16)
 
 ## Entregue e comprovado
 
@@ -108,6 +108,21 @@ Pendências F04:
 - App: Pix pendente é registrado, mas conferir Pix, retirada parcial, cancelamento e devolução estão só no site; app
   Patrão com Pedidos/Caixa compilado e com teste de widget, não exercitado no emulador nesta fase.
 - Concessões do balcão no emulador aplicadas direto no banco local (equivalentes ao mapa de acessos).
+
+## F11 — app Retirada, balcão e fornecedores (17/11/2026, ADR-026)
+
+Entregue: "Meus pedidos" com busca (número/cliente), período Hoje/7/30/Todos (`GET /orders?from&to`, dia civil SP) e
+paginação; resultado incerto após queda de conexão (nada dado como pago/retirado no aparelho, confere no servidor,
+mesma chave na nova tentativa); comprovante não fiscal; APK release instalável (`br.com.engenheiro.retirada`, sem
+debuggable/cleartext/backup). Teste antigo instável corrigido (`IntegrationsIntegrationTest`: assinatura "inválida"
+podia coincidir com a válida 1/256).
+Validação: `./mvnw verify` **152** (`F11-mvnw-verify.txt`), mutação 2/2 (`F11-testes-de-mutacao.txt`), Dart **53**
+(`F11-mobile-testes.txt`), E2E `retirada.spec.ts`, emulador (`F11-mobile.txt`, `telas-mobile/F11-*.png`).
+Critérios: recebedor vê recebimentos com custo oculto e balcão não vê recebimentos/fornecedores/relatórios/saldo; sem
+seletor de perfil (teste de código + release); pedido #65 do balcão aparece no site e no App Patrão com autor "Balcão
+Exemplo" e app Retirada (banco: 1 pagamento, 1 retirada mesmo após a queda).
+Pendências F11: servidor HTTPS de homologação e chave de assinatura de produção (F16); impressão/compartilhamento do
+comprovante (hoje só na tela); concessões locais do balcão são revogadas pelo E2E do mapa de acessos (reaplicar).
 
 ## F10 — site integral do patrão (17/11/2026, ADR-025)
 
@@ -338,5 +353,5 @@ ENGENHEIRO_SENHA_LOCAL=... python3 -I ../../infra/local/e2e_login_web.py
 
 ## Próxima ação
 
-1. **F11**: aplicativo Retirada (balcão e recebimento de fornecedores) com build, ícone e client próprios, operação em
-   tablet e celular, caixa e comprovantes autorizados.
+1. **Pedido do responsável (17/11)**: cadastro de funcionários, funções e cargos no site (e base para os apps).
+2. **F12**: aplicativo Entregas (pedidos, despacho, motoristas e veículos).

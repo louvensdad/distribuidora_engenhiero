@@ -1,0 +1,47 @@
+# F11 — app Engenheiro Retirada no emulador engenheiro_api36 (Android 16) com Keycloak 26.8.1 + API real, 17/11/2026
+
+## Instalável de homologação (release)
+$ flutter build apk --release --dart-define=ENGENHEIRO_API=https://api.homologacao.invalid --dart-define=ENGENHEIRO_ISSUER=https://id.homologacao.invalid/realms/engenheiro
+✓ Built build/app/outputs/flutter-apk/app-release.apk (54.5MB)
+aapt2: package br.com.engenheiro.retirada versionName 0.1.0 targetSdk 36; label 'Engenheiro Retirada'; allowBackup=false;
+       sem android:debuggable, sem usesCleartextTraffic/networkSecurityConfig; assinatura: chave de depuração (homologação; chave de produção na F16)
+adb install -r app-release.apk → Success; abre na entrada segura (telas-mobile/F11-retirada-release-entrada.png), sem seletor de perfil.
+Limite: servidor de homologação HTTPS ainda não existe (F16); o build release recusa HTTP por construção, então o fluxo real abaixo usou o build debug contra a pilha local.
+
+## Fluxo real (build debug, usuário fictício 'balcao' — Balcão Exemplo)
+Concessões locais reaplicadas (o teste do mapa de acessos do site restaura o modelo e as revogou): payments.view/create/confirm BRANCH, own_cash.view/create/close OWN, orders.pickup.confirm OWN.
+- Destinos: Atendimento, Pedidos, Estoque, Caixa (sem Fornecedores)
+- Meus pedidos: 'Hoje' vazio; 'Todos' mostra #14 de 16/11 (filtro do servidor em dia civil de São Paulo)
+- Caixa aberto com fundo R$ 50,00
+- Pedido #65: Ana E2E MWJEHLLM, 10 dúzias × R$ 7,50 = R$ 75,00, Reservado/Não pago, cadastrado por Balcão Exemplo
+- adb reverse --remove tcp:8081 (conexão cortada) + Registrar recebimento R$ 100,00 → 'Sem conexão. Não sabemos se o recebimento foi registrado — não entregue a mercadoria nem devolva troco ainda.'; continua Não pago; sem troco na tela (F11-retirada-sem-conexao.png)
+- conexão restaurada, mesmo botão → Pago, Troco a entregar R$ 25,00 (F11-retirada-troco-apos-reconexao.png)
+- Registrar retirada → Concluído; Comprovante (não fiscal): recebido R$ 100,00, troco R$ 25,00, retirada concluída (F11-retirada-comprovante.png)
+- Tablet (wm size 1600x1000, densidade 200): trilho lateral (F11-retirada-tablet-pedidos.png, F11-retirada-tablet-caixa.png)
+
+## Mesmo app, outra função (usuário fictício 'recebimento')
+- Destinos: Fornecedores e Estoque apenas; recebimentos com Total 'oculto' (F11-retirada-recebedor.png)
+
+## Banco (psql) depois do fluxo
+ number |   state   | payment_state | pagamentos | retiradas |     autor      
+--------+-----------+---------------+------------+-----------+----------------
+     65 | FULFILLED | PAID          |          1 |         1 | Balcão Exemplo
+(1 row)
+
+      action       |  display_name  |      client_id      
+-------------------+----------------+---------------------
+ orders.create     | Balcão Exemplo | engenheiro-retirada
+ payments.register | Balcão Exemplo | engenheiro-retirada
+ orders.fulfill    | Balcão Exemplo | engenheiro-retirada
+(3 rows)
+
+ state | opening_float | expected 
+-------+---------------+----------
+ OPEN  |         50.00 |         
+(1 row)
+
+(expected do caixa aberto é calculado ao fechar; a tela mostrou Esperado R$ 125,00)
+
+## Patrão
+- Site: e2e/retirada.spec.ts — pedido do app Retirada com autor 'Balcão Exemplo' e 'App Engenheiro Retirada' no histórico (telas-web/F11-pedido-do-balcao-no-site.png)
+- App Patrão (br.com.engenheiro.gestao) › Central: 'Balcão Exemplo Cadastrou pedido / Registrou pagamento / Registrou retirada · App Engenheiro Retirada' (F11-patrao-central-retirada.png)

@@ -366,7 +366,9 @@ class IntegrationsIntegrationTest {
         byte[] ok = ("{\"id\":\"ev-100\",\"type\":\"PAYMENT_CONFIRMED\",\"txid\":\"" + txid + "\",\"amount\":\"30.00\"}")
                 .getBytes(StandardCharsets.UTF_8);
         // Assinatura inválida (ou ausente, ou corpo alterado depois de assinar): 401, nada muda.
-        assertThat(hook(ok, "00" + TestPaymentProvider.sign(ok).substring(2)).status()).isEqualTo(401);
+        String good = TestPaymentProvider.sign(ok);
+        String bad = (good.charAt(0) == '0' ? "1" : "0") + good.substring(1); // sempre difere da assinatura certa
+        assertThat(hook(ok, bad).status()).isEqualTo(401);
         assertThat(hook(ok, null).status()).isEqualTo(401);
         byte[] tampered = new String(ok, StandardCharsets.UTF_8).replace("30.00", "300.00").getBytes(StandardCharsets.UTF_8);
         assertThat(hook(tampered, TestPaymentProvider.sign(ok)).status()).isEqualTo(401);
