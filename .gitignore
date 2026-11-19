@@ -10,3 +10,9 @@ node_modules/
 .DS_Store
 build/
 .dart_tool/
+
+# F16: chaves de assinatura e propriedades locais de assinatura nunca entram no repositório
+*.jks
+*.keystore
+*.p12
+key.properties

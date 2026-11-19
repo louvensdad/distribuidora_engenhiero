@@ -1,0 +1,69 @@
+// Release dos quatro apps (F16, ADR-030). Aplicado por apps/mobile-*/android/app/build.gradle.kts.
+// - Assinatura SÓ com keystore do ambiente/cofre (ENGENHEIRO_KEYSTORE, ENGENHEIRO_KEYSTORE_PASSWORD,
+//   ENGENHEIRO_KEY_ALIAS, ENGENHEIRO_KEY_PASSWORD). Sem ela, o build de release FALHA — nunca assina com a chave de
+//   depuração. Produção: chave de envio do titular (Play App Signing, D07); homologação: chave própria de homologação.
+// - Rede do release: sem texto puro; confia só nas CAs do sistema. ENGENHEIRO_CA_HOMOLOG=<arquivo .crt> embute a CA de
+//   homologação NESTE artefato (só para builds de homologação; produção nunca recebe essa variável).
+def env = System.getenv()
+def gerado = new File(project.buildDir, "generated/engenheiro-release")
+def caHomolog = env.ENGENHEIRO_CA_HOMOLOG
+
+new File(gerado, "res/xml").mkdirs()
+new File(gerado, "res/raw").mkdirs()
+def ancoraHomolog = ""
+if (caHomolog) {
+    def origem = new File(caHomolog)
+    if (!origem.isFile()) throw new GradleException("ENGENHEIRO_CA_HOMOLOG não encontrado: ${caHomolog}")
+    new File(gerado, "res/raw/ca_homologacao.crt").bytes = origem.bytes
+    ancoraHomolog = '\n            <certificates src="@raw/ca_homologacao" />'
+} else {
+    new File(gerado, "res/raw/ca_homologacao.crt").delete()
+}
+new File(gerado, "res/xml/rede_release.xml").text = """<?xml version="1.0" encoding="utf-8"?>
+<!-- Gerado por apps/android-comum/release.gradle: release só HTTPS, confiança no sistema${caHomolog ? ' + CA de homologação' : ''}. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />${ancoraHomolog}
+        </trust-anchors>
+    </base-config>
+</network-security-config>
+"""
+new File(gerado, "AndroidManifest.xml").text = """<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <application android:networkSecurityConfig="@xml/rede_release" android:usesCleartextTraffic="false"
+        tools:replace="android:networkSecurityConfig" />
+</manifest>
+"""
+
+android {
+    sourceSets {
+        release {
+            res.srcDirs += new File(gerado, "res")
+            manifest.srcFile new File(gerado, "AndroidManifest.xml")
+        }
+    }
+    signingConfigs {
+        release {
+            if (env.ENGENHEIRO_KEYSTORE) {
+                storeFile file(env.ENGENHEIRO_KEYSTORE)
+                storePassword env.ENGENHEIRO_KEYSTORE_PASSWORD
+                keyAlias env.ENGENHEIRO_KEY_ALIAS
+                keyPassword env.ENGENHEIRO_KEY_PASSWORD
+            }
+        }
+    }
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+        }
+    }
+}
+
+gradle.taskGraph.whenReady { grafo ->
+    def release = grafo.allTasks.any { it.project == project && it.name.toLowerCase().contains("release") }
+    if (release && !env.ENGENHEIRO_KEYSTORE) {
+        throw new GradleException("Build de release exige ENGENHEIRO_KEYSTORE (e senhas/alias) vindos do cofre. " +
+                "O release nunca é assinado com a chave de depuração.")
+    }
+}

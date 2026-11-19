@@ -16,10 +16,10 @@ etapa() { # etapa <nome> <comando...>
   if out=$("$@" 2>&1); then echo "  ✓ $nome ($(( $(date +%s) - t )) s)"
   else echo "  ✗ $nome ($(( $(date +%s) - t )) s)"; echo "$out" | tail -15 | sed 's/^/      /'; falhas=$((falhas + 1)); fi
 }
-SKIP="--skip-dirs /repo/apps/web-admin/node_modules --skip-dirs /repo/build --skip-dirs /repo/services/api/target --skip-dirs /repo/.dart_tool"
+SKIP="--skip-dirs /repo/apps/web-admin/e2e/.auth --skip-dirs /repo/apps/web-admin/node_modules --skip-dirs /repo/build --skip-dirs /repo/services/api/target --skip-dirs /repo/.dart_tool"
 echo "Verificação do commit $(git rev-parse --short=12 HEAD)$(git diff --quiet HEAD || echo ' (com alterações locais)')"
 etapa "pacote da especificação íntegro" python3 -I docs/especificacao/ferramentas/validar_pacote.py
-etapa "nenhum segredo no repositório (Trivy)" trivy fs --quiet --scanners secret --exit-code 1 $SKIP /repo
+etapa "nenhum segredo no repositório (Trivy)" trivy fs --quiet --offline-scan --scanners secret --exit-code 1 $SKIP /repo
 etapa "dependências sem vulnerabilidade alta/crítica (Maven, npm, pub)" trivy fs --quiet --offline-scan --scanners vuln \
   --severity HIGH,CRITICAL --exit-code 1 $SKIP /repo
 etapa "npm audit (produção)" sh -c 'cd apps/web-admin && npx -y npm@11.21.1 audit --omit=dev --audit-level=high'

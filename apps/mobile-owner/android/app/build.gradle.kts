@@ -33,12 +33,12 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Assinatura e rede do release: apps/android-comum/release.gradle (F16). Nunca a chave de depuração.
         }
     }
 }
+
+apply(from = "../../../android-comum/release.gradle")
 
 kotlin {
     compilerOptions {
