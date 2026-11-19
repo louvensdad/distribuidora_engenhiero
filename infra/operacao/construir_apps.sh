@@ -26,7 +26,8 @@ CERT_ESPERADO=$(keytool -list -keystore "$ENGENHEIRO_KEYSTORE" -storepass "$ANDR
 echo "[" > "$OUT/manifesto.json"; primeiro=1
 for app in mobile-owner mobile-counter mobile-delivery mobile-accountant; do
   (cd "apps/$app" && "$FLUTTER" build apk --release --no-pub --build-number="$N" \
-     --dart-define=ENGENHEIRO_API="$API" --dart-define=ENGENHEIRO_ISSUER="$ISS" >/dev/null)
+     --dart-define=ENGENHEIRO_API="$API" --dart-define=ENGENHEIRO_ISSUER="$ISS" >/dev/null
+   (cd android && ./gradlew --stop >/dev/null 2>&1 || true))   # libera a RAM entre um app e outro
   src="apps/$app/build/app/outputs/flutter-apk/app-release.apk"
   pkg=$("$BT/aapt2" dump badging "$src" | sed -n "s/^package: name='\([^']*\)' versionCode='\([^']*\)' versionName='\([^']*\)'.*/\1 \2 \3/p")
   set -- $pkg
