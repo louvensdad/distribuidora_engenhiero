@@ -19,6 +19,8 @@ mkdir -p "$OUT"
 export ENGENHEIRO_KEYSTORE="$H/android/homologacao.jks" ENGENHEIRO_KEY_ALIAS=homologacao \
        ENGENHEIRO_KEYSTORE_PASSWORD="$ANDROID_KEYSTORE_PASSWORD" ENGENHEIRO_KEY_PASSWORD="$ANDROID_KEYSTORE_PASSWORD" \
        ENGENHEIRO_CA_HOMOLOG="$H/tls/ca.crt"
+# CA privada de homologação: no Android (AppAuth, via release.gradle) e no Dart (cliente da API, http_ambiente.dart).
+CA_B64=$(base64 -w0 "$ENGENHEIRO_CA_HOMOLOG")
 API="https://gestao.$HOMOLOG_DOMINIO:$HOMOLOG_PORTA"
 ISS="https://login.$HOMOLOG_DOMINIO:$HOMOLOG_PORTA/realms/engenheiro"
 CERT_ESPERADO=$(keytool -list -keystore "$ENGENHEIRO_KEYSTORE" -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias homologacao 2>/dev/null \
@@ -26,7 +28,8 @@ CERT_ESPERADO=$(keytool -list -keystore "$ENGENHEIRO_KEYSTORE" -storepass "$ANDR
 echo "[" > "$OUT/manifesto.json"; primeiro=1
 for app in mobile-owner mobile-counter mobile-delivery mobile-accountant; do
   (cd "apps/$app" && "$FLUTTER" build apk --release --no-pub --build-number="$N" \
-     --dart-define=ENGENHEIRO_API="$API" --dart-define=ENGENHEIRO_ISSUER="$ISS" >/dev/null
+     --dart-define=ENGENHEIRO_API="$API" --dart-define=ENGENHEIRO_ISSUER="$ISS" \
+     --dart-define=ENGENHEIRO_CA_HOMOLOG_B64="$CA_B64" >/dev/null
    (cd android && ./gradlew --stop >/dev/null 2>&1 || true))   # libera a RAM entre um app e outro
   src="apps/$app/build/app/outputs/flutter-apk/app-release.apk"
   pkg=$("$BT/aapt2" dump badging "$src" | sed -n "s/^package: name='\([^']*\)' versionCode='\([^']*\)' versionName='\([^']*\)'.*/\1 \2 \3/p")

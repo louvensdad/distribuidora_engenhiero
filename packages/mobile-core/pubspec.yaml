@@ -18,7 +18,7 @@ dependencies:
     path: ../mobile-auth
   image_picker: 1.2.4
   file_picker: 13.4.0
+  http: 1.6.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  http: 1.6.0

@@ -3,6 +3,7 @@ import 'package:engenheiro_auth/engenheiro_auth.dart';
 import 'package:engenheiro_design/engenheiro_design.dart';
 import 'package:material_ui/material_ui.dart';
 import 'app_config.dart';
+import 'http_ambiente.dart';
 import 'labels.dart';
 import 'scope.dart';
 import 'session_controller.dart';
@@ -18,6 +19,7 @@ class EngenheiroApp extends StatefulWidget {
 }
 
 class _EngenheiroAppState extends State<EngenheiroApp> {
+  final _http = clienteHttpDoAmbiente();
   late final SessionController session = widget.session ??
       SessionController(
         auth: AuthSession(
@@ -29,7 +31,8 @@ class _EngenheiroAppState extends State<EngenheiroApp> {
           )),
           store: OsSecureStore(),
         ),
-        apiFactory: (tokens) => ApiClient(baseUrl: widget.config.apiBaseUrl, tokenProvider: tokens),
+        apiFactory: (tokens) =>
+            ApiClient(baseUrl: widget.config.apiBaseUrl, tokenProvider: tokens, httpClient: _http),
       );
 
   @override
