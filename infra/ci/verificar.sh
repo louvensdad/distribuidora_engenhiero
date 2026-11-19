@@ -27,6 +27,7 @@ etapa "API: testes (unitários + integração com PostgreSQL real)" sh -c 'cd se
 etapa "site: tipos" sh -c 'cd apps/web-admin && npm run -s typecheck'
 etapa "site: testes" sh -c 'cd apps/web-admin && npx vitest run'
 etapa "site: build de produção" sh -c 'cd apps/web-admin && npm run -s build'
+etapa "apps: configuração iOS (identificador, login, câmera/fotos, ícones, iPad)" python3 -I apps/ios-comum/verificar_ios.py
 etapa "apps: análise estática" "$FLUTTER" analyze apps/mobile-owner apps/mobile-counter apps/mobile-delivery apps/mobile-accountant packages/mobile-core packages/mobile-api
 for d in packages/mobile-core packages/mobile-api apps/mobile-owner apps/mobile-counter apps/mobile-delivery apps/mobile-accountant; do
   [[ -d "$d/test" ]] && etapa "apps: testes $d" sh -c "cd $d && $FLUTTER test --no-pub"

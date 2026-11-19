@@ -99,7 +99,7 @@ class _TripsScreenState extends State<TripsScreen> {
               label: const Text('Organizar viagem'),
             )
           : null,
-      body: _body(dispatch),
+      body: EngReadableWidth(child: _body(dispatch)),
     );
   }
 
@@ -268,7 +268,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
         ]),
       );
     }
-    return Scaffold(appBar: AppBar(title: Text(t == null ? 'Viagem' : 'Viagem V${t.number}')), body: body);
+    return Scaffold(appBar: AppBar(title: Text(t == null ? 'Viagem' : 'Viagem V${t.number}')), body: EngReadableWidth(child: body));
   }
 }
 
@@ -425,7 +425,7 @@ class _StopScreenState extends State<StopScreen> {
     final d = o.delivery;
     return Scaffold(
       appBar: AppBar(title: Text('Pedido #${o.number}')),
-      body: ListView(padding: const EdgeInsets.all(16), children: [
+      body: EngReadableWidth(child: ListView(padding: const EdgeInsets.all(16), children: [
         Text(o.customerName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
         _row('Endereço', o.maskedFields.contains('delivery.address') ? _hidden : Text(d?.address ?? '—')),
         if (!o.owes)
@@ -507,7 +507,7 @@ class _StopScreenState extends State<StopScreen> {
         OutlinedButton(onPressed: _busy ? null : _incident, child: const Text('Salvar ocorrência')),
         const Text('Não marca como entregue: o pedido segue reservado.', style: TextStyle(color: EngColors.muted, fontSize: 12)),
         _formError(_incidentError),
-      ]),
+      ])),
     );
   }
 }
@@ -641,7 +641,7 @@ class _FuelScreenState extends State<FuelScreen> {
     final v = widget.vehicle;
     return Scaffold(
       appBar: AppBar(title: Text('Abastecer ${v.plate}')),
-      body: ListView(padding: const EdgeInsets.all(16), children: [
+      body: EngReadableWidth(child: ListView(padding: const EdgeInsets.all(16), children: [
         TextField(controller: _odo, keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(labelText: 'Odômetro (km) *', helperText: 'Último: ${formatDecimal(v.odometerKm)} km',
                 errorText: _fe(_error, 'odometer'))),
@@ -677,7 +677,7 @@ class _FuelScreenState extends State<FuelScreen> {
         const SizedBox(height: 16),
         FilledButton(onPressed: _busy ? null : _save, child: Text(_busy ? 'Registrando…' : 'Registrar gasto')),
         _formError(_error),
-      ]),
+      ])),
     );
   }
 }
@@ -811,7 +811,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
             style: TextStyle(color: EngColors.muted, fontSize: 12)),
       ]);
     }
-    return Scaffold(appBar: AppBar(title: const Text('Organizar viagem')), body: body);
+    return Scaffold(appBar: AppBar(title: const Text('Organizar viagem')), body: EngReadableWidth(child: body));
   }
 }
 
@@ -873,7 +873,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
     final maint = _kind == 'MAINTENANCE';
     return Scaffold(
       appBar: AppBar(title: Text('Gasto · ${widget.vehicle.plate}')),
-      body: ListView(padding: const EdgeInsets.all(16), children: [
+      body: EngReadableWidth(child: ListView(padding: const EdgeInsets.all(16), children: [
         DropdownButtonFormField<String>(
           initialValue: _kind,
           isExpanded: true,
@@ -919,7 +919,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
                   style: const TextStyle(color: EngColors.error))),
         const SizedBox(height: 16),
         FilledButton(onPressed: _busy ? null : _save, child: Text(_busy ? 'Salvando…' : 'Registrar gasto')),
-      ]),
+      ])),
     );
   }
 }

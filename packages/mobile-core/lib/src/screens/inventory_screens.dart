@@ -153,7 +153,7 @@ class _ReceiptsScreenState extends State<ReceiptsScreen> {
               label: const Text('Receber mercadoria'),
             )
           : null,
-      body: _body(),
+      body: EngReadableWidth(child: _body()),
     );
   }
 
@@ -326,7 +326,7 @@ class _ReceiptDetailScreenState extends State<ReceiptDetailScreen> {
       },
       child: Scaffold(
         appBar: AppBar(title: Text(r?.supplierName ?? 'Recebimento')),
-        body: _error != null
+        body: EngReadableWidth(child: _error != null
             ? (_error!.isForbidden || _error!.status == 404
                 ? const ForbiddenStateView()
                 : ErrorStateView(message: _error!.message, requestId: _error!.requestId, onRetry: _load))
@@ -387,7 +387,7 @@ class _ReceiptDetailScreenState extends State<ReceiptDetailScreen> {
                       const SizedBox(height: 8),
                       FilledButton(onPressed: _busy ? null : _confirm, child: Text(_busy ? 'Confirmando…' : 'Confirmar entrada')),
                     ],
-                  ]),
+                  ])),
       ),
     );
   }
@@ -537,7 +537,7 @@ class _NewReceiptScreenState extends State<NewReceiptScreen> {
         Text('Conferente: ${me.displayName}', style: const TextStyle(color: EngColors.muted, fontSize: 12)),
       ]);
     }
-    return Scaffold(appBar: AppBar(title: const Text('Conferir cana recebida')), body: body);
+    return Scaffold(appBar: AppBar(title: const Text('Conferir cana recebida')), body: EngReadableWidth(child: body));
   }
 
   Widget _lineCard(int i, bool seesCost) {

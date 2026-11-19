@@ -72,7 +72,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
               label: const Text('Novo cliente'),
             )
           : null,
-      body: Column(children: [
+      body: EngReadableWidth(child: Column(children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           child: TextField(
@@ -83,7 +83,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
           ),
         ),
         Expanded(child: _body()),
-      ]),
+      ])),
     );
   }
 
@@ -187,7 +187,7 @@ class _NewCustomerScreenState extends State<NewCustomerScreen> {
     final me = EngScope.of(context).me;
     return Scaffold(
       appBar: AppBar(title: const Text('Novo cliente')),
-      body: ListView(padding: const EdgeInsets.all(16), children: [
+      body: EngReadableWidth(child: ListView(padding: const EdgeInsets.all(16), children: [
         TextField(controller: _name, autofocus: true, maxLength: 200, onChanged: (_) => setState(() {}),
             decoration: InputDecoration(labelText: 'Nome *', errorText: _fieldError('name'))),
         if (me.canSeeField('operational_contact')) ...[
@@ -213,7 +213,7 @@ class _NewCustomerScreenState extends State<NewCustomerScreen> {
           onPressed: _busy || _name.text.trim().isEmpty ? null : _save,
           child: Text(_busy ? 'Salvando…' : 'Cadastrar cliente'),
         ),
-      ]),
+      ])),
     );
   }
 }

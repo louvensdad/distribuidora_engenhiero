@@ -195,13 +195,13 @@ class _AppShellState extends State<AppShell> {
             ],
           ),
           const VerticalDivider(width: 1),
-          Expanded(child: body),
+          Expanded(child: EngReadableWidth(child: body)),
         ]),
       );
     }
     return Scaffold(
       appBar: appBar,
-      body: body,
+      body: EngReadableWidth(child: body),
       bottomNavigationBar: visible.length < 2
           ? null
           : NavigationBar(

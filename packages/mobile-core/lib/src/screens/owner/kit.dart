@@ -46,7 +46,7 @@ const paymentStates = {'UNPAID': 'Não pago', 'PARTIALLY_PAID': 'Pago em parte',
 Future<T?> pushScreen<T>(BuildContext context, String title, Widget child, {List<Widget>? actions}) {
   final s = EngScope.of(context);
   return Navigator.of(context).push<T>(MaterialPageRoute(builder: (_) => EngScope(config: s.config, session: s.session,
-      child: Scaffold(appBar: AppBar(title: Text(title), actions: actions), body: child))));
+      child: Scaffold(appBar: AppBar(title: Text(title), actions: actions), body: EngReadableWidth(child: child)))));
 }
 
 Future<T?> pushRaw<T>(BuildContext context, Widget child) {
@@ -356,7 +356,7 @@ class _FormScreenState extends State<FormScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: Text(widget.title)),
-        body: ListView(padding: const EdgeInsets.all(16), children: [
+        body: EngReadableWidth(child: ListView(padding: const EdgeInsets.all(16), children: [
           if (widget.intro != null) Padding(padding: const EdgeInsets.only(bottom: 8),
               child: Text(widget.intro!, style: const TextStyle(color: EngColors.muted))),
           for (final f in widget.fields) Padding(padding: const EdgeInsets.only(bottom: 4), child: _field(f)),
@@ -365,7 +365,7 @@ class _FormScreenState extends State<FormScreen> {
           if (_error != null)
             Padding(padding: const EdgeInsets.only(top: 8), child: Semantics(liveRegion: true,
                 child: Text(errorText(_error!), style: const TextStyle(color: EngColors.error)))),
-        ]),
+        ])),
       );
 }
 

@@ -19,6 +19,10 @@ jobs:
         with: {node-version: "22.22.1", cache: npm, cache-dependency-path: apps/web-admin/package-lock.json}
       - uses: subosito/flutter-action@v2.21.0
         with: {flutter-version: "3.50.0", channel: stable}
+      - uses: actions/setup-python@v5.6.0
+        with: {python-version: "3.13"}
+      - name: Pillow (verificação dos ícones iOS)
+        run: python3 -m pip install pillow==12.1.1
       - name: dependências do site
         run: cd apps/web-admin && npm ci --no-audit --no-fund
       - name: portões

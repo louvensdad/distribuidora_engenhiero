@@ -13,6 +13,12 @@
 	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Fotografar guias e documentos para enviar ao patrão.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Escolher no aparelho a guia ou o documento para enviar ao patrão.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

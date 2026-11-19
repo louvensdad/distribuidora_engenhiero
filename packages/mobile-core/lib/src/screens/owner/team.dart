@@ -403,7 +403,7 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
                 if (r != null) setState(() => _k = UniqueKey());
               })
           : null,
-      body: CursorList(
+      body: EngReadableWidth(child: CursorList(
         key: _k,
         path: '/api/v1/employees',
         query: {'q': _query},
@@ -418,7 +418,7 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
             reload();
           },
         ),
-      ),
+      )),
     );
   }
 }
@@ -550,7 +550,7 @@ class _PositionsScreenState extends State<PositionsScreen> {
                 if (r != null) setState(() => _k = UniqueKey());
               })
           : null,
-      body: JsonView(key: _k, load: (api) => api.getJson('/api/v1/job-positions', {'include_archived': 'true'}), builder: (context, d, reload) => [
+      body: EngReadableWidth(child: JsonView(key: _k, load: (api) => api.getJson('/api/v1/job-positions', {'include_archived': 'true'}), builder: (context, d, reload) => [
         if (items(d).isEmpty) const EmptyState(title: 'Nenhum cargo'),
         for (final p in items(d))
           RowCard(
@@ -566,7 +566,7 @@ class _PositionsScreenState extends State<PositionsScreen> {
                   }
                 : null,
           ),
-      ]),
+      ])),
     );
   }
 }
@@ -669,7 +669,7 @@ class _BranchesScreenState extends State<BranchesScreen> {
                 if (r != null) setState(() => _k = UniqueKey());
               })
           : null,
-      body: JsonView(key: _k, load: (api) => api.getJson('/api/v1/branches'), builder: (context, d, reload) => [
+      body: EngReadableWidth(child: JsonView(key: _k, load: (api) => api.getJson('/api/v1/branches'), builder: (context, d, reload) => [
         for (final b in items(d))
           RowCard(
             title: str(b['name']),
@@ -686,7 +686,7 @@ class _BranchesScreenState extends State<BranchesScreen> {
                   }
                 : null,
           ),
-      ]),
+      ])),
     );
   }
 }

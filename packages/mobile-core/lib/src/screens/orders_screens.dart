@@ -223,7 +223,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
               label: const Text('Novo pedido'),
             )
           : null,
-      body: Column(children: [_filters(), Expanded(child: list)]),
+      body: EngReadableWidth(child: Column(children: [_filters(), Expanded(child: list)])),
     );
   }
 }
@@ -453,7 +453,7 @@ class _NewOrderScreenState extends State<NewOrderScreen> {
         const Text('O total é calculado pelo servidor com a tabela vigente.', style: TextStyle(color: EngColors.muted, fontSize: 12)),
       ]);
     }
-    return Scaffold(appBar: AppBar(title: Text(_delivery ? 'Novo pedido de entrega' : 'Novo pedido')), body: body);
+    return Scaffold(appBar: AppBar(title: Text(_delivery ? 'Novo pedido de entrega' : 'Novo pedido')), body: EngReadableWidth(child: body));
   }
 }
 
@@ -644,7 +644,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         ],
       ]);
     }
-    return Scaffold(appBar: AppBar(title: Text(o == null ? 'Pedido' : 'Pedido #${o.number}')), body: body);
+    return Scaffold(appBar: AppBar(title: Text(o == null ? 'Pedido' : 'Pedido #${o.number}')), body: EngReadableWidth(child: body));
   }
 }
 
@@ -852,6 +852,6 @@ class _OrderReceiptScreenState extends State<OrderReceiptScreen> {
         ),
       ]);
     }
-    return Scaffold(appBar: AppBar(title: const Text('Comprovante')), body: body);
+    return Scaffold(appBar: AppBar(title: const Text('Comprovante')), body: EngReadableWidth(child: body));
   }
 }

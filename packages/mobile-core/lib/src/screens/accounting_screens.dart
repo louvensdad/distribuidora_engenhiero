@@ -301,7 +301,7 @@ class TaxesScreen extends StatelessWidget {
               label: const Text('Preparar guia'),
             )
           : null,
-      body: _Loader<List<TaxInfo>>(
+      body: EngReadableWidth(child: _Loader<List<TaxInfo>>(
         load: (api) => api.taxes(),
         empty: (d) => d.isEmpty,
         builder: (context, items, reload) => items.isEmpty
@@ -317,7 +317,7 @@ class TaxesScreen extends StatelessWidget {
                     },
                   )),
               ]),
-      ),
+      )),
     );
   }
 }
@@ -392,7 +392,7 @@ class _TaxFormScreenState extends State<TaxFormScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: Text(widget.existing == null ? 'Preparar guia' : 'Corrigir guia')),
-        body: ListView(padding: const EdgeInsets.all(16), children: [
+        body: EngReadableWidth(child: ListView(padding: const EdgeInsets.all(16), children: [
           DropdownButtonFormField<String>(
             initialValue: _kind,
             isExpanded: true,
@@ -410,7 +410,7 @@ class _TaxFormScreenState extends State<TaxFormScreen> {
           FilledButton(onPressed: _busy ? null : _save,
               child: Text(_busy ? 'Salvando…' : widget.existing == null ? 'Salvar rascunho' : 'Salvar correção')),
           if (_error != null && _error!.fieldErrors.isEmpty) _err(_error),
-        ]),
+        ])),
       );
 }
 
@@ -530,7 +530,7 @@ class _TaxDetailScreenState extends State<TaxDetailScreen> {
         RecordHistoryView(key: ValueKey('h-${t.id}-${t.version}-${t.attachments.length}'), load: (api) => api.taxHistory(t.id)),
       ]);
     }
-    return Scaffold(appBar: AppBar(title: const Text('Guia')), body: body);
+    return Scaffold(appBar: AppBar(title: const Text('Guia')), body: EngReadableWidth(child: body));
   }
 }
 
@@ -749,7 +749,7 @@ class _PayrollDetailScreenState extends State<PayrollDetailScreen> {
         RecordHistoryView(key: ValueKey('ph-${r.id}-${r.version}'), load: (api) => api.payrollHistory(r.id)),
       ]);
     }
-    return Scaffold(appBar: AppBar(title: const Text('Folha')), body: body);
+    return Scaffold(appBar: AppBar(title: const Text('Folha')), body: EngReadableWidth(child: body));
   }
 }
 
@@ -965,7 +965,7 @@ class _AccountingDocumentDetailScreenState extends State<AccountingDocumentDetai
         _err(_error),
       ]);
     }
-    return Scaffold(appBar: AppBar(title: const Text('Documento')), body: body);
+    return Scaffold(appBar: AppBar(title: const Text('Documento')), body: EngReadableWidth(child: body));
   }
 }
 
@@ -1011,7 +1011,7 @@ class _FulfillRequestScreenState extends State<FulfillRequestScreen> {
     final q = widget.request;
     return Scaffold(
       appBar: AppBar(title: const Text('Atender solicitação')),
-      body: ListView(padding: const EdgeInsets.all(16), children: [
+      body: EngReadableWidth(child: ListView(padding: const EdgeInsets.all(16), children: [
         Text(q.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
         if (q.description != null) Text(q.description!),
         Text([
@@ -1031,7 +1031,7 @@ class _FulfillRequestScreenState extends State<FulfillRequestScreen> {
         const SizedBox(height: 12),
         FilledButton(onPressed: _busy ? null : _send, child: Text(_busy ? 'Enviando…' : 'Escolher arquivo e enviar')),
         _err(_error),
-      ]),
+      ])),
     );
   }
 }

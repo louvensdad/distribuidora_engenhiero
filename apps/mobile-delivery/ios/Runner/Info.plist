@@ -13,6 +13,12 @@
 	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Fotografar a entrega, as ocorrências e os comprovantes de abastecimento e gastos da viagem.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Escolher no aparelho a foto da entrega ou do comprovante para anexar.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

@@ -73,12 +73,12 @@ class _AccountsScreenState extends State<AccountsScreen> {
                 if (r != null) setState(() => _k = UniqueKey());
               })
           : null,
-      body: JsonView(key: _k, load: (api) => api.getJson('/api/v1/finance/accounts'), builder: (context, d, reload) => [
+      body: EngReadableWidth(child: JsonView(key: _k, load: (api) => api.getJson('/api/v1/finance/accounts'), builder: (context, d, reload) => [
         for (final a in items(d))
           RowCard(title: str(a['name']), subtitle: '${labelOf(accountKinds, str(a['kind']))}${a['status'] == 'ACTIVE' ? '' : ' · ${a['status']}'}',
               trailing: formatMoney(strOrNull(a['balance'])),
               onTap: () => pushScreen(context, 'Extrato: ${a['name']}', StatementScreen(accountId: str(a['id'])))),
-      ]),
+      ])),
     );
   }
 }
@@ -149,7 +149,7 @@ class _TransfersScreenState extends State<TransfersScreen> {
                 if (r != null) setState(() => _k = UniqueKey());
               })
           : null,
-      body: JsonView(key: _k, load: (api) => api.getJson('/api/v1/finance/transfers'), builder: (context, d, reload) => [
+      body: EngReadableWidth(child: JsonView(key: _k, load: (api) => api.getJson('/api/v1/finance/transfers'), builder: (context, d, reload) => [
         if (items(d).isEmpty) const EmptyState(title: 'Nenhuma transferência'),
         for (final t in items(d))
           RowCard(
@@ -167,7 +167,7 @@ class _TransfersScreenState extends State<TransfersScreen> {
                   }
                 : null,
           ),
-      ]),
+      ])),
     );
   }
 }
@@ -203,7 +203,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                 if (r != null) setState(() => _k = UniqueKey());
               })
           : null,
-      body: CursorList(
+      body: EngReadableWidth(child: CursorList(
         key: _k,
         path: '/api/v1/expenses',
         query: {'state': _state, 'category': _category},
@@ -233,7 +233,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
             reload();
           },
         ),
-      ),
+      )),
     );
   }
 }

@@ -166,7 +166,7 @@ class _PartiesScreenState extends State<PartiesScreen> {
                 if (r != null) setState(() => _k = UniqueKey());
               })
           : null,
-      body: CursorList(
+      body: EngReadableWidth(child: CursorList(
         key: _k,
         path: '/api/v1/${widget.kind}',
         query: {'q': _query},
@@ -187,7 +187,7 @@ class _PartiesScreenState extends State<PartiesScreen> {
                 }
               : null,
         ),
-      ),
+      )),
     );
   }
 }
@@ -219,7 +219,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 if (r != null) setState(() => _k = UniqueKey());
               })
           : null,
-      body: CursorList(
+      body: EngReadableWidth(child: CursorList(
         key: _k,
         path: '/api/v1/products',
         query: {'q': _query},
@@ -235,7 +235,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
             reload();
           },
         ),
-      ),
+      )),
     );
   }
 }
@@ -373,7 +373,7 @@ class _LossesScreenState extends State<LossesScreen> {
                 if (r != null) setState(() => _k = UniqueKey());
               })
           : null,
-      body: CursorList(
+      body: EngReadableWidth(child: CursorList(
         key: _k,
         path: '/api/v1/inventory/losses',
         query: {'status': _status},
@@ -394,7 +394,7 @@ class _LossesScreenState extends State<LossesScreen> {
             reload();
           },
         ),
-      ),
+      )),
     );
   }
 }
@@ -424,7 +424,7 @@ class _AdjustmentsScreenState extends State<AdjustmentsScreen> {
                 if (r != null) setState(() => _k = UniqueKey());
               })
           : null,
-      body: CursorList(
+      body: EngReadableWidth(child: CursorList(
         key: _k,
         path: '/api/v1/inventory/adjustments',
         empty: 'Nenhum ajuste.',
@@ -438,7 +438,7 @@ class _AdjustmentsScreenState extends State<AdjustmentsScreen> {
                 }
               : null,
         ),
-      ),
+      )),
     );
   }
 }
@@ -473,7 +473,7 @@ class _FleetScreenState extends State<FleetScreen> {
                 if (r != null) setState(() => _k = UniqueKey());
               })
           : null,
-      body: JsonView(key: _k, load: (api) => api.getJson('/api/v1/vehicles'), builder: (context, d, reload) => [
+      body: EngReadableWidth(child: JsonView(key: _k, load: (api) => api.getJson('/api/v1/vehicles'), builder: (context, d, reload) => [
         if (items(d).isEmpty) const EmptyState(title: 'Nenhum veículo'),
         for (final v in items(d))
           RowCard(
@@ -486,7 +486,7 @@ class _FleetScreenState extends State<FleetScreen> {
               reload();
             },
           ),
-      ]),
+      ])),
     );
   }
 }

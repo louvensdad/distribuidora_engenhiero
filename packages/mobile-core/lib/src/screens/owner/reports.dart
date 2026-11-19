@@ -267,7 +267,7 @@ class _GoalsAdminScreenState extends State<GoalsAdminScreen> {
                 if (r != null) setState(() => _k = UniqueKey());
               })
           : null,
-      body: JsonView(key: _k, load: (api) => api.getJson('/api/v1/goals', {'from': iso(from), 'to': iso(to)}), builder: (context, d, reload) => [
+      body: EngReadableWidth(child: JsonView(key: _k, load: (api) => api.getJson('/api/v1/goals', {'from': iso(from), 'to': iso(to)}), builder: (context, d, reload) => [
         if (items(d).isEmpty) const EmptyState(title: 'Nenhuma meta no período'),
         for (final g in items(d))
           Card(child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -300,7 +300,7 @@ class _GoalsAdminScreenState extends State<GoalsAdminScreen> {
                 }, child: const Text('Cancelar')),
             ]),
           ]))),
-      ]),
+      ])),
     );
   }
 }

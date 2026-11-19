@@ -13,6 +13,12 @@
 	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Fotografar a nota na chegada da mercadoria e o comprovante de pagamento do cliente.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Escolher no aparelho a foto da nota ou do comprovante para anexar.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
