@@ -1,0 +1,31 @@
+F16 — resumo da validação (segurança, desempenho e implantação)
+Data: 19/11/2026, America/Sao_Paulo · repositório /home/louvens/Ivan/distribuidora-engenheiro (main) · ADR-030
+Ambiente: homologação local com a forma da produção (borda TLS, IdP em modo produção, 2 instâncias da API).
+
+Portões (infra/ci/verificar.sh, commit 5430839): RESULTADO PASS, 16 de 16
+  ✓ pacote da especificação íntegro · ✓ nenhum segredo no repositório (Trivy) · ✓ dependências sem alta/crítica
+  (Maven, npm, pub) · ✓ npm audit (produção) · ✓ API: testes unitários + integração com PostgreSQL real (188, 0 falhas)
+  · ✓ site: tipos, testes, build de produção · ✓ apps: análise estática · ✓ testes mobile-core (51), mobile-api,
+  mobile-owner, mobile-counter, mobile-delivery, mobile-accountant · ✓ imagens do commit (checkout limpo)
+  · ✓ imagens engenheiro-api e engenheiro-site sem vulnerabilidade alta/crítica nem segredo
+
+Requisito → evidência
+  OPS-01 ambientes/segredos: ProductionHardeningTest (5); fumaça HTTPS 17 itens (F16-backup-restauracao.txt);
+         Trivy no repositório e nas imagens (acima)
+  OPS-02 backup/restauração: F16-backup-restauracao.txt (perda total → restauração 40,9 s, documentos pelo hash,
+         mesmo TOTP; adulterado/senha errada/destino com dados recusados; agendado OK com retenção)
+  OPS-03 logs/alertas: sanitizadorRemoveTokenSegredoDocumentoEmailEDetalheDoBanco; FailSafeFilterTest (3);
+         F16-ensaio-falhas.txt (IdP, banco, armazenamento); F16-vigia-alerta.txt (IdP parado → alerta via systemd)
+  OPS-04 migrações/rollback: F16-migracao-rollback.txt (N-1 sobre schema novo, defeito revertido sozinho, volta à
+         frente); JobLeaseIntegrationTest; F16-carga.txt (2 instâncias, 15 231 requisições, 0 erro, p95 178 ms)
+  OPS-05 sem fixture/perfil local em produção: producaoComVestigioLocalOuSemParametroERecusadaSemExporSegredo,
+         seedFicticioSoExisteForaDasMigrationsDeProducao; release sem chave = BUILD FAILED (F16-apps-release.txt)
+  Navegador e acessibilidade: F16-navegador-a11y.txt (0 violação WCAG 2.1 AA em 6 telas, 0 violação de CSP)
+  Fiscal e IA indisponíveis: cobertos por INT-05 (F08) e AiIntegrationTest (F15); na homologação a IA aparece
+         NÃO CONFIGURADA no site e no APK de release (captura F16-release-gestao-ia.png)
+  Apps: F16-apps-release.txt (4 APKs de release assinados com a chave de homologação, sha256 e manifesto ligado ao
+         commit 2f93a513d593; login real do patrão no APK de release; defeito do cliente HTTP do Dart achado e corrigido)
+
+BLOQUEADO (externo): produção (D07 chave do titular, D09 infraestrutura/cofre/destino externo de backup); envio do
+alerta (ALERTA_COMANDO do responsável); chamada real à IA (ANTHROPIC_API_KEY e orçamento); iOS (sem macOS).
+Nenhum segredo, senha, token ou dado pessoal real neste arquivo nem nas capturas (dados fictícios de homologação).

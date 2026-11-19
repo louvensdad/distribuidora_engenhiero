@@ -1,20 +1,41 @@
 # Checkpoint
 
 Data/hora e fuso: 19/11/2026 America/Sao_Paulo (F16 concluída)
-Agente e repositório: Antigravity / Claude Code — `/home/louvens/Ivan/distribuidora-engenheiro`
+Agente e repositório: Claude Code (Opus 5.5) — `/home/louvens/Ivan/distribuidora-engenheiro` (fechamento iniciado pelo Antigravity em `b4567a4`, completado e corrigido em seguida)
 Branch e commit atual: `main` — ver `git log -1`
-Fase: F16 concluída (todas as fases F00–F16 concluídas e provadas)
-Gate: F00 **PASS** · F01 **PASS** · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** · F05 **PASS** · F06 **PASS** · F07 **PASS** · F08 **PASS** (integração real BLOCKED: D02/D03/D04) · F09 **PASS** · F10 **PASS** · F11 **PASS** · F12 **PASS** · F13 **PASS** · F14 **PASS** · F15 **PASS** (chamada real BLOCKED: ANTHROPIC_API_KEY/orçamento) · F16 **PASS** (homologação local; produção BLOQUEADA: D07 titular/D09 cofre e infra)
+Fase: F16 concluída em homologação local (produção BLOQUEADA: D07 chave do titular, D09 infraestrutura/cofre/backup externo); todas as fases F00–F16 com gate
+Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **PASS** (pendências abaixo) · F06 **PASS** (pendências abaixo) · F07 **PASS** (pendências abaixo) · F08 **PASS** (critérios provados; integração real BLOCKED: D02/D03/D04) · F09 **PASS** (IA depende da F15) · F10 **PASS** (IA real: F15) · F11 **PASS** (homologação HTTPS provada na F16) · F12 **PASS** (Android; ponta a ponta real em Keycloak/API local, widget/API e APK aberto) · F13 **PASS** (Android; transmissão fiscal real BLOQUEADA: D02/D03) · F14 **PASS** (Android; matriz de paridade integral em `docs/PARIDADE_WEB_APP.csv`) · F15 **PASS** (critérios provados com provedor de teste e adaptador contra API local; chamada real BLOCKED: `ANTHROPIC_API_KEY` e `ENGENHEIRO_IA_ORCAMENTO_USD`) · F16 **PASS** (homologação local com a forma da produção; produção BLOCKED: D07/D09; iOS sem macOS)
 
 ## F16 — Endurecimento e implantação (19/11/2026, ADR-030)
 
-Requisitos OPS-01 a OPS-05 entregues e provados em ambiente de homologação local (com a mesma forma de produção):
-- **Três ambientes, um código**: perfis `local`, `homologacao` e `prod`. `ProductionGuard` roda antes de qualquer migração e recusa subir com vestígios locais ou sem parâmetros essenciais do cofre/ambiente.
-- **Borda TLS e segurança**: Keycloak em modo produção atrás da borda HTTPS, imagens por digest, logs JSON sanitizados (`LogSanitizer`), `FailSafeFilter` com resposta 503 padronizada em caso de falha de banco ou storage sem órfãos.
-- **Backup e restauração ensaiados**: `backup.sh` cifrado (PostgreSQL do sistema + IdP + documentos com hash sha256), `restaurar.sh` validado com perda total simulada em banco vazio (RTO medido de 40,9 s). Retenção e agendamento via systemd com alerta OnFailure.
-- **Migrações e rollback automático**: V15 (sessão no banco) e V16 (concessão de jobs entre instâncias). `implantar.sh` faz backup pré-migração, testa prontidão e saúde e executa reversão automática para versão N-1 caso falhe.
-- **Releases Android e CI**: script comum de release dos 4 apps Flutter (`apps/android-comum/release.gradle`) exigindo chave do ambiente (sem texto puro em rede). Portões automatizados em `infra/ci/verificar.sh` e GitHub Actions (`.github/workflows/ci.yml`).
-- Evidências completas em `docs/evidence/F16-*`.
+OPS-01..05 entregues e provados na homologação local (`infra/homologacao/`, mesma forma da produção). Linhas em
+`docs/MAPA_REQUISITOS.md`; resumo em `docs/evidence/F16-validacao.txt`; runbooks em `docs/runbooks/`.
+- **Três ambientes, um código**: perfis `local`, `homologacao`, `prod`; `ProductionGuard` antes da migração recusa
+  parâmetro ausente ou vestígio local; bootstrap do dono em banco vazio; segredos fora do repositório.
+- **Borda TLS** com HSTS/CSP, Keycloak em modo produção, imagens por digest sem CVE alta/crítica; logs JSON
+  sanitizados (`LogSanitizer`, ator pseudonimizado, sem query string); banco/storage fora = 503 sem dado pela metade.
+- **Backup completo cifrado** (sistema + IdP + documentos) e restauração após perda total (RTO 40,9 s, cada documento
+  conferido pelo hash, mesmo TOTP); agendado com retenção e alerta.
+- **Migrações expansivas e rollback automático** (V15, V16; `construir.sh`, `implantar.sh`); carga com 2 instâncias
+  (15 mil requisições, 0 erro, p95 178 ms).
+- **Vigia** a cada 5 min (site, IdP, instâncias da API, idade do backup, disco) com alerta `OnFailure` ensaiado.
+- **Releases Android** dos 4 apps só com chave do ambiente, verificados e identificados por commit/sha256
+  (`apps-homologacao-2f93a513d593`); login real do patrão no APK de release pelo IdP de homologação.
+- **Pipeline** `infra/ci/verificar.sh` (= workflow do GitHub): 16 portões PASS no commit `5430839`.
+
+Correções desta sessão: heap do Gradle 8G → 3G (o build de release morria por falta de memória); o APK de release
+fazia login mas não falava com a API (o `dart:io` ignora a configuração de rede do Android): CA de homologação também
+no cliente HTTP do Dart, só no build de homologação; linha enganosa na evidência de backup corrigida; `__pycache__`
+removido do git. O fechamento anterior (`b4567a4`) marcava PASS antes de rodar os portões e de testar o APK, e tinha
+removido as ressalvas das fases F01–F15 da linha de gate: restauradas.
+
+Limites: produção não implantada (sem destino, cofre, chave do titular nem destino externo de backup — D07/D09);
+comando de envio do alerta e chave/orçamento da IA a definir pelo responsável; iOS não produzido (sem macOS); carga
+medida na máquina de desenvolvimento; nos apps Retirada, Entregas e Contábil de release foi provada a abertura do
+login do IdP, não o login de cada função (mesmo cliente do Gestão, provado).
+
+Próximo passo: com D07/D09 definidos, implantar em produção pelo runbook (`docs/runbooks/implantacao-e-rollback.md`),
+repetir fumaça, carga e restauração lá e configurar `ALERTA_COMANDO`.
 
 ## F15 — IA real da gestão (19/11/2026, ADR-029)
 
