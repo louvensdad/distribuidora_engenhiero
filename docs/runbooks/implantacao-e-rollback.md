@@ -57,3 +57,17 @@ backup — avisar o dono antes. Ver `backup-e-restauracao.md` (restauração em 
 ausentes: `ENGENHEIRO_PROVISIONER_CLIENT_ID/SECRET` (contas de funcionários), `ANTHROPIC_API_KEY` +
 `ENGENHEIRO_IA_ORCAMENTO_USD` (IA), provedores fiscal/pagamento (D02–D04). Rotação: trocar no cofre e reimplantar
 (`implantar.sh` com o mesmo commit); o segredo antigo é revogado depois que a nova versão passa na fumaça.
+
+## Apps Android (releases)
+
+- `infra/operacao/construir_apps.sh homologacao` gera os 4 APKs de um commit limpo, assinados com a chave de
+  homologação, e confere certificado, pacote/versão, não depurável e rede só HTTPS; grava `manifesto.json` (commit,
+  sha256, certificado) e `SHA256SUMS` em `~/.local/state/engenheiro/artefatos/apps-homologacao-<commit>/`.
+- Release sem `ENGENHEIRO_KEYSTORE` falha de propósito (nunca assina com a chave de depuração). Produção: chave de
+  envio do titular via Play App Signing (D07), URLs de produção e **sem** `ENGENHEIRO_CA_HOMOLOG`.
+- Homologação usa CA privada. Ela vai embutida no APK (AppAuth e cliente da API), mas o login abre no navegador do
+  sistema, que não enxerga a CA do app: **instale `tls/ca.crt` como CA de usuário no aparelho de teste**
+  (Configurações → Segurança → Criptografia e credenciais → Instalar certificado → Certificado de CA). Sem isso o
+  navegador mostra "conexão não particular" e o login não começa (comportamento correto). Em produção o certificado
+  é de CA pública e nada disso é necessário.
+- Um aparelho com a versão de depuração instalada recusa o release (assinaturas diferentes): desinstalar antes.

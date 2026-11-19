@@ -1,0 +1,36 @@
+F16 — releases Android dos quatro apps (OPS-01/05), homologação local
+Data: 19/11/2026 America/Sao_Paulo · Flutter release, chave de HOMOLOGAÇÃO gerada fora do repositório
+(certificado SHA-256 52:AD:35:3A:E7:5F:D3:98:…:6D:97). Produção: BLOQUEADA até a chave do titular (D07). iOS: sem macOS.
+
+A) Release sem chave do ambiente é recusado (nunca assina com a chave de depuração)
+$ env -u ENGENHEIRO_KEYSTORE flutter build apk --release   (apps/mobile-owner)
+  Build de release exige ENGENHEIRO_KEYSTORE (e senhas/alias) vindos do cofre. O release nunca é assinado com a chave de depuração.
+  BUILD FAILED · nenhum app-release.apk gerado
+
+B) infra/operacao/construir_apps.sh homologacao   (commit limpo 2f93a513d593, 6 min)
+  ✓ br.com.engenheiro.gestao 0.1.0 (build 42): assinatura de homologação conferida, não depurável, rede só HTTPS — 55M sha256 3003c7ea00284a56…
+  ✓ br.com.engenheiro.retirada 0.1.0 (build 42): assinatura de homologação conferida, não depurável, rede só HTTPS — 52M sha256 f85e9a224d6e43a3…
+  ✓ br.com.engenheiro.entregas 0.1.0 (build 42): assinatura de homologação conferida, não depurável, rede só HTTPS — 52M sha256 2fab5300d526a724…
+  ✓ br.com.engenheiro.contabil 0.1.0 (build 42): assinatura de homologação conferida, não depurável, rede só HTTPS — 52M sha256 7c9e949034d1a230…
+APKs em ~/.local/state/engenheiro/artefatos/apps-homologacao-2f93a513d593 (manifesto.json, SHA256SUMS)
+  SHA256SUMS:
+    7c9e949034d1a2308a91bc03e27fa5c9f1cce3ca6f9c7caefc756c85c9666480  ./br.com.engenheiro.contabil-0.1.0+42-homologacao.apk
+    2fab5300d526a724365ed00201eb12d577cb4433eff69c8394be26500efca5bf  ./br.com.engenheiro.entregas-0.1.0+42-homologacao.apk
+    3003c7ea00284a561e25f56ac68fa1f2194745044dc5c37d91bf040aa155e49d  ./br.com.engenheiro.gestao-0.1.0+42-homologacao.apk
+    f85e9a224d6e43a3fc028a09410ef0f231eda5a6f0688bc3d29e8457b18d8fe7  ./br.com.engenheiro.retirada-0.1.0+42-homologacao.apk
+  manifesto.json: app, versão, build 42, ambiente, commit 2f93a513d593, arquivo, sha256, certificado (os 4 iguais ao esperado)
+
+C) No aparelho (AVD engenheiro_api36, Android 16), APK de release do app Gestão, borda TLS via adb reverse 8443
+  - aparelho com o app de DEPURAÇÃO instalado: INSTALL_FAILED_UPDATE_INCOMPATIBLE (assinaturas diferentes) → desinstalado
+  - sem a CA de homologação no aparelho: o navegador do sistema recusa o IdP (NET::ERR_CERT_AUTHORITY_INVALID) — correto;
+    captura telas-mobile/F16-release-sem-ca-no-aparelho.png. Passo do runbook: instalar tls/ca.crt como CA de usuário.
+  - DEFEITO ENCONTRADO no build 39 (affb346): login completava (AppAuth usa a CA embutida), mas toda chamada à API
+    falhava ("Sem conexão com o servidor"; nenhuma requisição chegou à borda): o dart:io não usa a configuração de
+    rede do Android. Corrigido em 2f93a51 (CA também no cliente HTTP do Dart, só no build de homologação;
+    http_ambiente_test.dart: sem CA = cliente padrão; CA inválida = TlsException, nunca "aceitar qualquer certificado").
+  - build 42: login do patrão com senha + TOTP pelo IdP de homologação → Início com os números do servidor
+    (borda: GET /api/v1/me/capabilities 200, /approvals 200, /reports/overview 200, /goals 200);
+    IA: INTEGRAÇÃO NÃO CONFIGURADA, orçamento US$ 0.00. Capturas F16-release-gestao-inicio.png, F16-release-gestao-ia.png.
+  - Retirada, Entregas e Contábil (build 42): instalados, abertos; "Entrar" busca a configuração do IdP por HTTPS
+    (CA embutida) e abre o login do IdP no navegador (CustomTabActivity), sem erro do AppAuth. Login de cada
+    função nesses três não refeito nesta fatia (o cliente da API é o mesmo pacote mobile-core provado no Gestão).
