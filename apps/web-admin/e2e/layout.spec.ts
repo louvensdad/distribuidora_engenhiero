@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-// U02: sem corte nem rolagem horizontal da página em 360, 768 e 1440 px.
+// U02: sem corte nem rolagem horizontal da página em 360, 390, 768, 1024 e 1440 px.
 // Usuário fictício do seed local (Balcão Exemplo) para abrir o editor do mapa de acessos.
 const BALCAO = "0193a000-0000-7000-8000-000000000a02";
 

@@ -71,3 +71,18 @@ ausentes: `ENGENHEIRO_PROVISIONER_CLIENT_ID/SECRET` (contas de funcionários), `
   navegador mostra "conexão não particular" e o login não começa (comportamento correto). Em produção o certificado
   é de CA pública e nada disso é necessário.
 - Um aparelho com a versão de depuração instalada recusa o release (assinaturas diferentes): desinstalar antes.
+
+## Contas de funcionários e administração do IdP (F17)
+
+- A administração do IdP **não** passa pela internet: a borda responde 404 para `/admin/` e para o realm `master`.
+  Operador administra por dentro do servidor (`docker compose exec keycloak /opt/keycloak/bin/kcadm.sh …`).
+- O dono cria as contas pelo próprio sistema (Equipe → Funcionários → Acesso aos apps). Para isso:
+  `infra/homologacao/definir-provisionamento.sh` (mesmo roteiro em produção, com o segredo indo ao cofre) cria o client
+  de serviço `engenheiro-provisioner` (só gestão de usuários do realm `engenheiro`), deixa o e-mail opcional no perfil
+  do realm (balconista/motorista sem e-mail não ficam presos no primeiro acesso) e grava o segredo. A API fala com o
+  IdP por `ENGENHEIRO_PROVISIONER_INTERNAL_URL=http://keycloak:8080/realms/engenheiro`; reimplantar depois.
+- Sem o segredo, "dar acesso" responde NÃO CONFIGURADO e o cadastro do funcionário continua valendo. Falha do IdP
+  aparece no log como `criação de conta no provedor de identidade falhou: provedor respondeu <código> (<erro>)`.
+- Ensaio completo (dono cadastra a equipe, cada um entra pelo próprio app e opera, conciliação):
+  `python3 -I infra/homologacao/ensaio_piloto.py` — senhas novas ficam em
+  `~/.config/engenheiro/homologacao/ensaio/<execução>.json` (600).

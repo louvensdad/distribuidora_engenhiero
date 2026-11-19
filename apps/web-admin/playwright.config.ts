@@ -19,5 +19,8 @@ export default defineConfig({
     { name: "desktop-1440", dependencies: ["setup"], use: { viewport: { width: 1440, height: 900 }, storageState: "e2e/.auth/patrao.json" } },
     { name: "tablet-768", dependencies: ["setup"], testMatch: /layout\.spec\.ts/, use: { viewport: { width: 768, height: 1024 }, storageState: "e2e/.auth/patrao.json" } },
     { name: "celular-360", dependencies: ["setup"], testMatch: /layout\.spec\.ts/, use: { viewport: { width: 360, height: 780 }, storageState: "e2e/.auth/patrao.json" } },
+    // F17 (U02): as cinco larguras do roteiro de aceite.
+    { name: "celular-390", dependencies: ["setup"], testMatch: /layout\.spec\.ts/, use: { viewport: { width: 390, height: 844 }, storageState: "e2e/.auth/patrao.json" } },
+    { name: "notebook-1024", dependencies: ["setup"], testMatch: /layout\.spec\.ts/, use: { viewport: { width: 1024, height: 768 }, storageState: "e2e/.auth/patrao.json" } },
   ],
 });
