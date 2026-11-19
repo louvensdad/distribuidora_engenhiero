@@ -69,7 +69,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     ResponseEntity<ApiProblem> unexpected(Exception e) {
-        log.error("Erro inesperado request_id={}", RequestIds.current(), e);
+        // Só tipo e pilha: a mensagem original pode trazer valores da linha (CPF, conta) — OPS-03.
+        log.error("Erro inesperado request_id={}", RequestIds.current(), br.com.engenheiro.api.shared.ops.LogSanitizer.scrub(e));
         return ResponseEntity.internalServerError().contentType(PROBLEM_JSON)
                 .body(new ApiProblem("about:blank", "Erro interno", 500, "INTERNAL_ERROR", RequestIds.current(),
                         "Erro inesperado. Informe o request_id ao suporte.", List.of()));

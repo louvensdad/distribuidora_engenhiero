@@ -1,0 +1,22 @@
+# Homologação (F16): mesma configuração da produção, com base, IdP, domínio e segredos PRÓPRIOS (nunca os de produção).
+# Dados fictícios de homologação só entram por carga explícita, nunca por migration.
+  # Atrás do proxy TLS: esquema/host vêm de X-Forwarded-* (HSTS e cookie Secure corretos).
+server:
+  forward-headers-strategy: native
+  servlet:
+    session:
+      cookie:
+        secure: true
+spring:
+  flyway:
+    locations: classpath:db/migration   # nunca db/seed-local
+logging:
+  structured:
+    format:
+      console: ecs                      # JSON com request_id/ator do MDC; sem corpo, token ou query string
+  level:
+    root: INFO
+    org.springframework.security: WARN
+engenheiro:
+  seed-local:
+    enabled: false

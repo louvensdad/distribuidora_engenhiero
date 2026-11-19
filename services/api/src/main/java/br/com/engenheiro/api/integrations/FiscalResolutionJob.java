@@ -27,7 +27,7 @@ public class FiscalResolutionJob {
                 log.info("Notas com resultado incerto resolvidas: {}", n);
             }
         } catch (RuntimeException e) {
-            log.warn("Consulta de notas incertas falhou: {}", e.getMessage());
+            log.warn("Consulta de notas incertas falhou: {}", br.com.engenheiro.api.shared.ops.LogSanitizer.clean(e.getMessage()));
         }
     }
 }

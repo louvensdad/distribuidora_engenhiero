@@ -1,0 +1,22 @@
+# Produção (F16, ADR-030). Todos os valores sensíveis vêm do gerenciador de segredos via variáveis de ambiente.
+# A guarda de produção (ProductionGuard) recusa migrar/subir se faltar parâmetro essencial ou houver vestígio local.
+  # Atrás do proxy TLS: esquema/host vêm de X-Forwarded-* (HSTS e cookie Secure corretos).
+server:
+  forward-headers-strategy: native
+  servlet:
+    session:
+      cookie:
+        secure: true
+spring:
+  flyway:
+    locations: classpath:db/migration   # nunca db/seed-local
+logging:
+  structured:
+    format:
+      console: ecs                      # JSON com request_id/ator do MDC; sem corpo, token ou query string
+  level:
+    root: INFO
+    org.springframework.security: WARN
+engenheiro:
+  seed-local:
+    enabled: false

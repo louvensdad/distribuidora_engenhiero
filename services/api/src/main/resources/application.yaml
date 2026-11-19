@@ -56,6 +56,9 @@ engenheiro:
       entrada-por-milhao-usd: ${ENGENHEIRO_IA_PRECO_ENTRADA:4.00}
       saida-por-milhao-usd: ${ENGENHEIRO_IA_PRECO_SAIDA:20.00}
       cache-leitura-por-milhao-usd: ${ENGENHEIRO_IA_PRECO_CACHE:0.20}
+  # F16: segredo do servidor para pseudonimizar o ator nos logs (HMAC). Obrigatório em prod/homologação.
+  log:
+    pepper: ${ENGENHEIRO_LOG_PEPPER:}
   empresa:
     nome: Distribuidora de Cana Engenheiro Ltda
   security:
@@ -89,4 +92,7 @@ management:
 info:
   app:
     nome: Engenheiro API
+    # Identificação do artefato em execução (F16): commit e versão vêm do build/implantação.
+    commit: ${ENGENHEIRO_COMMIT:desconhecido}
+    versao: ${ENGENHEIRO_VERSAO:0.1.0-SNAPSHOT}
     empresa: Distribuidora de Cana Engenheiro Ltda
