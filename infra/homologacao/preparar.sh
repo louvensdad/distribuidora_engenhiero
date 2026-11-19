@@ -40,6 +40,14 @@ if [[ ! -f "$D/tls/ca.crt" ]]; then
     -extfile "$D/tls/ext.cnf" -out "$D/tls/borda.crt" 2>/dev/null
   chmod 644 "$D/tls/borda.crt" "$D/tls/ca.crt"; chmod 644 "$D/tls/borda.key"  # lida pelo nginx sem privilégio (uid 101)
   rm -f "$D/tls/borda.csr" "$D/tls/ext.cnf"
+fi
+# Truststore da API: CAs públicas do Java + CA de homologação. Só a CA de teste fazia a API recusar todo HTTPS externo
+# (IA, provedor fiscal, Open Finance) — achado na F17 ao ligar a IA. Refeito se tiver menos de 50 CAs.
+if [[ ! -f "$D/tls/truststore.p12" ]] || (( $(keytool -list -keystore "$D/tls/truststore.p12" -storepass homolog-truststore 2>/dev/null | grep -c trustedCertEntry) < 50 )); then
+  CACERTS="$(dirname "$(readlink -f "$(command -v keytool)")")/../lib/security/cacerts"
+  rm -f "$D/tls/truststore.p12"
+  keytool -importkeystore -noprompt -srckeystore "$CACERTS" -srcstorepass changeit -destkeystore "$D/tls/truststore.p12" \
+    -deststoretype PKCS12 -deststorepass homolog-truststore >/dev/null 2>&1
   keytool -importcert -noprompt -alias homolog-ca -file "$D/tls/ca.crt" -keystore "$D/tls/truststore.p12" \
     -storetype PKCS12 -storepass homolog-truststore >/dev/null 2>&1
   chmod 644 "$D/tls/truststore.p12"

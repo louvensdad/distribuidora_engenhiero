@@ -37,6 +37,7 @@ import tools.jackson.databind.json.JsonMapper;
  */
 @Service
 public class AiService {
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(AiService.class);
     static final String SYSTEM_PROMPT = """
             Você é o assistente de gestão da Distribuidora de Cana Engenheiro Ltda. Responde perguntas do dono e da equipe
             autorizada em português do Brasil, de forma curta e objetiva.
@@ -283,6 +284,9 @@ public class AiService {
                 limitations.add("A pergunta precisou de etapas demais; refaça de forma mais específica.");
             }
         } catch (LlmProvider.Unavailable e) {
+            // Motivo técnico só no log (código/tipo do erro); nunca a pergunta, a resposta nem a chave.
+            LOG.warn("provedor de IA indisponível: {}{}", e.getMessage(),
+                    e.getCause() == null ? "" : " — " + e.getCause().getClass().getSimpleName());
             state = "FAILED";
             error = "PROVIDER_UNAVAILABLE";
             limitations.add("O provedor de IA não respondeu. Nenhum dado foi alterado; tente novamente.");
