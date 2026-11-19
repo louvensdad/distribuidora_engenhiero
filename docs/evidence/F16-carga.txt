@@ -1,0 +1,14 @@
+F16 — carga proporcional (homologação local, pela borda TLS), versão 672f92fa5a1e, 2 instâncias da API
+Data: 19/11/2026 15:07 America/Sao_Paulo · máquina de desenvolvimento (não é o servidor de produção)
+Proporção: piloto ≈ 15 pessoas com pausas humanas; aqui 20 clientes SEM pausa (ordem de grandeza acima).
+
+carga: 20 usuários simultâneos sem pausa, 60 s, 15231 requisições (253.6/s), erros: nenhum
+operação          n   p50 ms   p95 ms   p99 ms   máx ms
+relatorio      4606       62      166      252      478
+pedidos        3043       70      176      264      420
+historico      1480       47      161      244      411
+estoque        1503       47      154      232      380
+novo_pedido    4599       68      202      391     1314
+estoque: físico 100000 · reservado 4599 · pedidos aceitos 4599 → ✓ invariante confere
+RESULTADO: PASS (critério: 0 erro, invariante de estoque, p95 geral < 1500 ms; p95 = 178 ms)
+distribuição: api-1 +7724 · api-2 +7516 requisições (mesma sessão do site nas duas: Spring Session JDBC)

@@ -1,0 +1,10 @@
+  ✓ /overview — Engenheiro — Distribuidora de Cana Engenheiro Ltda — "Visão geral"
+  ✓ /reports — Engenheiro — Distribuidora de Cana Engenheiro Ltda — "Relatório completo"
+  ✓ /intelligence — Engenheiro — Distribuidora de Cana Engenheiro Ltda — "IA da gestão"
+  ✓ /sales/orders — Engenheiro — Distribuidora de Cana Engenheiro Ltda — "Pedidos de retirada e entrega"
+  ✓ /finance/expenses — Engenheiro — Distribuidora de Cana Engenheiro Ltda — "Despesas"
+  ✓ /team/audit — Engenheiro — Distribuidora de Cana Engenheiro Ltda — "Histórico"
+  IA: ✓ NÃO CONFIGURADA visível
+  ✓ acessibilidade WCAG 2.1 AA: nenhuma violação grave/crítica em 6 telas (166 verificações de regra aprovadas)
+  ✓ nenhuma violação de CSP
+  ✓ nenhum erro de console/página

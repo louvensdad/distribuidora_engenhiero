@@ -7,7 +7,8 @@ LABEL org.opencontainers.image.title="engenheiro-api" \
       org.opencontainers.image.vendor="Distribuidora de Cana Engenheiro Ltda" \
       org.opencontainers.image.revision="${COMMIT}" \
       org.opencontainers.image.version="${VERSAO}"
-RUN addgroup -S -g 10001 app && adduser -S -D -H -u 10001 -G app app && mkdir -p /dados/objetos && chown app:app /dados/objetos
+# Correções do Alpine publicadas depois da imagem base (varredura Trivy, F16).
+RUN apk upgrade --no-cache >/dev/null && addgroup -S -g 10001 app && adduser -S -D -H -u 10001 -G app app && mkdir -p /dados/objetos && chown app:app /dados/objetos
 WORKDIR /app
 COPY --chown=app:app target/engenheiro-api-${VERSAO}.jar /app/app.jar
 ENV ENGENHEIRO_COMMIT=${COMMIT} \

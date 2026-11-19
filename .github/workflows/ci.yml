@@ -1,0 +1,26 @@
+# CI (F16): mesmo roteiro de infra/ci/verificar.sh. Sem segredos: nada aqui acessa homologação ou produção.
+# Implantação é manual e separada (infra/operacao/implantar.sh, runbook), com aprovação do responsável.
+name: verificacao
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  portoes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-java@v4.7.1
+        with: {distribution: temurin, java-version: "21.0.13", cache: maven}
+      - uses: actions/setup-node@v4.4.0
+        with: {node-version: "22.22.1", cache: npm, cache-dependency-path: apps/web-admin/package-lock.json}
+      - uses: subosito/flutter-action@v2.21.0
+        with: {flutter-version: "3.50.0", channel: stable}
+      - name: dependências do site
+        run: cd apps/web-admin && npm ci --no-audit --no-fund
+      - name: portões
+        env: {FLUTTER: flutter}
+        run: infra/ci/verificar.sh

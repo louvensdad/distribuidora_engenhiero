@@ -4,12 +4,12 @@
   ✓ IdP voltou
   ✓ login novo volta a funcionar sem reiniciar API nem site
 2) Banco de dados fora do ar
-  ✗ API responde 500 (problema JSON, rápido) com mensagem genérica (sem pilha, driver ou endereço): {"type":"about:blank","title":"Erro interno","status":500,"code":"INTERNAL_ERROR","request
+  ✓ API responde 503 (problema JSON, rápido) com mensagem genérica (sem pilha, driver ou endereço): {"type":"https://engenheiro.invalid/erros/integration-unavailable","title":"Integração ind
   ✓ readiness da API cai para DOWN (orquestrador tira de rota): HTTP/1.1 503
   ✓ API se reconecta sozinha quando o banco volta (sem reiniciar) e a sessão do site segue válida
 3) Armazenamento de documentos sem gravação
-  ✗ envio recusado com 503 (armazenamento indisponível), não 500 nem sucesso: {"type":"about:blank","title":"Erro interno","status":500,"code":"INTERNAL_ERROR","request_id":"a296
+  ✓ envio recusado com 503 (armazenamento indisponível), não 500 nem sucesso: {"type":"https://engenheiro.invalid/erros/integration-unavailable","title":"Integração indisponível"
   ✓ nenhum documento registrado sem o arquivo (sem registro órfão)
-  ✗ documentos já gravados continuam baixáveis: HTTP 503
+  ✓ volume inteiro inacessível: baixar também responde 503 honesto (sem arquivo corrompido): HTTP 503
   ✓ armazenamento de volta: envio aceito (HTTP 201)
-RESULTADO: FAIL (3)
+RESULTADO: PASS
