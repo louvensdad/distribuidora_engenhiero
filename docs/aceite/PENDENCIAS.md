@@ -10,10 +10,10 @@ quando chegar. Nada aqui aparece como concluído no termo de aceite.
 | A1 | Servidor de produção | Destino (VPS/nuvem) com Docker, domínio próprio e certificado TLS público | Roteiros `construir.sh`/`implantar.sh`, borda TLS, guarda de produção, runbooks | D09 |
 | A2 | Cofre de segredos | Onde ficam senha do banco, segredos do IdP/provisionamento, pepper de log e senha do backup | Todos os segredos já entram só por variável de ambiente | D09 |
 | A3 | Cópia do backup em outro local | Bucket/armazenamento com versionamento + comando em `BACKUP_COPIA_REMOTA` | Backup diário cifrado, retenção 14, restauração ensaiada | D09 |
-| A4 | Chave de assinatura Android do titular | Conta Google Play do titular (Play App Signing) e chave de envio | Release recusa build sem chave; script dos 4 apps com verificação e manifesto | D07 |
+| A4 | Cópia de segurança da chave Android de produção | Guardar `producao.jks` + senha em dois lugares seguros (sem loja: ADR-032) | Chave da empresa criada; build de produção ensaiado (assinado, sem CA de teste) | D07 → ADR-032 |
 | A5 | Envio de alertas | Comando que entrega a mensagem ao responsável (e-mail, WhatsApp ou telefone) em `ALERTA_COMANDO` | Vigia a cada 5 min e alerta de backup ensaiados (hoje só no journal) | — |
 | A6 | Contas reais das pessoas | Nome, função e usuário de cada funcionário; e-mail é opcional | O dono cadastra e dá acesso pelo próprio site (ensaiado em homologação) | D05/D06 |
-| A7 | iOS (iPhone e iPad) | Mac com Xcode + conta Apple do titular | Projetos dos 4 apps configurados e verificados no pipeline (identificador, login, câmera/fotos, ícones, iPad); `construir_apps_ios.sh` pronto; nada compilado nem declarado entregue | D07 |
+| A7 | iOS (iPhone e iPad) — fora do escopo sem loja (ADR-032) | Mac com Xcode + conta Apple do titular | Projetos dos 4 apps configurados e verificados no pipeline (identificador, login, câmera/fotos, ícones, iPad); `construir_apps_ios.sh` pronto; nada compilado nem declarado entregue | D07 |
 
 ## B. Integrações (o sistema funciona sem elas, com estado NÃO CONFIGURADO)
 
@@ -21,7 +21,7 @@ quando chegar. Nada aqui aparece como concluído no termo de aceite.
 |---|---|---|---|---|
 | B1 | Nota fiscal real | CNPJ/regime, provedor fiscal contratado, certificado A1, sandbox | Nota fica bloqueada/pendente; nunca "emitida" sem protocolo | D02/D03 |
 | B2 | Pix/cartão/banco automáticos | Adquirente/PSP com webhook assinado; agregador Open Finance | Confirmação manual auditada por quem tem permissão | D04 |
-| B3 | IA da gestão real | `ANTHROPIC_API_KEY` no servidor e orçamento mensal (`ENGENHEIRO_IA_ORCAMENTO_USD`) | Tela mostra NÃO CONFIGURADA; nada enviado nem simulado | D13 |
+| B3 | Orçamento mensal da IA em produção | Valor em US$ para `ENGENHEIRO_IA_ORCAMENTO_USD` (homologação usa US$ 1,00 de teste) | DeepSeek ligado e provado na homologação (resposta igual ao relatório, US$ 0,0012 por pergunta) | D13 → ADR-032 |
 
 ## C. Validações com o dono e o contador (não bloqueiam o piloto)
 

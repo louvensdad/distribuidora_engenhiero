@@ -86,3 +86,24 @@ ausentes: `ENGENHEIRO_PROVISIONER_CLIENT_ID/SECRET` (contas de funcionários), `
 - Ensaio completo (dono cadastra a equipe, cada um entra pelo próprio app e opera, conciliação):
   `python3 -I infra/homologacao/ensaio_piloto.py` — senhas novas ficam em
   `~/.config/engenheiro/homologacao/ensaio/<execução>.json` (600).
+
+## APKs de produção e instalação direta (ADR-032)
+
+1. **Uma vez:** `infra/operacao/criar_chave_android_producao.sh`. Copie `~/.config/engenheiro/producao/android/producao.jks`
+   e a senha (`~/.config/engenheiro/producao/.env`) para **dois** lugares seguros fora deste computador (ex.: pendrive
+   cifrado guardado com o titular + gerenciador de senhas). Sem essa chave os apps instalados não podem mais ser
+   atualizados.
+2. **Cada versão:** `ENGENHEIRO_API=https://<api> ENGENHEIRO_ISSUER=https://<login>/realms/engenheiro
+   infra/operacao/construir_apps.sh producao` — gera os 4 APKs, `manifesto.json` e `SHA256SUMS`.
+3. **Instalar:** copiar o APK do app da função para o aparelho (cabo, pasta compartilhada ou link interno), abrir e
+   permitir "instalar apps desta fonte" na primeira vez. Conferir o SHA-256 do arquivo com o `SHA256SUMS`.
+4. **Atualizar:** instalar o APK novo por cima; a sessão e os dados permitidos ficam. Nunca desinstalar antes (perde a
+   sessão) e nunca instalar APK de homologação num aparelho de produção.
+
+## IA (ADR-032)
+
+No `.env`/cofre do servidor: `ENGENHEIRO_IA_PROVEDOR=deepseek`, `DEEPSEEK_API_KEY`, `ENGENHEIRO_IA_ORCAMENTO_USD`
+(mensal; 0 = recusa), `ENGENHEIRO_IA_RESERVA_USD=0.05` e os preços `ENGENHEIRO_IA_PRECO_ENTRADA=0.30`,
+`ENGENHEIRO_IA_PRECO_SAIDA=1.20`, `ENGENHEIRO_IA_PRECO_CACHE=0.006` (US$/milhão; revisar se a DeepSeek mudar).
+Reimplantar. Falha do provedor aparece no log como `provedor de IA indisponível: …`. A API precisa confiar nas CAs
+públicas (o truststore de homologação é refeito por `preparar.sh`).

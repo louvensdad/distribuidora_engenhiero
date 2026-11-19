@@ -31,6 +31,10 @@ Feito e provado (commits `ce76475`…`dd2bec9`):
   lateral; celular inalterado; iOS com câmera/fotos declaradas (antes fecharia o app) e ícone próprio por app, verificado
   no pipeline (`verificar_ios.py`); build iOS só com Mac (`construir_apps_ios.sh`). APKs build 54 (`fa837cd`).
   `docs/evidence/F17-tablet-celular-ios.txt`.
+- **IA com DeepSeek e APKs sem loja (ADR-032):** adaptador DeepSeek; pergunta real na homologação igual ao relatório
+  (US$ 0,0012); truststore da homologação corrigido (só tinha a CA de teste e bloqueava todo HTTPS externo); chave
+  Android de produção da empresa criada e build de produção ensaiado sem CA de teste.
+  `docs/evidence/F17-ia-deepseek-apk-producao.txt`.
 - Pipeline `verificar.sh` PASS em `dd2bec9` (18 portões, API 199/0); 4 APKs de homologação build 51 verificados;
   homologação no ar em `a79ef78` (mesmo código).
 

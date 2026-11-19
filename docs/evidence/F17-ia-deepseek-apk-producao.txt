@@ -1,0 +1,23 @@
+F17 — IA com DeepSeek e APKs de produção sem loja (decisões do responsável, 19/11/2026; ADR-032)
+
+IA (homologação, versão ae3bdca no ar):
+- Antes da correção: pergunta registrada FAILED/PROVIDER_UNAVAILABLE em 45 ms, nada simulado. Causa: truststore da API
+  só com a CA de teste (1 certificado) → todo HTTPS externo recusado. A chave foi conferida direto na API da DeepSeek
+  (HTTP 200, modelo deepseek-flash). Truststore refeito: 121 certificados (CAs públicas + CA de teste).
+- Implantação com a IA ligada foi revertida automaticamente uma vez (fumaça exigia NÃO CONFIGURADA): fumaça ajustada.
+- Pergunta real do patrão pelo site: "Qual foi o lucro deste mês e quanto foi a receita líquida?"
+  status CONFIGURED · deepseek · deepseek-flash · orçamento de teste US$ 1,00
+  resposta ANSWERED: receita líquida R$ 12.000,00, lucro R$ 1.950,00 (margem 16,25%), período 01/11–01/12/2026,
+  dados até 19/11/2026; ferramenta consultar_resumo; fonte "Relatório 01/11/2026 a 01/12/2026"
+  relatório canônico do mesmo mês: lucro 1950.00, receita líquida 12000.00 → idênticos
+  tokens: 2.931 entrada + 1.536 do cache, 240 saída · custo US$ 0,001177 · 2.469 ms
+- Testes: DeepSeekLlmProviderTest 3 (fio compatível com OpenAI, laço de ferramentas, tokens do cache à parte, erro sem
+  expor a chave), AiIntegrationTest 7, AnthropicLlmProviderTest 3.
+
+APKs de produção (sem loja):
+- Chave da empresa criada (RSA 4096, validade 10.950 dias), fora do repositório, permissão 600; segunda execução não
+  sobrescreve. Certificado SHA-256 C8:BE:A9:06:33:75:C0:B5:93:7C:…:4D:BA:E0.
+- Build de produção sem chave: recusado; com URL sem HTTPS: recusado.
+- Ensaio do build de produção com URLs fictícias (descartado em seguida): 4 APKs build 60 assinados com a chave de
+  produção, não depuráveis, rede só HTTPS, CA de teste AUSENTE (recurso Android e código Dart conferidos). A mesma
+  checagem num APK de homologação encontra a CA (4 ocorrências) — prova que a checagem enxerga o que procura.
