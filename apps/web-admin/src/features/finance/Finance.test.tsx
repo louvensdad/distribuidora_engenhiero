@@ -58,6 +58,41 @@ describe("F06 financeiro no site", () => {
     expect(screen.getByText("Taxas de cartão")).toBeInTheDocument();
   });
 
+  it("F17: conferência do mês com a operação mostra cada verificação; divergência aparece; sem custo (403) o cartão some", async () => {
+    const pilot = { from: "2026-11-01", to: "2026-12-01", label: "novembro de 2026", timezone: "America/Sao_Paulo", status: "DIVERGENT",
+      report: { net_revenue: "40000.00", cogs: "15000.00", expenses_total: "2000.00", losses: "500.00", profit: "22500.00", fulfillments: 1, payments: 2, cash_sessions_closed: 0 },
+      checks: [
+        { code: "SALES_NET", area: "Vendas", label: "Vendas líquidas × relatório", unit: "BRL", expected: "40000.00", actual: "40000.00", difference: "0.00", status: "OK", explanation: "Pedido só pago não é venda." },
+        { code: "SALES_STOCK_QTY", area: "Estoque", label: "Quantidade entregue × saída de estoque", unit: "base", expected: "2000", actual: "2000", difference: "0", status: "OK", explanation: "x" },
+        { code: "CASH_PAYMENTS", area: "Caixa", label: "Dinheiro confirmado × entradas nos caixas", unit: "BRL", expected: "41000.00", actual: "40990.00", difference: "-10.00", status: "DIVERGENT", explanation: "O troco não é receita." },
+        { code: "LEDGER_SOURCES", area: "Livro", label: "Lançamentos com documento de origem", unit: "documentos", expected: "0", actual: "0", difference: "0", status: "OK", explanation: "7 documento(s)." }],
+      note: "Conferência de leitura: não altera nada.", checked_at: "2026-11-19T12:00:00Z" };
+    const base = {
+      "GET /bff/session": session,
+      "GET /api/v1/me/capabilities": { body: me({ capabilities: caps("reports.view") }) },
+      "GET /api/v1/reports/summary": { body: summary },
+      "GET /api/v1/reports/categories": { body: { from: "2026-11-01", to: "2026-12-01", categories: [], total: "0.00", subcategories: [] } },
+      "GET /api/v1/finance/reconciliation": { body: { checked_at: "2026-11-16T12:00:00Z", status: "OK", checks: [] } },
+      "GET /api/v1/periods": { body: { items: [] } },
+    };
+    const calls = mockFetch({ ...base, "GET /api/v1/reports/reconciliation": { body: pilot } });
+    const { unmount } = renderAt("/finance/closing");
+    const card = await screen.findByRole("region", { name: /Conferência do mês com a operação — 1 divergência/ });
+    expect(calls.some((c) => c.url.startsWith("/api/v1/reports/reconciliation?period=MONTH&date="))).toBe(true);
+    const linha = within(card).getByRole("rowheader", { name: /Dinheiro confirmado × entradas nos caixas/ }).closest("tr")!;
+    expect(within(linha).getByText("Divergente")).toBeInTheDocument();
+    expect(within(linha).getByText("−R$ 10,00", { exact: false })).toBeInTheDocument();
+    expect(within(card).getAllByText("2000 un. base").length).toBe(2);
+    expect(within(card).getByText(/1 entrega\(s\), 2 pagamento\(s\) confirmado\(s\)/)).toBeInTheDocument();
+    unmount();
+
+    mockFetch({ ...base, "GET /api/v1/reports/reconciliation": { status: 403, body: { status: 403, code: "FORBIDDEN" } } });
+    renderAt("/finance/closing");
+    await screen.findByRole("region", { name: "Resultado gerencial (competência)" });
+    expect(screen.queryByRole("region", { name: /Conferência do mês/ })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Acesso negado|sem permissão/i)).not.toBeInTheDocument();
+  });
+
   it("pagar conta: escolhe caixa/banco (sem caixa de turno, sem saldo se não vê o caixa) e envia com chave idempotente", async () => {
     const payable = { id: "pg1", source_type: "expense", source_id: "x1", supplier_id: null, supplier_name: null, description: "Guia mensal",
       competence: "2026-11-05", amount: "850.00", balance: "850.00", due_date: "2026-11-20", state: "OPEN", branch: "Matriz",

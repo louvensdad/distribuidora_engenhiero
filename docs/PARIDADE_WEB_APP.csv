@@ -19,3 +19,4 @@ IA com fontes;SIM;SIM;IMPLEMENTED_F15;VALIDADO_F15;apps/web-admin/src/features/i
 Equipe e permissões;SIM;SIM;IMPLEMENTED_ADR027_F10;VALIDADO_F14;packages/mobile-core/lib/src/screens/owner/team.dart
 Histórico completo;SIM;SIM;IMPLEMENTED_F10;VALIDADO_F14;packages/mobile-core/lib/src/screens/owner/central.dart
 Central dos três setores;SIM;SIM;IMPLEMENTED_F10;VALIDADO_F14;packages/mobile-core/lib/src/screens/owner/central.dart
+Conferência do período com a operação (F17, UAT-02);SIM;SIM;IMPLEMENTED_F17;IMPLEMENTED_F17;apps/web-admin/src/features/finance/ClosingPage.tsx (PilotCard), packages/mobile-core/lib/src/screens/owner/reports.dart (PilotReconciliationScreen), GET /api/v1/reports/reconciliation

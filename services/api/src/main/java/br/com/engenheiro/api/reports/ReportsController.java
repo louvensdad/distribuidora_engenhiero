@@ -30,12 +30,15 @@ public class ReportsController {
     private final ReportExporter exporter;
     private final GoalService goals;
     private final CustomerRankingService customers;
+    private final PilotReconciliationService pilot;
 
-    public ReportsController(ReportService reports, ReportExporter exporter, GoalService goals, CustomerRankingService customers) {
+    public ReportsController(ReportService reports, ReportExporter exporter, GoalService goals, CustomerRankingService customers,
+                             PilotReconciliationService pilot) {
         this.reports = reports;
         this.exporter = exporter;
         this.goals = goals;
         this.customers = customers;
+        this.pilot = pilot;
     }
 
     @GetMapping("/api/v1/reports/overview")
@@ -43,6 +46,14 @@ public class ReportsController {
             @RequestParam(required = false) LocalDate date, @RequestParam(required = false) LocalDate from,
             @RequestParam(required = false) LocalDate to, @RequestParam(required = false) UUID branch_id) {
         return ok(reports.report(actor, new ReportService.Filter(period, date, from, to, branch_id)));
+    }
+
+    /** Conciliação do período (F17, UAT-02): relatório × documentos, estoque, caixa e livro. Só leitura. */
+    @GetMapping("/api/v1/reports/reconciliation")
+    public ResponseEntity<PilotReconciliationService.PilotReconciliation> reconciliation(Actor actor,
+            @RequestParam(required = false) String period, @RequestParam(required = false) LocalDate date,
+            @RequestParam(required = false) LocalDate from, @RequestParam(required = false) LocalDate to) {
+        return ok(pilot.reconcile(actor, new ReportService.Filter(period, date, from, to, null)));
     }
 
     @GetMapping("/api/v1/reports/overview/export")

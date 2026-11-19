@@ -18,6 +18,7 @@ class OwnerReportsHub extends StatelessWidget {
     return ListView(padding: const EdgeInsets.all(16), children: [
       item('report', 'Resultado e gráfico 3D', 'Dia, semana ou mês; comparação e quantidade', const ReportsScreen()),
       item('search', 'De onde vem cada total', 'Abrir os lançamentos e o registro de origem', const TotalsOriginScreen()),
+      item('shield', 'Conferência do mês com a operação', 'Entregas, estoque, caixas e livro × relatório', const PilotReconciliationScreen()),
       item('wallet', 'Despesas por categoria', 'Categorias e subcategorias do mês', const CategoriesScreen()),
       item('users', 'Ranking de clientes', 'Receita, quantidade, margem, prazo', const CustomerRankingScreen()),
       if (me.can('goals.view')) item('home', 'Metas', 'Criar, editar, ativar e cancelar', const GoalsAdminScreen()),
@@ -96,6 +97,59 @@ class _TotalsOriginScreenState extends State<TotalsOriginScreen> {
         const SectionTitle('Despesas'),
         for (final x in items(r, 'expenses')) line(x),
         if (r['formula'] != null) Text('Fórmula: ${r['formula']}', style: const TextStyle(color: EngColors.muted, fontSize: 12)),
+      ];
+    });
+  }
+}
+
+/// F17 (UAT-02): o relatório do mês conferido com entregas, estoque, caixas e livro (mesmo endpoint do site).
+/// Quem não vê custo/resultado recebe 403 do servidor e a tela mostra "sem permissão".
+class PilotReconciliationScreen extends StatefulWidget {
+  const PilotReconciliationScreen({super.key});
+  @override
+  State<PilotReconciliationScreen> createState() => _PilotReconciliationScreenState();
+}
+
+class _PilotReconciliationScreenState extends State<PilotReconciliationScreen> {
+  String _date = todayIso();
+  Key _k = UniqueKey();
+
+  static String _value(String unit, Object? v) =>
+      unit == 'BRL' ? formatMoney(strOrNull(v)) : unit == 'base' ? '${str(v).replaceAll('.', ',')} un. base' : str(v);
+
+  @override
+  Widget build(BuildContext context) {
+    return JsonView(key: _k, load: (api) => api.getJson('/api/v1/reports/reconciliation', {'period': 'MONTH', 'date': _date}),
+        builder: (context, r, reload) {
+      final checks = items(r, 'checks');
+      final divergent = checks.where((c) => c['status'] == 'DIVERGENT').length;
+      final rep = (r['report'] as Map?)?.cast<String, dynamic>() ?? const {};
+      return [
+        _PeriodBar(period: 'MONTH', date: _date, onChange: (_, d) => setState(() {
+          _date = d;
+          _k = UniqueKey();
+        })),
+        Text(str(r['label']), style: const TextStyle(color: EngColors.muted)),
+        Semantics(liveRegion: true, child: Text(
+          r['status'] == 'OK' ? 'Tudo confere' : '$divergent divergência(s)',
+          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: r['status'] == 'OK' ? EngColors.green : EngColors.error),
+        )),
+        KV('Entregas', str(rep['fulfillments'])),
+        KV('Pagamentos confirmados', str(rep['payments'])),
+        KV('Caixas fechados', str(rep['cash_sessions_closed'])),
+        KV('Receita líquida', formatMoney(strOrNull(rep['net_revenue']))),
+        KV('CMV', formatMoney(strOrNull(rep['cogs']))),
+        KV('Perdas', formatMoney(strOrNull(rep['losses']))),
+        KV('Resultado', formatMoney(strOrNull(rep['profit'])), strong: true),
+        const SectionTitle('Verificações'),
+        for (final c in checks)
+          RowCard(
+            title: '${str(c['area'])} · ${str(c['label'])}',
+            subtitle: 'Documentos ${_value(str(c['unit']), c['expected'])} · conferido com ${_value(str(c['unit']), c['actual'])}'
+                ' · diferença ${_value(str(c['unit']), c['difference'])}\n${str(c['explanation'])}',
+            trailing: c['status'] == 'OK' ? 'Confere' : c['status'] == 'ROUNDING' ? 'Arredondamento' : 'Divergente',
+          ),
+        Text(str(r['note']), style: const TextStyle(color: EngColors.muted, fontSize: 12)),
       ];
     });
   }

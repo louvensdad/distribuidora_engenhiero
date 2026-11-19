@@ -392,6 +392,12 @@ export interface LedgerLines {
 }
 export interface FinanceCategories { from: string; to: string; categories: ReportItem[]; subcategories: { category: string; subcategory: string; amount: string; entries: number }[]; total: string }
 export interface Reconciliation { checked_at: string; status: "OK" | "DIVERGENT"; checks: { code: string; label: string; expected: string; actual: string; difference: string; status: "OK" | "ROUNDING" | "DIVERGENT"; explanation: string }[] }
+export interface PilotReconciliation {
+  from: string; to: string; label: string; timezone: string; status: "OK" | "DIVERGENT";
+  report: { net_revenue: string; cogs: string; expenses_total: string; losses: string; profit: string; fulfillments: number; payments: number; cash_sessions_closed: number };
+  checks: { code: string; area: "Vendas" | "Estoque" | "Caixa" | "Livro"; label: string; unit: "BRL" | "base" | "documentos"; expected: string; actual: string; difference: string; status: "OK" | "ROUNDING" | "DIVERGENT"; explanation: string }[];
+  note: string; checked_at: string;
+}
 export interface Period {
   id: string; month: string; state: "OPEN" | "CLOSED"; closed_at: string | null; closed_by_name: string | null; reopen_pending: boolean;
   reopen_requested_by: string | null; profit_at_close: string | null; reconciliation_at_close: string | null;

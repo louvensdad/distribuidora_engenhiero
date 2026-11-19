@@ -10341,6 +10341,134 @@
           "created_at",
           "client_id"
         ]
+      },
+      "PilotReconciliation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "from",
+          "to",
+          "label",
+          "timezone",
+          "status",
+          "report",
+          "checks",
+          "note",
+          "checked_at"
+        ],
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "label": {
+            "type": "string"
+          },
+          "timezone": {
+            "const": "America/Sao_Paulo"
+          },
+          "status": {
+            "enum": [
+              "OK",
+              "DIVERGENT"
+            ]
+          },
+          "report": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "net_revenue": {
+                "type": "string",
+                "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+              },
+              "cogs": {
+                "type": "string",
+                "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+              },
+              "expenses_total": {
+                "type": "string",
+                "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+              },
+              "losses": {
+                "type": "string",
+                "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+              },
+              "profit": {
+                "type": "string",
+                "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+              },
+              "fulfillments": {
+                "type": "integer"
+              },
+              "payments": {
+                "type": "integer"
+              },
+              "cash_sessions_closed": {
+                "type": "integer"
+              }
+            }
+          },
+          "checks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "area": {
+                  "enum": [
+                    "Vendas",
+                    "Estoque",
+                    "Caixa",
+                    "Livro"
+                  ]
+                },
+                "label": {
+                  "type": "string"
+                },
+                "unit": {
+                  "enum": [
+                    "BRL",
+                    "base",
+                    "documentos"
+                  ]
+                },
+                "expected": {
+                  "type": "string"
+                },
+                "actual": {
+                  "type": "string"
+                },
+                "difference": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": [
+                    "OK",
+                    "ROUNDING",
+                    "DIVERGENT"
+                  ]
+                },
+                "explanation": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "note": {
+            "type": "string"
+          },
+          "checked_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
       }
     }
   },
@@ -20162,6 +20290,75 @@
             "$ref": "#/components/responses/Problem"
           },
           "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/reports/reconciliation": {
+      "get": {
+        "summary": "Conciliação do período (F17, UAT-02): relatório × entregas, estoque, caixa e livro; só empresa toda e com campos de fechamento",
+        "x-capability": "reports.view",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "DAY",
+                "WEEK",
+                "MONTH",
+                "CUSTOM"
+              ]
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PilotReconciliation"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
             "$ref": "#/components/responses/Problem"
           },
           "422": {

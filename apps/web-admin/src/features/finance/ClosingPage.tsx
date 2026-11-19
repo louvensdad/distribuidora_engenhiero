@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ApiError, api } from "../../api/http";
-import type { FinanceCategories, FinanceSummary, LedgerLines, Period, Reconciliation, ReportItem } from "../../api/types";
+import type { FinanceCategories, FinanceSummary, LedgerLines, Period, PilotReconciliation, Reconciliation, ReportItem } from "../../api/types";
 import { useResource } from "../../api/useResource";
 import { formatDateTime, formatMoney, monthStartBr } from "../../app/format";
 import { ErrorState, ForbiddenState, LoadingState } from "../../components/States";
@@ -20,6 +20,7 @@ export function ClosingPage() {
   const [cats] = useResource<FinanceCategories>(`/api/v1/reports/categories?from=${from}&to=${to}`);
   const [rec, reloadRec] = useResource<Reconciliation>("/api/v1/finance/reconciliation");
   const [per, reloadPer] = useResource<{ items: Period[] }>("/api/v1/periods");
+  const [pilot, reloadPilot] = useResource<PilotReconciliation>(`/api/v1/reports/reconciliation?period=MONTH&date=${from}`);
   const [drill, setDrill] = useState<ReportItem | null>(null);
   if (sum.status === "loading") return <LoadingState />;
   if (sum.status === "forbidden") return <ForbiddenState />;
@@ -101,6 +102,8 @@ export function ClosingPage() {
           </table></div>
         </section>
       )}
+      {pilot.status === "ready" && <PilotCard rec={pilot.data} onReload={reloadPilot} />}
+      {pilot.status === "error" && <ErrorState error={pilot.error} onRetry={reloadPilot} />}
       {per.status === "ready" && (
         <section className="card" aria-labelledby="titulo-periodos">
           <h2 id="titulo-periodos" className="h3">Fechamento mensal</h2>
@@ -113,12 +116,41 @@ export function ClosingPage() {
                   {p.reopen_pending && <span className="muted small"><br />reabertura pedida por {p.reopen_requested_by}</span>}</td>
                 <td data-label="Histórico">{p.events.length === 0 ? "—" : p.events.map((e, i) => (
                   <span key={i} className="muted small">{PERIOD_EVENT[e.action]} — {e.actor_name}{e.reason ? ` (${e.reason})` : ""} · {formatDateTime(e.occurred_at)}<br /></span>))}</td>
-                <td><PeriodActions p={p} canClose={can("reports.close_period")} canReopen={can("reports.reopen_period")} onDone={() => { reloadPer(); reloadRec(); }} /></td>
+                <td><PeriodActions p={p} canClose={can("reports.close_period")} canReopen={can("reports.reopen_period")} onDone={() => { reloadPer(); reloadRec(); reloadPilot(); }} /></td>
               </tr>
             ))}</tbody>
           </table></div>
         </section>
       )}
+    </section>
+  );
+}
+
+const pilotValue = (unit: string, v: string) => (unit === "BRL" ? formatMoney(v) : unit === "base" ? `${v.replace(".", ",")} un. base` : v);
+
+/** F17 (UAT-02) — o relatório do mês conferido com entregas, estoque, caixas e livro. Some para quem não vê o custo (403). */
+function PilotCard({ rec, onReload }: { rec: PilotReconciliation; onReload: () => void }) {
+  const divergent = rec.checks.filter((c) => c.status === "DIVERGENT").length;
+  return (
+    <section className="card" aria-labelledby="titulo-piloto">
+      <div className="page-head">
+        <h2 id="titulo-piloto" className="h3">Conferência do mês com a operação {rec.status === "OK" ? "— tudo confere" : `— ${divergent} divergência(s)`}</h2>
+        <button className="btn btn-small" onClick={onReload}>Conferir de novo</button>
+      </div>
+      <p className="muted small" role="status">
+        {rec.label}: {rec.report.fulfillments} entrega(s), {rec.report.payments} pagamento(s) confirmado(s), {rec.report.cash_sessions_closed} caixa(s) fechado(s).
+        Receita líquida {formatMoney(rec.report.net_revenue)} · CMV {formatMoney(rec.report.cogs)} · perdas {formatMoney(rec.report.losses)} · resultado {formatMoney(rec.report.profit)}. {rec.note}
+      </p>
+      <div className="table-wrap"><table className="stack">
+        <thead><tr><th scope="col">Área</th><th scope="col">Verificação</th><th scope="col" className="num">Documentos</th><th scope="col" className="num">Conferido com</th><th scope="col" className="num">Diferença</th><th scope="col">Situação</th></tr></thead>
+        <tbody>{rec.checks.map((c) => (
+          <tr key={c.code}><td data-label="Área">{c.area}</td><th scope="row">{c.label}<span className="muted small"><br />{c.explanation}</span></th>
+            <td data-label="Documentos" className="num">{pilotValue(c.unit, c.expected)}</td><td data-label="Conferido com" className="num">{pilotValue(c.unit, c.actual)}</td>
+            <td data-label="Diferença" className="num">{pilotValue(c.unit, c.difference)}</td>
+            <td data-label="Situação"><span className={"badge " + (c.status === "DIVERGENT" ? "badge-error" : "badge-ok")}>
+              {c.status === "OK" ? "Confere" : c.status === "ROUNDING" ? "Arredondamento" : "Divergente"}</span></td></tr>
+        ))}</tbody>
+      </table></div>
     </section>
   );
 }
