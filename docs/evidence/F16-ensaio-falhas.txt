@@ -1,6 +1,6 @@
 1) IdP (Keycloak) fora do ar
   ✓ sessão já aberta continua (chaves do IdP em cache na API): HTTP 200
-  ✓ novo login: site redireciona ao IdP e a borda responde 502 (indisponível), sem sucesso falso
+  ✓ novo login: site redireciona ao IdP e a borda responde 504 (indisponível), sem sucesso falso
   ✓ IdP voltou
   ✓ login novo volta a funcionar sem reiniciar API nem site
 2) Banco de dados fora do ar
@@ -8,8 +8,8 @@
   ✓ readiness da API cai para DOWN (orquestrador tira de rota): HTTP/1.1 503
   ✓ API se reconecta sozinha quando o banco volta (sem reiniciar) e a sessão do site segue válida
 3) Armazenamento de documentos sem gravação
-  ✗ envio recusado com 503 (armazenamento indisponível), não 500 nem sucesso: {"id":"01a1f4f7-6df3-7cbf-9360-1085e7b46af3","kind":"CONTRATO","title":"Contrato (ensaio de falha)",
-  ✗ nenhum documento registrado sem o arquivo (sem registro órfão)
-  ✓ documentos já gravados continuam baixáveis: HTTP 200
+  ✗ envio recusado com 503 (armazenamento indisponível), não 500 nem sucesso: {"type":"about:blank","title":"Erro interno","status":500,"code":"INTERNAL_ERROR","request_id":"a296
+  ✓ nenhum documento registrado sem o arquivo (sem registro órfão)
+  ✗ documentos já gravados continuam baixáveis: HTTP 503
   ✓ armazenamento de volta: envio aceito (HTTP 201)
 RESULTADO: FAIL (3)

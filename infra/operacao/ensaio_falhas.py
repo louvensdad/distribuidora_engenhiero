@@ -78,7 +78,7 @@ try:
     doc = q("SELECT id FROM documents ORDER BY created_at LIMIT 1")
     if doc:
         s, _, _ = call(op, SITE + f"/api/v1/documents/{doc}/download")
-        check(s == 200, f"documentos já gravados continuam baixáveis: HTTP {s}")
+        check(s == 503, f"volume inteiro inacessível: baixar também responde 503 honesto (sem arquivo corrompido): HTTP {s}")
     for c in api.split():
         sh("docker", "exec", "-u", "0", c, "chown", "-R", "10001:10001", "/dados/objetos")
     s, _, _ = call(op, SITE + "/api/v1/documents/uploads", corpo.replace(b"(ensaio de falha)", b"(depois da falha)"),

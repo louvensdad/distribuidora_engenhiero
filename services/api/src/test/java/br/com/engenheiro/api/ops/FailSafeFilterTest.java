@@ -35,6 +35,15 @@ class FailSafeFilterTest {
                     new java.sql.SQLException("This connection has been closed.", "08003"));
         });
         assertThat(res.getStatus()).isEqualTo(503);
+        // Variante real do pool: "Connection is closed" sem SQLState, com a causa original como exceção da aplicação.
+        res = new MockHttpServletResponse();
+        filter.doFilter(new MockHttpServletRequest("POST", "/api/v1/orders"), res, (rq, rs) -> {
+            var tse = new org.springframework.transaction.TransactionSystemException("JDBC rollback failed",
+                    new java.sql.SQLException("Connection is closed"));
+            tse.initApplicationException(new org.springframework.jdbc.CannotGetJdbcConnectionException("sem conexão"));
+            throw tse;
+        });
+        assertThat(res.getStatus()).isEqualTo(503);
     }
 
     @Test

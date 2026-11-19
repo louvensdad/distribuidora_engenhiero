@@ -45,6 +45,15 @@ public class FailSafeFilter extends OncePerRequestFilter {
                     && (sql.getSQLState().startsWith("08") || sql.getSQLState().startsWith("57P"))) {
                 return true; // 08xxx: conexão; 57Pxx: banco desligando/reiniciando
             }
+            if (c instanceof java.sql.SQLException sql && sql.getSQLState() == null
+                    && "Connection is closed".equals(sql.getMessage())) {
+                return true; // pool (Hikari) devolve conexão já fechada, sem SQLState
+            }
+            // Falha no rollback esconde a causa real (a da aplicação) fora da cadeia de causas.
+            if (c instanceof org.springframework.transaction.TransactionSystemException tse
+                    && tse.getApplicationException() != null && databaseDown(tse.getApplicationException())) {
+                return true;
+            }
         }
         return false;
     }

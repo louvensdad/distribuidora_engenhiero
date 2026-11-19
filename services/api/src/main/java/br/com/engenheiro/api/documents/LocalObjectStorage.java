@@ -1,7 +1,6 @@
 package br.com.engenheiro.api.documents;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -16,6 +15,14 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class LocalObjectStorage implements ObjectStorage {
+    /** F16: disco/volume sem acesso = 503 honesto (nada gravado); o motivo técnico fica no log, sem caminho do arquivo. */
+    private static br.com.engenheiro.api.shared.web.ApiException unavailable(java.io.IOException e) {
+        org.slf4j.LoggerFactory.getLogger(LocalObjectStorage.class).warn("Armazenamento de objetos indisponível: {}",
+                e.getClass().getSimpleName());
+        return new br.com.engenheiro.api.shared.web.ApiException(br.com.engenheiro.api.shared.web.ErrorCode.INTEGRATION_UNAVAILABLE,
+                "Armazenamento de documentos indisponível. Nada foi gravado; tente novamente.");
+    }
+
     private final Path root;
 
     public LocalObjectStorage(@Value("${engenheiro.storage.local-dir:}") String dir) {
@@ -53,7 +60,7 @@ public class LocalObjectStorage implements ObjectStorage {
                 // sistema sem POSIX
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw unavailable(e);
         }
     }
 
@@ -63,7 +70,7 @@ public class LocalObjectStorage implements ObjectStorage {
             Path p = resolve(key);
             return Files.exists(p) ? Optional.of(Files.readAllBytes(p)) : Optional.empty();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw unavailable(e);
         }
     }
 
@@ -72,7 +79,7 @@ public class LocalObjectStorage implements ObjectStorage {
         try {
             Files.deleteIfExists(resolve(key));
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw unavailable(e);
         }
     }
 }
