@@ -1,0 +1,9 @@
+# Alerta de falha (backup, restauração periódica). O comando de envio (e-mail/WhatsApp/telefone do responsável) é
+# configurado na implantação em /etc/engenheiro/alerta.env; sem ele, o alerta fica só no journal (NÃO CONFIGURADO).
+[Unit]
+Description=Alerta de falha em %i
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/engenheiro/alerta.env
+ExecStart=/bin/sh -c 'msg="FALHA: %i em $(hostname) às $(date -u +%%FT%%TZ)"; logger -t engenheiro-alerta "$msg"; [ -n "$ALERTA_COMANDO" ] && $ALERTA_COMANDO "$msg" || echo "alerta externo NÃO CONFIGURADO: $msg"'

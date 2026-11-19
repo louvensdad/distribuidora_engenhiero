@@ -1,0 +1,10 @@
+# Backup diário da Distribuidora de Cana Engenheiro (F16). Instalar no servidor da implantação (ver runbook).
+[Unit]
+Description=Backup completo (banco, IdP e documentos) — Engenheiro
+OnFailure=engenheiro-alerta@%n.service
+
+[Service]
+Type=oneshot
+# Senha do backup vem do cofre para um arquivo temporário do serviço, nunca do mesmo disco do destino.
+EnvironmentFile=/etc/engenheiro/backup.env
+ExecStart=/opt/engenheiro/infra/operacao/backup-agendado.sh

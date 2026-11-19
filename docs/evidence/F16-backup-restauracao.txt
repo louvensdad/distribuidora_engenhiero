@@ -1,0 +1,64 @@
+F16 — ensaio de backup e restauração COMPLETA (banco do sistema + IdP + documentos)
+Data: 19/11/2026 14:41 America/Sao_Paulo · homologação local (dados fictícios)
+
+$ infra/operacao/backup.sh ~/.local/state/engenheiro/backups
+backup ~/.local/state/engenheiro/backups/engenheiro-20261119T174105Z (560K, 1.9 s) — cifrado; senha fora do destino
+conteúdo do backup (só cifrado):
+  SHA256SUMS
+  engenheiro.dump.gpg
+  keycloak.dump.gpg
+  manifesto.json.gpg
+  objetos.tar.gpg
+
+$ infra/homologacao/subir.sh --apagar   # desastre simulado: contêineres e volumes (banco e documentos) removidos
+volumes restantes do projeto: 0
+
+$ infra/operacao/restaurar.sh <backup>
+1/5 integridade e decifragem
+  ✓ SHA256SUMS confere
+  ✓ decifrado em área temporária privada (apagada ao fim)
+2/5 banco vazio e restauração dos dois bancos
+  ✓ engenheiro e keycloak restaurados (transação única cada)
+3/5 documentos
+  ✓ objetos restaurados no armazenamento vazio
+4/5 pilha
+  ✓ API pronta e IdP respondendo
+5/5 verificação contra o manifesto
+  ✓ schema V14; contagens {'organizations': '1', 'app_users': '2', 'products': '8', 'customers': '2', 'expenses': '2', 'documents': '3', 'audit_events': '35', 'journal_entries': '2'}
+  ✓ 3 documentos do banco presentes no armazenamento com hash idêntico (3 arquivos restaurados)
+RTO medido (restauração até verificação): 40.9 s
+
+$ python3 -I infra/homologacao/fumaca.py   # acesso depois da restauração (mesma senha e TOTP de antes)
+Homologação https://gestao.homolog.localtest.me:8443
+  ✓ site responde por HTTPS (HTTP 200)
+  ✓ CSP restrita à própria origem
+  ✓ HSTS na borda
+  ✓ sem moldura e nosniff
+  ✓ versão do servidor não exposta
+  ✓ artefato identificado: {"commit":"b7e0014dc557-sujo"}
+  ✓ só a borda TLS publica porta (8443); banco, IdP, API e site só na rede interna
+  ✓ login do patrão (PKCE + TOTP) volta ao site: HTTP 302
+  ✓ cookie de sessão Secure e HttpOnly
+  ✓ nenhum token no navegador
+  ✓ /me: admin=True empresa='Distribuidora de Cana Engenheiro Ltda' (bootstrap do banco vazio)
+  ✓ X-Request-Id devolvido (correlação)
+  ✓ mutação sem CSRF recusada (403) e com CSRF aceita (201)
+  ✓ IA sem chave: NOT_CONFIGURED
+  ✓ logout aponta ao IdP
+  ✓ depois do logout a API recusa (HTTP 401)
+  ✓ conta do IdP sem vínculo no banco não entra (HTTP 403)
+RESULTADO: PASS
+
+Testes negativos (nada é alterado):
+- backup adulterado (1 byte em objetos.tar.gpg):
+    ./objetos.tar.gpg: FAILED
+    código de saída: 2
+- senha errada:
+    código de saída: 2 (decifragem recusada)
+- destino com dados (banco em uso):
+      ✗ banco engenheiro não está vazio (69 tabelas): restauração recusada
+
+Agendamento/retenção/alerta (infra/operacao/backup-agendado.sh + systemd/engenheiro-backup.{service,timer}):
+- execução OK com retenção 2: {"quando_utc":"2026-11-19T17:42:35Z","resultado":"FALHOU","detalhe":"<backup>","copia_externa":"FALHOU"}
+- cópia externa que falha (BACKUP_COPIA_REMOTA=false): código de saída 1 e estado FALHOU → OnFailure dispara engenheiro-alerta@
+- sem BACKUP_COPIA_REMOTA: copia_externa=NAO_CONFIGURADA (registrado, não conta como cópia em local separado)
