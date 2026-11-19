@@ -56,7 +56,8 @@ for app in mobile-owner mobile-counter mobile-delivery mobile-accountant; do
   sha=$(sha256sum "$dest" | cut -d' ' -f1)
   [[ "$cert" == "$CERT_ESPERADO" && "$dbg" == "0" && "$rede" -ge 1 ]] || { echo "✗ $1: verificação falhou (cert/debuggable/rede)"; exit 4; }
   # CA de teste: no recurso do Android e no código Dart (base64 de "-----BEGIN CERTIFICATE-----").
-  ca=$(( $(unzip -l "$dest" | grep -ci 'ca_homolog' || true) + $(unzip -p "$dest" 'lib/*/libapp.so' | grep -ac 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0t' || true) ))
+  # O release renomeia o recurso (ex.: res/GL.crt): conta qualquer certificado empacotado em res/.
+  ca=$(( $(unzip -l "$dest" | grep -cE ' res/.*\.(crt|pem|cer)$' || true) + $(unzip -p "$dest" 'lib/*/libapp.so' | grep -ac 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0t' || true) ))
   if [[ "$AMB" == producao ]]; then
     [[ "$ca" == 0 ]] || { echo "✗ $1: APK de produção com CA de teste embutida"; exit 4; }
   else
