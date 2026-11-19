@@ -41,7 +41,14 @@ s1, _, _ = call(op, SITE + "/api/v1/products", produto)
 s2, _, body = call(op, SITE + "/api/v1/products", produto, {"X-XSRF-TOKEN": xsrf})
 check(s1 == 403 and s2 == 201, f"mutação sem CSRF recusada ({s1}) e com CSRF aceita ({s2})")
 s, _, body = call(op, SITE + "/api/v1/ai/status")
-check(s == 200 and json.loads(body)["state"] == "NOT_CONFIGURED", "IA sem chave: NOT_CONFIGURED")
+ia = json.loads(body) if s == 200 else {}
+prov = ENV.get("ENGENHEIRO_IA_PROVEDOR", "anthropic")
+chave = ENV.get("DEEPSEEK_API_KEY" if prov == "deepseek" else "ANTHROPIC_API_KEY", "")
+if not chave:
+    check(ia.get("state") == "NOT_CONFIGURED", "IA sem chave: NOT_CONFIGURED")
+else:  # com chave: configurada no provedor escolhido; sem orçamento continua recusando (BUDGET_NOT_SET)
+    check(ia.get("provider") == prov and ia.get("state") in ("CONFIGURED", "BUDGET_NOT_SET", "BUDGET_EXHAUSTED"),
+          f"IA com chave: provedor {ia.get('provider')}, estado {ia.get('state')} (nenhuma pergunta enviada)")
 s, _, body = call(op, SITE + "/bff/logout", "{}", {"X-XSRF-TOKEN": xsrf})
 check(s == 200 and json.loads(body)["logout_url"].startswith(LOGIN + "/realms/engenheiro/"), "logout aponta ao IdP")
 s, _, _ = call(op, SITE + "/api/v1/me/capabilities")
