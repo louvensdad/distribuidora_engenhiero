@@ -101,6 +101,12 @@ management:
     health:
       probes:
         enabled: true
+      # F16: sem banco a instância sai de rota (readiness DOWN) mas não é reiniciada (liveness não depende do banco).
+      group:
+        readiness:
+          include: readinessState,db
+        liveness:
+          include: livenessState
       show-details: never
   info:
     env:
