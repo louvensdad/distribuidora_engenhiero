@@ -1,0 +1,28 @@
+F16 — vigia de serviços e alerta (OPS-03), homologação local
+Data: 19/11/2026 16:05 America/Sao_Paulo · infra/operacao/vigia.sh + systemd engenheiro-vigia.{service,timer} → engenheiro-alerta@
+
+A) tudo no ar
+$ infra/operacao/vigia.sh
+  ✓ site pela borda: HTTP 200
+  ✓ IdP (descoberta OIDC): HTTP 200
+  ✓ engenheiro-homolog-api-1: running healthy
+  ✓ engenheiro-homolog-api-2: running healthy
+  ✓ último backup: OK há 1 h
+  ✓ disco: 64% livre
+VIGIA: OK                                   (código 0)
+
+B) IdP parado (docker stop engenheiro-homolog-keycloak-1)
+  ✗ IdP descoberta OIDC: HTTP 502
+VIGIA: FALHA — IdP                          (código 1)
+   com VIGIA_BACKUP_MAX_H=0 (backup "vencido"): VIGIA: FALHA — IdP backup
+
+C) caminho real do alerta: unidades do repositório instaladas como unidades de usuário do systemd (só o caminho do
+   script e um ALERTA_COMANDO de teste trocados), IdP parado:
+$ systemctl --user start engenheiro-vigia.service   → falhou (código 1) → OnFailure
+  comando de alerta recebeu: "FALHA: engenheiro-vigia.service em <host> às 2026-11-19T19:05:49Z"
+  journal (engenheiro-alerta): mesma linha
+   IdP religado → vigia OK, unidade inactive, nenhum alerta novo (1 alerta no total)
+   unidades de teste removidas ao fim.
+
+Limite: o comando de envio real (e-mail/WhatsApp/telefone do responsável) não está definido — sem ele o alerta fica
+no journal com "alerta externo NÃO CONFIGURADO" (nunca silencioso nem "enviado").

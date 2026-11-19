@@ -22,6 +22,20 @@ quando o serviço volta.
 - Saúde: `/actuator/health/readiness` (inclui banco) e `/actuator/health/liveness` (não depende do banco);
   `/actuator/info` mostra o commit em execução.
 
+## Vigia e alertas
+
+- `engenheiro-vigia.timer` roda `infra/operacao/vigia.sh` a cada 5 min: site e IdP pela borda TLS, cada instância da
+  API saudável, último backup OK com menos de 26 h e disco com ao menos 10% livre. Qualquer falha → `OnFailure` →
+  `engenheiro-alerta@` (o mesmo alerta do backup), com o nome da unidade e o horário.
+- Instalação: copiar as unidades de `infra/operacao/systemd/` para `/etc/systemd/system/`, criar
+  `/etc/engenheiro/vigia.env` (`VIGIA_DOMINIO`, `VIGIA_PORTA`, `VIGIA_PROJETO`, `BACKUP_DESTINO`) e
+  `/etc/engenheiro/alerta.env` (`ALERTA_COMANDO` = comando que recebe a mensagem e a envia ao responsável);
+  `systemctl enable --now engenheiro-vigia.timer engenheiro-backup.timer`.
+- Ao receber o alerta: `journalctl -u engenheiro-vigia -n 20` mostra qual item falhou (✗) e seguir a linha da tabela
+  acima. Sem `ALERTA_COMANDO` o alerta fica só no journal como "alerta externo NÃO CONFIGURADO".
+- Integrações externas (fiscal, IA) não derrubam o vigia: falham de forma visível nas telas (pendente/incerta/NÃO
+  CONFIGURADA) e no log com `request_id`.
+
 ## Acesso de pessoas
 
 - **Desligamento/afastamento:** desativar o vínculo no sistema (Equipe → Pessoas) e a conta no IdP. A sessão do site

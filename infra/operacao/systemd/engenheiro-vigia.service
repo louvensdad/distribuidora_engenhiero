@@ -1,0 +1,9 @@
+# Vigia de serviços (F16, OPS-03): site, IdP, instâncias da API, idade do backup e disco. Falha → alerta.
+[Unit]
+Description=Vigia de serviços — Engenheiro
+OnFailure=engenheiro-alerta@%n.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/engenheiro/vigia.env
+ExecStart=/opt/engenheiro/infra/operacao/vigia.sh

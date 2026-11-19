@@ -1,0 +1,9 @@
+[Unit]
+Description=Vigia de serviços a cada 5 minutos — Engenheiro
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+
+[Install]
+WantedBy=timers.target
