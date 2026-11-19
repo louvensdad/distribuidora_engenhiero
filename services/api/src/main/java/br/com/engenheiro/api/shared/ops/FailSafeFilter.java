@@ -34,11 +34,16 @@ public class FailSafeFilter extends OncePerRequestFilter {
         this.json = json;
     }
 
-    static boolean databaseDown(Throwable t) {
+    /** Banco fora ou conexão perdida em qualquer ponto (obter, usar, confirmar ou desfazer a transação). */
+    public static boolean databaseDown(Throwable t) {
         for (Throwable c = t; c != null; c = c.getCause()) {
             if (c instanceof DataAccessResourceFailureException || c instanceof CannotCreateTransactionException
                     || c instanceof java.sql.SQLTransientConnectionException) {
                 return true;
+            }
+            if (c instanceof java.sql.SQLException sql && sql.getSQLState() != null
+                    && (sql.getSQLState().startsWith("08") || sql.getSQLState().startsWith("57P"))) {
+                return true; // 08xxx: conexão; 57Pxx: banco desligando/reiniciando
             }
         }
         return false;

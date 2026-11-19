@@ -28,6 +28,16 @@ class FailSafeFilterTest {
     }
 
     @Test
+    void conexaoPerdidaNoRollbackTambemE503() throws Exception {
+        MockHttpServletResponse res = new MockHttpServletResponse();
+        filter.doFilter(new MockHttpServletRequest("POST", "/api/v1/orders"), res, (rq, rs) -> {
+            throw new org.springframework.transaction.TransactionSystemException("JDBC rollback failed",
+                    new java.sql.SQLException("This connection has been closed.", "08003"));
+        });
+        assertThat(res.getStatus()).isEqualTo(503);
+    }
+
+    @Test
     void outraExcecaoVira500GenericoSemDetalhe() throws Exception {
         MockHttpServletResponse res = new MockHttpServletResponse();
         filter.doFilter(new MockHttpServletRequest("GET", "/api/v1/x"), res, (rq, rs) -> {

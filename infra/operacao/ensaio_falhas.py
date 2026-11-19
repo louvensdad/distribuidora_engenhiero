@@ -66,7 +66,8 @@ try:
 
     print("3) Armazenamento de documentos sem gravação")
     for c in api.split():
-        sh("docker", "exec", "-u", "0", c, "chmod", "-R", "a-w", "/dados/objetos")
+        # dono root: a API não grava nem consegue devolver a permissão a si mesma (disco/volume indisponível)
+        sh("docker", "exec", "-u", "0", c, "chown", "-R", "root:root", "/dados/objetos")
     b = "----f" + uuid.uuid4().hex
     corpo = (f"--{b}\r\nContent-Disposition: form-data; name=\"kind\"\r\n\r\nCONTRATO\r\n--{b}\r\nContent-Disposition: form-data; "
              f"name=\"title\"\r\n\r\nContrato (ensaio de falha)\r\n--{b}\r\nContent-Disposition: form-data; name=\"file\"; "
@@ -79,7 +80,7 @@ try:
         s, _, _ = call(op, SITE + f"/api/v1/documents/{doc}/download")
         check(s == 200, f"documentos já gravados continuam baixáveis: HTTP {s}")
     for c in api.split():
-        sh("docker", "exec", "-u", "0", c, "chmod", "-R", "u+w", "/dados/objetos")
+        sh("docker", "exec", "-u", "0", c, "chown", "-R", "10001:10001", "/dados/objetos")
     s, _, _ = call(op, SITE + "/api/v1/documents/uploads", corpo.replace(b"(ensaio de falha)", b"(depois da falha)"),
                    {**H, "Content-Type": f"multipart/form-data; boundary={b}"})
     check(s == 201, f"armazenamento de volta: envio aceito (HTTP {s})")
@@ -88,7 +89,7 @@ finally:
     # Nunca deixa serviço parado ou armazenamento travado, mesmo se o ensaio quebrar no meio.
     dc("start", "keycloak", "postgres")
     for c in sh("docker", "ps", "-q", "--filter", f"name={P}-api").split():
-        sh("docker", "exec", "-u", "0", c, "chmod", "-R", "u+w", "/dados/objetos")
+        sh("docker", "exec", "-u", "0", c, "chown", "-R", "10001:10001", "/dados/objetos")
 
 print("RESULTADO:", "PASS" if not falhas else f"FAIL ({len(falhas)})")
 sys.exit(1 if falhas else 0)

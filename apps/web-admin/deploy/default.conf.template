@@ -5,6 +5,8 @@ server_tokens off;
 
 # Resolve o upstream a cada requisição (a API pode reiniciar e mudar de endereço sem derrubar o site).
 resolver ${NGINX_LOCAL_RESOLVERS} valid=10s ipv6=off;
+resolver_timeout 3s;
+proxy_connect_timeout 5s;   # API fora: 502 em segundos
 
 server {
     listen 8080;

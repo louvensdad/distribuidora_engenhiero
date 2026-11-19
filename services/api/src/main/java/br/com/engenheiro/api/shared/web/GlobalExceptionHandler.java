@@ -78,6 +78,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     ResponseEntity<ApiProblem> unexpected(Exception e) {
+        if (br.com.engenheiro.api.shared.ops.FailSafeFilter.databaseDown(e)) {
+            return databaseDown(e);
+        }
         // Só tipo e pilha: a mensagem original pode trazer valores da linha (CPF, conta) — OPS-03.
         log.error("Erro inesperado request_id={}", RequestIds.current(), br.com.engenheiro.api.shared.ops.LogSanitizer.scrub(e));
         return ResponseEntity.internalServerError().contentType(PROBLEM_JSON)
