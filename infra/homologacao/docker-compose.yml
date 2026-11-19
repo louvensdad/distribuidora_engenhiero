@@ -41,7 +41,7 @@ services:
     restart: unless-stopped
     image: engenheiro-api:${ENGENHEIRO_COMMIT:?}
     environment:
-      SPRING_PROFILES_ACTIVE: homologacao
+      SPRING_PROFILES_ACTIVE: ${API_PERFIS:-homologacao}   # implantar.sh --simular-falha usa um perfil proibido
       ENGENHEIRO_DB_URL: jdbc:postgresql://postgres:5432/engenheiro
       ENGENHEIRO_DB_USER: engenheiro
       ENGENHEIRO_DB_PASSWORD: ${ENGENHEIRO_DB_PASSWORD:?}

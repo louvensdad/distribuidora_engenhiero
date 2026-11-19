@@ -31,7 +31,8 @@ dc exec -T postgres pg_dump -U postgres -Fc -d keycloak > "$OUT/keycloak.dump"
 docker run --rm -v "$VOL":/dados:ro "$PG_IMG" tar -C /dados -cf - . > "$OUT/objetos.tar"
 
 q() { dc exec -T postgres psql -U postgres -d engenheiro -Atc "$1"; }
-COMMIT=$(dc exec -T site cat /usr/share/nginx/html/versao.json 2>/dev/null | python3 -I -c 'import json,sys;print(json.load(sys.stdin)["commit"])' || echo desconhecido)
+COMMIT=$(dc exec -T api wget -qO- http://127.0.0.1:8080/actuator/info 2>/dev/null \
+  | python3 -I -c 'import json,sys;print(json.load(sys.stdin)["app"]["commit"])' 2>/dev/null || echo desconhecido)
 python3 -I - "$OUT/manifesto.json" "$STAMP" "$COMMIT" \
   "$(q "SELECT version FROM flyway_schema_history WHERE success AND version IS NOT NULL ORDER BY installed_rank DESC LIMIT 1")" \
   "$(q "SELECT string_agg(t || '=' || n, ',') FROM (SELECT 'organizations' t, count(*) n FROM organizations UNION ALL SELECT 'app_users', count(*) FROM app_users UNION ALL SELECT 'products', count(*) FROM products UNION ALL SELECT 'customers', count(*) FROM customers UNION ALL SELECT 'expenses', count(*) FROM expenses UNION ALL SELECT 'documents', count(*) FROM documents UNION ALL SELECT 'audit_events', count(*) FROM audit_events UNION ALL SELECT 'journal_entries', count(*) FROM journal_entries) x")" \

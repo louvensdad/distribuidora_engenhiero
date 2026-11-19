@@ -1,0 +1,27 @@
+F16 — migrações controladas e rollback (OPS-04), homologação local
+Data: 19/11/2026 14:47 America/Sao_Paulo
+N-1 = 62733741bf72 (schema até V14, sessão em memória) · N = f522d12148d2 (V15: sessão do site no banco)
+Ponto de partida: N no ar, schema V15.
+
+A) rollback da APLICAÇÃO para N-1 sobre o schema novo (V15 fica; a N-1 o ignora como migração futura):
+implantação f522d12148d2 → 62733741bf72
+  pré-migração: backup /home/louvens/.local/state/engenheiro/backups/engenheiro-20261119T174709Z (576K, 2.0 s) — cifrado; senha fora do destino
+  ✓ 62733741bf72 no ar: prontidão e fumaça PASS (11 s); schema 15
+   schema: V15 · API em execução: 62733741bf72
+
+B) implantação de N com defeito de configuração (ensaio): reversão automática
+implantação 62733741bf72 → f522d12148d2
+  pré-migração: backup /home/louvens/.local/state/engenheiro/backups/engenheiro-20261119T174720Z (576K, 2.0 s) — cifrado; senha fora do destino
+  ✗ f522d12148d2 falhou (prontidão itens) — ROLLBACK para 62733741bf72
+    "message":"Stopping service [Tomcat]
+    "message":"\n\nError starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+    "message":"Application run failed
+    "message":"Error creating bean with name 'accountingController' defined in URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/br/com/engenheiro/api/accounting/AccountingController.class]: Unsatisfied dependency expressed through constructor parameter 0:
+  ✓ rollback concluído: 62733741bf72 no ar, fumaça PASS (46 s)
+   código de saída: 3 (3 = revertido com sucesso) · schema: V15
+
+C) implantação real de N (volta à frente):
+implantação 62733741bf72 → f522d12148d2
+  pré-migração: backup /home/louvens/.local/state/engenheiro/backups/engenheiro-20261119T174806Z (576K, 2.1 s) — cifrado; senha fora do destino
+  ✓ f522d12148d2 no ar: prontidão e fumaça PASS (25 s); schema 15
+   schema: V15 · sessões do site gravadas no banco: 4
