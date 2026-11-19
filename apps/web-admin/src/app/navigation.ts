@@ -78,7 +78,7 @@ export const TABS: Tab[] = [
   },
   {
     id: "intelligence", label: "Inteligência", icon: "ai", path: "/intelligence",
-    subtabs: [{ id: "ai", label: "IA da gestão", path: "/intelligence", anyOf: ["ai.view"], pendingPhase: "F15" }],
+    subtabs: [{ id: "ai", label: "IA da gestão", path: "/intelligence", anyOf: ["ai.view"] }],
   },
   {
     id: "team", label: "Equipe", icon: "users", path: "/team",

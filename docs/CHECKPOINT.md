@@ -1,10 +1,28 @@
 # Checkpoint
 
-Data/hora e fuso: 19/11/2026 12:51 America/Sao_Paulo
+Data/hora e fuso: 19/11/2026 America/Sao_Paulo (F15)
 Agente e repositório: Claude Code (Opus 5.5) — `/home/louvens/Ivan/distribuidora-engenheiro`
 Branch e commit atual: `main` — ver `git log -1`
-Fase: F14 — IN_PROGRESS; módulos validados, paridade de IA explicitamente destinada à F15
-Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **PASS** (pendências abaixo) · F06 **PASS** (pendências abaixo) · F07 **PASS** (pendências abaixo) · F08 **PASS** (critérios provados; integração real BLOCKED: D02/D03/D04) · F09 **PASS** (IA depende da F15) · F10 **PASS** (IA real: F15) · F11 **PASS** (homologação HTTPS: F16) · F12 **PASS** (Android; ponta a ponta real em Keycloak/API local, widget/API e APK aberto) · F13 **PASS** (Android; transmissão fiscal real BLOQUEADA: D02/D03)
+Fase: F15 concluída (chamada real ao provedor BLOQUEADA até chave/orçamento); próxima F16
+Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **PASS** (pendências abaixo) · F06 **PASS** (pendências abaixo) · F07 **PASS** (pendências abaixo) · F08 **PASS** (critérios provados; integração real BLOCKED: D02/D03/D04) · F09 **PASS** (IA depende da F15) · F10 **PASS** (IA real: F15) · F11 **PASS** (homologação HTTPS: F16) · F12 **PASS** (Android; ponta a ponta real em Keycloak/API local, widget/API e APK aberto) · F13 **PASS** (Android; transmissão fiscal real BLOQUEADA: D02/D03) · F14 **PASS** (Android; matriz de paridade integral em `docs/PARIDADE_WEB_APP.csv`) · F15 **PASS** (critérios provados com provedor de teste e adaptador contra API local; chamada real BLOCKED: `ANTHROPIC_API_KEY` e `ENGENHEIRO_IA_ORCAMENTO_USD`)
+
+## F15 — IA real da gestão (19/11/2026, ADR-029)
+
+D13 decidida pelo responsável: Claude (Anthropic), orçamento padrão zero. Entregue: porta `LlmProvider` e adaptador
+`AnthropicLlmProvider` (SDK oficial 3.3.0, `claude-opus-5-5`, pensamento adaptativo, esforço configurável, ferramentas
+estritas, contingência em recusa); `AiTools` com as 7 ferramentas somente leitura de `arquitetura/03` sobre os serviços
+do site e o `Actor` do token; `AiService` com laço manual (até 6 etapas), orçamento mensal com reserva sob trava,
+cota diária, registro em `ai_questions` (V14: pergunta, período, corte, ferramentas, fontes, limitações, modelo, tokens,
+custo, latência) e auditoria `ai.ask`; endpoints `/api/v1/ai/status|questions|questions/{id}` no contrato. Site
+`/intelligence` (AiPage) e app Patrão (destino IA, `owner/ai.dart`) com o mesmo cartão de resposta; fontes abrem as
+telas (no app, a tela equivalente).
+
+Validação (`docs/evidence/F15-validacao.txt`): `AiIntegrationTest` 7, `AnthropicLlmProviderTest` 3, suíte da API 177/0;
+site 72/72; Flutter 49+3+6 e analyze limpo; `validar_pacote.py` PASS. AI-01..06 e APP-P-01 em `docs/MAPA_REQUISITOS.md`.
+
+Limites: nenhuma chamada a provedor real (sem chave/orçamento neste ambiente — a tela mostra INTEGRAÇÃO NÃO
+CONFIGURADA); tela de IA não exercitada no AVD/navegador com a pilha local nesta fatia (testada por widget e Testing
+Library). Para ativar: `ANTHROPIC_API_KEY` no servidor e `ENGENHEIRO_IA_ORCAMENTO_USD` > 0 (F16: chave no cofre).
 
 ## F14 — App Patrão e central (19/11/2026)
 
@@ -446,5 +464,6 @@ ENGENHEIRO_SENHA_LOCAL=... python3 -I ../../infra/local/e2e_login_web.py
 
 ## Próxima ação
 
-1. Avançar para F15, conforme decisão/provedor de IA; manter explícita a pendência na matriz até implementação.
+1. **F16**: segurança, desempenho e implantação (chave da IA no cofre, HTTPS de homologação, revisão de segurança).
+   Ativar a IA real exige do responsável: `ANTHROPIC_API_KEY` e orçamento mensal (`ENGENHEIRO_IA_ORCAMENTO_USD`).
 2. Validar com o dono/contador os cargos e campos de RH (ADR-027).

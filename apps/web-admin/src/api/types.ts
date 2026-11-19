@@ -614,3 +614,19 @@ export interface EmployeeAccessResult {
   provider: string;
   note: string;
 }
+
+// ---- F15: IA da gestão (/api/v1/ai) ----
+export type AiState = "NOT_CONFIGURED" | "BUDGET_NOT_SET" | "BUDGET_EXHAUSTED" | "CONFIGURED";
+export interface AiStatus {
+  state: AiState; message: string; provider: string | null; model: string | null; budget_usd: string; spent_usd: string;
+  reserved_usd: string; remaining_usd: string; daily_limit: number; used_today: number; tools: string[];
+}
+export interface AiSource { tool: string; label: string; href: string }
+export interface AiToolUse { name: string; label: string; input: Record<string, string>; ok: boolean; error: string | null }
+export interface AiQuestion {
+  id: string; question: string; from: string; to: string;
+  state: "RUNNING" | "ANSWERED" | "FAILED" | "REFUSED" | "LIMIT_REACHED";
+  answer: string | null; limitations: string[]; tools: AiToolUse[]; sources: AiSource[]; provider: string; model: string | null;
+  input_tokens: number; output_tokens: number; cache_read_tokens: number; cost_usd: string; latency_ms: number | null;
+  error_code: string | null; cutoff_at: string; created_at: string; client_id: string;
+}

@@ -24,3 +24,4 @@ export 'src/screens/owner/finance.dart';
 export 'src/screens/owner/operation.dart';
 export 'src/screens/owner/team.dart';
 export 'src/screens/owner/reports.dart';
+export 'src/screens/owner/ai.dart';

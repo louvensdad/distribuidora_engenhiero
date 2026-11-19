@@ -23,6 +23,7 @@ import { ClosingPage } from "../features/finance/ClosingPage";
 import { CategoriesPage } from "../features/reports/CategoriesPage";
 import { CustomersRankingPage } from "../features/reports/CustomersRankingPage";
 import { GoalsPage } from "../features/reports/GoalsPage";
+import { AiPage } from "../features/intelligence/AiPage";
 import { ReportPage } from "../features/reports/ReportPage";
 import { ExpensesPage } from "../features/finance/ExpensesPage";
 import { ReceivablesPage } from "../features/finance/ReceivablesPage";
@@ -68,6 +69,7 @@ const IMPLEMENTED: Record<string, () => React.JSX.Element> = {
   "/reports": ReportPage,
   "/reports/categories": CategoriesPage,
   "/reports/goals": GoalsPage,
+  "/intelligence": AiPage,
   "/reports/customers": CustomersRankingPage,
   "/finance/expenses": ExpensesPage,
   "/finance/receivables": ReceivablesPage,

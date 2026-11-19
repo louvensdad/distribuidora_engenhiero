@@ -39,6 +39,23 @@ engenheiro:
   storage:
     # Sem valor = anexos NÃO CONFIGURADOS (503). Produção: armazenamento privado S3-compatível (F16).
     local-dir: ${ENGENHEIRO_STORAGE_DIR:}
+  # F15 (ADR-029): IA da gestão. Sem ANTHROPIC_API_KEY = NÃO CONFIGURADA (nada é enviado, nada é simulado).
+  # Orçamento padrão ZERO: a IA recusa perguntas até o responsável definir ENGENHEIRO_IA_ORCAMENTO_USD.
+  ia:
+    provedor: ${ENGENHEIRO_IA_PROVEDOR:anthropic}
+    modelo: ${ENGENHEIRO_IA_MODELO:claude-opus-5-5}
+    esforco: ${ENGENHEIRO_IA_ESFORCO:medium}
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY:}
+    orcamento-mensal-usd: ${ENGENHEIRO_IA_ORCAMENTO_USD:0}
+    reserva-por-pergunta-usd: ${ENGENHEIRO_IA_RESERVA_USD:0.50}
+    limite-diario-por-usuario: ${ENGENHEIRO_IA_LIMITE_DIARIO:30}
+    max-etapas: 6
+    # Preço do modelo configurado (US$ por milhão de tokens); trocar junto com o modelo.
+    preco:
+      entrada-por-milhao-usd: ${ENGENHEIRO_IA_PRECO_ENTRADA:4.00}
+      saida-por-milhao-usd: ${ENGENHEIRO_IA_PRECO_SAIDA:20.00}
+      cache-leitura-por-milhao-usd: ${ENGENHEIRO_IA_PRECO_CACHE:0.20}
   empresa:
     nome: Distribuidora de Cana Engenheiro Ltda
   security:

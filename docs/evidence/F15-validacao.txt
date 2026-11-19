@@ -1,0 +1,38 @@
+F15 — validação da IA da gestão (site e app Patrão)
+Data: 19/11/2026, America/Sao_Paulo
+Repositório: /home/louvens/Ivan/distribuidora-engenheiro (branch main)
+Decisão D13 (responsável, 19/11/2026): provedor Claude (Anthropic), orçamento padrão zero até definir (ADR-029).
+
+Servidor (services/api)
+- `./mvnw -q -DskipTests compile`: código 0 (SDK com.anthropic:anthropic-java 3.3.0; Jackson 2 resolvido 2.21.7, SDK pede 2.19.4).
+- `./mvnw -Dtest=AiIntegrationTest test`: 7 testes, 0 falhas.
+  semProvedorFicaNaoConfiguradaENadaESimulado · orcamentoZeroOuEsgotadoRecusaSemChamarOProvedor ·
+  respostaComPeriodoFontesCustoENumeroIgualAoRelatorio · ferramentaRespeitaPermissaoEFaltaViraLimitacao ·
+  promptInjectionNaoAlteraAcessoNemExecutaAcao · perguntasSimultaneasRespeitamOrcamentoECotaDiaria ·
+  provedorIndisponivelEEtapasDemaisFalhamSemAlterarNada
+- `./mvnw -Dtest=AnthropicLlmProviderTest test`: 3 testes, 0 falhas (adaptador real contra servidor HTTP local:
+  modelo claude-opus-5-5, thinking adaptive, effort medium, fallbacks "default" + beta server-side-fallback-2026-07-01,
+  ferramentas strict com additionalProperties false, dois tool_result numa única mensagem, turno do assistente
+  devolvido intacto, modelo efetivo lido da resposta, erro do provedor → Unavailable; sem chave nada sai).
+- `./mvnw -Dtest=OpenApiContractTest test`: 1 teste, 0 falhas (4 rotas /api/v1/ai no contrato).
+- `./mvnw test` (suíte inteira): 177 testes, 0 falhas, 0 erros.
+
+Site (apps/web-admin)
+- `npm run typecheck`: código 0.
+- `npx vitest run`: 17 arquivos, 72 testes passaram (inclui AiPage.test.tsx 3 e o teste NÃO CONFIGURADA em App.test.tsx).
+
+App Patrão (Flutter)
+- `flutter analyze apps/mobile-owner packages/mobile-core packages/mobile-api`: No issues found.
+- `packages/mobile-core`: 49 testes passaram (ai_test.dart 4: NÃO CONFIGURADA sem envio; pergunta com período,
+  consultas, limitação, fonte e custo; sem ai.view; fontes só abrem telas do app).
+- `apps/mobile-owner`: 3 testes; `packages/mobile-api`: 6 testes.
+
+Pacote da especificação
+- `python3 -I docs/especificacao/ferramentas/validar_pacote.py`: PASS (especificação não editada).
+
+Limites
+- Nenhuma chamada a um provedor real: não há ANTHROPIC_API_KEY nem orçamento definidos neste ambiente; o estado
+  mostrado ao usuário é INTEGRAÇÃO NÃO CONFIGURADA. O laço foi provado com o provedor de teste roteirizado (só no código
+  de teste) e o adaptador contra um servidor HTTP local.
+- Não rodei a tela no AVD nem no navegador com a pilha local nesta fatia (a API local em execução é o jar anterior);
+  a interface foi testada por widget (Flutter) e Testing Library (site).

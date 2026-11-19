@@ -68,11 +68,16 @@ describe("site do patrão", () => {
     expect(calls.some((c) => c.url.startsWith("/api/v1/audit-events"))).toBe(false);
   });
 
-  it("módulo de fase futura é rotulado como pendente, sem números de exemplo", async () => {
-    mockFetch({ "GET /bff/session": session, "GET /api/v1/me/capabilities": { body: me({ capabilities: caps("ai.view") }) } });
+  it("IA sem provedor mostra NÃO CONFIGURADA, sem formulário nem números inventados (AI-05)", async () => {
+    const calls = mockFetch({ "GET /bff/session": session, "GET /api/v1/me/capabilities": { body: me({ capabilities: caps("ai.view") }) },
+      "GET /api/v1/ai/status": { body: { state: "NOT_CONFIGURED", message: "INTEGRAÇÃO NÃO CONFIGURADA: nenhuma chave.", provider: null,
+        model: null, budget_usd: "0.00", spent_usd: "0.00", reserved_usd: "0.00", remaining_usd: "0.00", daily_limit: 30, used_today: 0, tools: [] } },
+      "GET /api/v1/ai/questions": { body: { items: [] } } });
     renderAt("/intelligence");
-    expect(await screen.findByText(/IA da gestão: em implementação/)).toBeInTheDocument();
+    expect(await screen.findAllByText(/INTEGRAÇÃO NÃO CONFIGURADA/)).not.toHaveLength(0);
+    expect(screen.queryByRole("button", { name: "Perguntar" })).not.toBeInTheDocument();
     expect(screen.queryByText(/R\$/)).not.toBeInTheDocument();
+    expect(calls.some((c) => (c.init.method ?? "GET") === "POST")).toBe(false);
   });
 
   it("mapa de acessos impede editar o próprio acesso", async () => {

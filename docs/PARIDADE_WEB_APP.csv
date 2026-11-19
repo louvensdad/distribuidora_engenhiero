@@ -15,7 +15,7 @@ Documentos privados;SIM;SIM;IMPLEMENTED_F07_F10_F13;VALIDADO_F14;packages/mobile
 Aprovações;SIM;SIM;IMPLEMENTED_F10;VALIDADO_F14;packages/mobile-core/lib/src/screens/owner/approvals.dart
 Metas;SIM;SIM;IMPLEMENTED_F09_F10;VALIDADO_F14;packages/mobile-core/lib/src/screens/owner/reports.dart
 Relatórios3D e exportação;SIM;SIM;IMPLEMENTED_F09_F10;VALIDADO_F14;packages/mobile-core/lib/src/screens/owner/reports.dart
-IA com fontes;SIM;SIM;IMPLEMENTED_F09_F10;F15_NAO_IMPLEMENTADO;apps/mobile-owner/lib/main.dart (destino marcado F15)
+IA com fontes;SIM;SIM;IMPLEMENTED_F15;VALIDADO_F15;apps/web-admin/src/features/intelligence/AiPage.tsx, packages/mobile-core/lib/src/screens/owner/ai.dart (NÃO CONFIGURADA sem chave, ADR-029)
 Equipe e permissões;SIM;SIM;IMPLEMENTED_ADR027_F10;VALIDADO_F14;packages/mobile-core/lib/src/screens/owner/team.dart
 Histórico completo;SIM;SIM;IMPLEMENTED_F10;VALIDADO_F14;packages/mobile-core/lib/src/screens/owner/central.dart
 Central dos três setores;SIM;SIM;IMPLEMENTED_F10;VALIDADO_F14;packages/mobile-core/lib/src/screens/owner/central.dart

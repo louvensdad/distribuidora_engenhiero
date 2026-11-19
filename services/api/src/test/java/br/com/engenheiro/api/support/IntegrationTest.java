@@ -22,7 +22,9 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
         "engenheiro.security.oidc.issuer=" + TestJwt.ISSUER,
         "engenheiro.security.oidc.jwk-set-uri=https://idp.teste.invalid/nao-usado",
         "engenheiro.security.oidc.audience=" + TestJwt.AUDIENCE,
-        "engenheiro.storage.local-dir=${java.io.tmpdir}/engenheiro-teste-objetos"})
+        "engenheiro.storage.local-dir=${java.io.tmpdir}/engenheiro-teste-objetos",
+        // IA: nunca usa uma chave real do ambiente de quem roda os testes; o provedor dos testes é o de teste.
+        "engenheiro.ia.provedor=teste", "engenheiro.ia.anthropic.api-key="})
 @Import(IntegrationTest.Config.class)
 public @interface IntegrationTest {
 

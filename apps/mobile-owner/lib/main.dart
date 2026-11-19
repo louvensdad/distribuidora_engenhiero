@@ -16,8 +16,8 @@ final config = AppConfig(
     Destination(id: 'central', label: 'Central', icon: 'dashboard', builder: (_) => const OwnerCentralScreen(enter: sectorShortcuts)),
     Destination(id: 'relatorios', label: 'Relatórios', icon: 'report', anyOf: const ['reports.view'],
         builder: (_) => const OwnerReportsHub()),
-    Destination(id: 'ia', label: 'IA', icon: 'ai', anyOf: const ['ai.view'], pendingPhase: 'F15',
-        builder: (_) => const PendingModuleView(title: 'IA da gestão', phase: 'F15')),
+    // F15: a mesma IA do site (servidor); sem chave no servidor a tela mostra NÃO CONFIGURADA.
+    Destination(id: 'ia', label: 'IA', icon: 'ai', anyOf: const ['ai.view'], builder: (_) => const OwnerAiScreen()),
     Destination(id: 'mais', label: 'Mais', icon: 'settings', builder: (_) => const ModulesScreen()),
   ],
 );

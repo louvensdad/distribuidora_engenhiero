@@ -65,6 +65,12 @@
       <artifactId>poi-ooxml</artifactId>
       <version>5.5.1</version>
     </dependency>
+    <!-- F15: IA da gestão pelo SDK oficial da Anthropic (MIT, ADR-029). Só o servidor chama o provedor. -->
+    <dependency>
+      <groupId>com.anthropic</groupId>
+      <artifactId>anthropic-java</artifactId>
+      <version>3.3.0</version>
+    </dependency>
     <dependency>
       <groupId>org.apache.pdfbox</groupId>
       <artifactId>pdfbox</artifactId>

@@ -10099,6 +10099,248 @@
           "event",
           "masked_fields"
         ]
+      },
+      "AiStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "F15: estado honesto da IA. NOT_CONFIGURED (sem chave no servidor), BUDGET_NOT_SET (orçamento zero), BUDGET_EXHAUSTED ou CONFIGURED. Nunca expõe chave.",
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "NOT_CONFIGURED",
+              "BUDGET_NOT_SET",
+              "BUDGET_EXHAUSTED",
+              "CONFIGURED"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "provider": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "budget_usd": {
+            "type": "string"
+          },
+          "spent_usd": {
+            "type": "string"
+          },
+          "reserved_usd": {
+            "type": "string"
+          },
+          "remaining_usd": {
+            "type": "string"
+          },
+          "daily_limit": {
+            "type": "integer"
+          },
+          "used_today": {
+            "type": "integer"
+          },
+          "tools": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "state",
+          "message",
+          "budget_usd",
+          "spent_usd",
+          "reserved_usd",
+          "remaining_usd",
+          "daily_limit",
+          "used_today",
+          "tools"
+        ]
+      },
+      "AiAskInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "question": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "from": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Primeiro dia (padrão: início do mês)"
+          },
+          "to": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Último dia, inclusive (padrão: fim do mês)"
+          }
+        },
+        "required": [
+          "question"
+        ]
+      },
+      "AiQuestion": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Pergunta com período, horário de corte, ferramentas somente leitura usadas, fontes autorizadas, limitações declaradas, modelo, tokens, custo e latência.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "question": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "RUNNING",
+              "ANSWERED",
+              "FAILED",
+              "REFUSED",
+              "LIMIT_REACHED"
+            ]
+          },
+          "answer": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "limitations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tools": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "input": {
+                  "type": "object"
+                },
+                "ok": {
+                  "type": "boolean"
+                },
+                "error": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "tool": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "href": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "provider": {
+            "type": "string"
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "input_tokens": {
+            "type": "integer"
+          },
+          "output_tokens": {
+            "type": "integer"
+          },
+          "cache_read_tokens": {
+            "type": "integer"
+          },
+          "cost_usd": {
+            "type": "string"
+          },
+          "latency_ms": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "error_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cutoff_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "client_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "question",
+          "from",
+          "to",
+          "state",
+          "limitations",
+          "tools",
+          "sources",
+          "provider",
+          "cost_usd",
+          "cutoff_at",
+          "created_at",
+          "client_id"
+        ]
       }
     }
   },
@@ -21045,6 +21287,144 @@
             "$ref": "#/components/responses/Problem"
           },
           "403": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/ai/status": {
+      "get": {
+        "summary": "Estado da IA, orçamento do mês e cota do usuário",
+        "x-capability": "ai.view",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiStatus"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/ai/questions": {
+      "get": {
+        "summary": "Minhas perguntas (últimas 50; só as do próprio usuário)",
+        "x-capability": "ai.view",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AiQuestion"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      },
+      "post": {
+        "summary": "Pergunta à IA (ferramentas somente leitura com a permissão do usuário). 503 sem provedor; 429 sem orçamento ou cota.",
+        "x-capability": "ai.view",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiAskInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiQuestion"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "429": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "503": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v1/ai/questions/{id}": {
+      "get": {
+        "summary": "Detalhe de uma pergunta minha",
+        "x-capability": "ai.view",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiQuestion"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
             "$ref": "#/components/responses/Problem"
           }
         }
