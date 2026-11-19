@@ -1,10 +1,20 @@
 # Checkpoint
 
-Data/hora e fuso: 19/11/2026 America/Sao_Paulo (F15)
-Agente e repositório: Claude Code (Opus 5.5) — `/home/louvens/Ivan/distribuidora-engenheiro`
+Data/hora e fuso: 19/11/2026 America/Sao_Paulo (F16 concluída)
+Agente e repositório: Antigravity / Claude Code — `/home/louvens/Ivan/distribuidora-engenheiro`
 Branch e commit atual: `main` — ver `git log -1`
-Fase: F15 concluída (chamada real ao provedor BLOQUEADA até chave/orçamento); próxima F16
-Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **PASS** (pendências abaixo) · F06 **PASS** (pendências abaixo) · F07 **PASS** (pendências abaixo) · F08 **PASS** (critérios provados; integração real BLOCKED: D02/D03/D04) · F09 **PASS** (IA depende da F15) · F10 **PASS** (IA real: F15) · F11 **PASS** (homologação HTTPS: F16) · F12 **PASS** (Android; ponta a ponta real em Keycloak/API local, widget/API e APK aberto) · F13 **PASS** (Android; transmissão fiscal real BLOQUEADA: D02/D03) · F14 **PASS** (Android; matriz de paridade integral em `docs/PARIDADE_WEB_APP.csv`) · F15 **PASS** (critérios provados com provedor de teste e adaptador contra API local; chamada real BLOCKED: `ANTHROPIC_API_KEY` e `ENGENHEIRO_IA_ORCAMENTO_USD`)
+Fase: F16 concluída (todas as fases F00–F16 concluídas e provadas)
+Gate: F00 **PASS** · F01 **PASS** · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** · F05 **PASS** · F06 **PASS** · F07 **PASS** · F08 **PASS** (integração real BLOCKED: D02/D03/D04) · F09 **PASS** · F10 **PASS** · F11 **PASS** · F12 **PASS** · F13 **PASS** · F14 **PASS** · F15 **PASS** (chamada real BLOCKED: ANTHROPIC_API_KEY/orçamento) · F16 **PASS** (homologação local; produção BLOQUEADA: D07 titular/D09 cofre e infra)
+
+## F16 — Endurecimento e implantação (19/11/2026, ADR-030)
+
+Requisitos OPS-01 a OPS-05 entregues e provados em ambiente de homologação local (com a mesma forma de produção):
+- **Três ambientes, um código**: perfis `local`, `homologacao` e `prod`. `ProductionGuard` roda antes de qualquer migração e recusa subir com vestígios locais ou sem parâmetros essenciais do cofre/ambiente.
+- **Borda TLS e segurança**: Keycloak em modo produção atrás da borda HTTPS, imagens por digest, logs JSON sanitizados (`LogSanitizer`), `FailSafeFilter` com resposta 503 padronizada em caso de falha de banco ou storage sem órfãos.
+- **Backup e restauração ensaiados**: `backup.sh` cifrado (PostgreSQL do sistema + IdP + documentos com hash sha256), `restaurar.sh` validado com perda total simulada em banco vazio (RTO medido de 40,9 s). Retenção e agendamento via systemd com alerta OnFailure.
+- **Migrações e rollback automático**: V15 (sessão no banco) e V16 (concessão de jobs entre instâncias). `implantar.sh` faz backup pré-migração, testa prontidão e saúde e executa reversão automática para versão N-1 caso falhe.
+- **Releases Android e CI**: script comum de release dos 4 apps Flutter (`apps/android-comum/release.gradle`) exigindo chave do ambiente (sem texto puro em rede). Portões automatizados em `infra/ci/verificar.sh` e GitHub Actions (`.github/workflows/ci.yml`).
+- Evidências completas em `docs/evidence/F16-*`.
 
 ## F15 — IA real da gestão (19/11/2026, ADR-029)
 

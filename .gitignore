@@ -16,3 +16,7 @@ build/
 *.keystore
 *.p12
 key.properties
+
+# artefatos locais de build/execução
+.kotlin/
+__pycache__/

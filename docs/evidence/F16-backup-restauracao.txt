@@ -59,6 +59,9 @@ Testes negativos (nada é alterado):
       ✗ banco engenheiro não está vazio (69 tabelas): restauração recusada
 
 Agendamento/retenção/alerta (infra/operacao/backup-agendado.sh + systemd/engenheiro-backup.{service,timer}):
-- execução OK com retenção 2: {"quando_utc":"2026-11-19T17:42:35Z","resultado":"FALHOU","detalhe":"<backup>","copia_externa":"FALHOU"}
+- (corrigido em 19/11/2026 16:08: a linha anterior mostrava o estado gravado DEPOIS do teste de falha abaixo, não o da
+  execução OK) execução OK, retenção 14, código 0:
+    retenção: 13 cópias (máx. 14) · cópia externa: NAO_CONFIGURADA
+    {"quando_utc":"2026-11-19T19:08:05Z","resultado":"OK","detalhe":"engenheiro-20261119T190801Z","copia_externa":"NAO_CONFIGURADA"}
 - cópia externa que falha (BACKUP_COPIA_REMOTA=false): código de saída 1 e estado FALHOU → OnFailure dispara engenheiro-alerta@
 - sem BACKUP_COPIA_REMOTA: copia_externa=NAO_CONFIGURADA (registrado, não conta como cópia em local separado)
