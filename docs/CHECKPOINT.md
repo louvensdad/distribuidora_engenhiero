@@ -25,6 +25,8 @@ Feito e provado (commits `ce76475`…`dd2bec9`):
   1 PARCIAL — leitor de tela real).
 - **Entrega (UAT-03):** guias por perfil com os rótulos reais, suporte e operação assistida, inventário com checksums,
   termo de aceite (minuta) e pendências em `docs/entrega/` e `docs/aceite/`.
+- **APKs finais na tela do aparelho:** login real de balconista (Retirada), motorista (Entregas) e contador (Contábil)
+  com os APKs build 51; conta da balconista recusada no app Entregas com mensagem clara; sair encerra a sessão no IdP.
 - Pipeline `verificar.sh` PASS em `dd2bec9` (18 portões, API 199/0); 4 APKs de homologação build 51 verificados;
   homologação no ar em `a79ef78` (mesmo código).
 

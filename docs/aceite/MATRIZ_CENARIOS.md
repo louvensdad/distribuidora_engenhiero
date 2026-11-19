@@ -79,7 +79,7 @@ Abreviações de evidência: `T:` teste da API (`services/api/src/test`), `W:` t
 | # | Cenário | Evidência | Estado |
 |---|---|---|---|
 | O01 | Restaurar banco e documentos em base vazia, conferindo vínculos, saldos e checksum | E: `F16-backup-restauracao.txt` (RTO 40,9 s, cada documento pelo hash, mesmo TOTP) | PASS |
-| O02 | Instalar os 4 artefatos: nome, ícone, client OIDC e redirecionamento | E: `F16-apps-release.txt` (4 APKs assinados, login real do Gestão; os outros 3 abrem o IdP), `F17-ensaio-piloto.txt` (os 4 clients OIDC com PKCE) | PASS (Android) — iOS sem macOS; produção: D07 |
+| O02 | Instalar os 4 artefatos: nome, ícone, client OIDC e redirecionamento | E: `F16-apps-release.txt` (Gestão), `F17-ensaio-piloto.txt` (os 4 clients OIDC com PKCE e, no complemento, login real na tela dos APKs build 51 de Retirada, Entregas e Contábil; conta de outro setor recusada no Entregas) | PASS (Android) — iOS sem macOS; produção: D07 |
 | O03 | Atualizar app preservando sessão; revogado não volta pelo cache | E: `F16-apps-release.txt` (build 42 sobre o 39 manteve a sessão); T: `acessoRevogadoNoMeioDaViagemParaNaHora`, `revogacaoImpedeAProximaChamada` | PASS |
 | O04 | Sem seletor de perfil, fixture pessoal ou sucesso fiscal simulado no release | T: `ProductionHardeningTest` (6); E: release recusa build sem chave; IA/fiscal NÃO CONFIGURADO | PASS |
 

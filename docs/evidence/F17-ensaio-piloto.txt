@@ -96,3 +96,20 @@ Ensaio do piloto na homologação https://gestao.homolog.localtest.me:8443 — e
   ✓ [Livro] Lançamentos do período com documento de origem existente: 0 × 0 (OK)
   relatório do mês: receita líquida 12000.00 · CMV 4500.00 · despesas 5550.00 · perdas 0.00 · resultado 1950.00 · 8 entregas
 RESULTADO: PASS
+
+---------------------------------------------------------------------------------------------------------------
+Complemento (19/11/2026 17:24–17:28): login real NA TELA do aparelho com os APKs de release finais (build 51, commit
+dd2bec9, assinatura de homologação), AVD engenheiro_api36 (Android 16), contas criadas pelo ensaio acima.
+- Retirada · balconista: entrou (senha trocada no ensaio); "Atendimento" com clientes do servidor e endereço/CPF
+  "oculto" (sem permissão de campo); abas Atendimento/Pedidos/Estoque/Caixa (sem Fornecedores, que é do recebedor);
+  Pedidos mostra o #9318 do ensaio, 100 dúzias, R$ 2.000,00, Concluído e Pago.
+  telas-mobile/F17-release-retirada-balconista.png
+- Entregas com a sessão da balconista ainda aberta no navegador: o IdP pediu a senha de novo (sem login silencioso) e,
+  com a senha dela, o servidor recusou: "Esta conta não tem acesso ao Engenheiro Entregas. Use o aplicativo do seu
+  setor ou peça liberação ao administrador." + código para suporte. "Sair desta conta" encerrou a sessão no IdP.
+  telas-mobile/F17-release-entregas-conta-de-outro-setor.png
+- Entregas · motorista: só a própria viagem (V4 · ENS2A25, em rota, 1 de 1 entregas); abas Viagens/Veículos/Caixa.
+  telas-mobile/F17-release-entregas-motorista.png
+- Contábil · contador: Guias com as DAS de R$ 850,00 do ensaio como "Paga"; "Preparar guia"; abas Agenda/Guias/Folha/
+  Notas/Documentos. telas-mobile/F17-release-contabil-contador.png
+- Patrão (Gestão) no build 42 da F16: F16-apps-release.txt.
