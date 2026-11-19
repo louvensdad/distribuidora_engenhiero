@@ -56,6 +56,12 @@ engenheiro:
       entrada-por-milhao-usd: ${ENGENHEIRO_IA_PRECO_ENTRADA:4.00}
       saida-por-milhao-usd: ${ENGENHEIRO_IA_PRECO_SAIDA:20.00}
       cache-leitura-por-milhao-usd: ${ENGENHEIRO_IA_PRECO_CACHE:0.20}
+  # F16 (D06): primeiro acesso de banco VAZIO — id da conta do dono no IdP. Sem efeito se já houver empresa.
+  # Retirar depois da primeira subida (runbook de implantação).
+  bootstrap:
+    owner-subject: ${ENGENHEIRO_BOOTSTRAP_OWNER_SUBJECT:}
+    owner-name: ${ENGENHEIRO_BOOTSTRAP_OWNER_NAME:Responsável}
+    branch-name: ${ENGENHEIRO_BOOTSTRAP_BRANCH:Matriz}
   # F16: segredo do servidor para pseudonimizar o ator nos logs (HMAC). Obrigatório em prod/homologação.
   log:
     pepper: ${ENGENHEIRO_LOG_PEPPER:}

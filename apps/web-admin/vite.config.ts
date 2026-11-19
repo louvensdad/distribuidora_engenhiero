@@ -14,7 +14,8 @@ export default defineConfig({
     strictPort: true,
     proxy: { "/api": backend, "/bff": backend, "/oauth2": backend, "/login/oauth2": backend },
   },
-  build: { sourcemap: false, target: "es2023" },
+  // Fontes nunca embutidas como data: (a CSP de produção aceita fontes só da própria origem — F16).
+  build: { sourcemap: false, target: "es2023", assetsInlineLimit: (file) => (/\.(woff2?|ttf|otf)$/.test(file) ? false : undefined) },
   test: {
     environment: "jsdom",
     globals: true,

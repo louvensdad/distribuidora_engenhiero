@@ -158,14 +158,20 @@ public class AccessAdministrationService {
     /** Usado pelo seed local (identidade de serviço), nunca exposto por HTTP. */
     @Transactional
     public void applyTemplateAsService(UUID membershipId, RoleTemplate template, String serviceName) {
+        applyTemplateAsService(membershipId, template, serviceName, "seed de desenvolvimento", "seed");
+    }
+
+    /** Aplica um modelo por um serviço (sem ator humano), com motivo e origem gravados na auditoria. */
+    public void applyTemplateAsService(UUID membershipId, RoleTemplate template, String serviceName, String reason,
+                                       String origin) {
         for (RoleTemplate.TemplateGrant g : template.grants()) {
             repo.insertGrant(Ids.newId(), membershipId, g.resource(), g.action(), g.scope(), Effect.ALLOW, null,
                     null, null);
         }
         template.fields().forEach((f, e) -> repo.insertFieldPolicy(Ids.newId(), membershipId, f, e, null));
         audit.record(new AuditEntry(null, null, null, "SERVICE", serviceName, "permissions.template_applied",
-                "membership", membershipId.toString(), "SUCCESS", "seed de desenvolvimento",
-                Map.of("template", template.name()), "seed"));
+                "membership", membershipId.toString(), "SUCCESS", reason,
+                Map.of("template", template.name()), origin));
     }
 
     private PolicyView getPolicyUnchecked(UUID org, UUID userId) {

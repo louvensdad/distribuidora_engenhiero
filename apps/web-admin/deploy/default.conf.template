@@ -1,0 +1,52 @@
+# Site do patrão (F16). Mesma origem da API: /api, /bff, /oauth2 e /login/oauth2 vão para ${API_UPSTREAM}.
+# O TLS termina na borda (proxy à frente); aqui só HTTP interno. Sem log de query string (busca por nome/CPF).
+log_format engenheiro '$remote_addr [$time_iso8601] "$request_method $uri" $status $body_bytes_sent ${request_time}s req=$http_x_request_id';
+server_tokens off;
+
+# Resolve o upstream a cada requisição (a API pode reiniciar e mudar de endereço sem derrubar o site).
+resolver ${NGINX_LOCAL_RESOLVERS} valid=10s ipv6=off;
+
+server {
+    listen 8080;
+    server_name _;
+    access_log /dev/stdout engenheiro;   # substitui o log padrão da imagem (que gravaria a query string)
+    root /usr/share/nginx/html;
+    client_max_body_size 11m;
+
+    # CSP: só a própria origem (fontes, scripts e estilos locais; nada de CDN); sem moldura; sem plugin.
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()" always;
+    add_header Cross-Origin-Opener-Policy "same-origin" always;
+
+    location ~ ^/(api|bff|oauth2|login/oauth2)(/|$) {
+        set $api_upstream ${API_UPSTREAM};
+        proxy_pass $api_upstream;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+        proxy_set_header X-Forwarded-Host $http_host;
+        proxy_set_header X-Forwarded-Port $http_x_forwarded_port;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Request-Id $http_x_request_id;
+        proxy_read_timeout 200s;   # pergunta à IA pode levar minutos
+        proxy_buffering off;
+    }
+
+    # Arquivos com hash no nome: cache longo. index.html: sempre revalidar (nova versão chega sem limpar cache).
+    location /assets/ {
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        try_files $uri =404;
+    }
+    location / {
+        add_header Cache-Control "no-cache" always;
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()" always;
+        try_files $uri /index.html;
+    }
+}
