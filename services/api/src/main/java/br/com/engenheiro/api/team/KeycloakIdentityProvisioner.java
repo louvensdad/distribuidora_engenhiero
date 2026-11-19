@@ -31,7 +31,8 @@ public class KeycloakIdentityProvisioner implements IdentityProvisioner {
     private final String realmBase;
     private final String clientId;
     private final String clientSecret;
-    private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
+    private final HttpClient http = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1) // sem upgrade h2c no trajeto interno
+            .connectTimeout(Duration.ofSeconds(5)).build();
     private final SecureRandom random = new SecureRandom();
 
     public KeycloakIdentityProvisioner(OidcProperties oidc,
@@ -119,7 +120,7 @@ public class KeycloakIdentityProvisioner implements IdentityProvisioner {
             Thread.currentThread().interrupt();
             throw new Unavailable("interrompido");
         } catch (java.io.IOException e) {
-            throw new Unavailable("provedor de identidade indisponível");
+            throw new Unavailable("provedor de identidade indisponível (" + e.getClass().getSimpleName() + ")");
         }
     }
 

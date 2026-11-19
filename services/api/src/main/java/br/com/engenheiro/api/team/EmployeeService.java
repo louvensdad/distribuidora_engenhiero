@@ -44,6 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class EmployeeService {
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(EmployeeService.class);
     static final ScopeSql.Columns COLUMNS = new ScopeSql.Columns("e.organization_id", "e.branch_id", null, "e.created_by", null);
 
     public record Account(UUID user_id, String display_name, String status, String role_template, String sector) {
@@ -513,6 +514,8 @@ public class EmployeeService {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "Nome de usuário já em uso.",
                     List.of(new FieldError("username", "Já existe uma conta com esse nome de usuário")));
         } catch (IdentityProvisioner.Unavailable e) {
+            // Motivo técnico só no log (código HTTP/tipo de erro; nunca usuário, senha ou token).
+            LOG.warn("criação de conta no provedor de identidade falhou: {}", e.getMessage());
             throw new ApiException(ErrorCode.INTEGRATION_UNAVAILABLE,
                     "Provedor de identidade indisponível: nenhuma conta foi ligada. Tente de novo (não duplica).");
         }
