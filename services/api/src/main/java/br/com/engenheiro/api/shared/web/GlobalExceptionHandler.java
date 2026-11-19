@@ -67,6 +67,15 @@ public class GlobalExceptionHandler {
         return respond(ErrorCode.NOT_FOUND, "Recurso inexistente.", List.of());
     }
 
+    /** F16: banco fora/sem conexão = 503 rápido e honesto (o cliente tenta de novo); nada foi gravado. */
+    @ExceptionHandler({org.springframework.dao.DataAccessResourceFailureException.class,
+            org.springframework.transaction.CannotCreateTransactionException.class})
+    ResponseEntity<ApiProblem> databaseDown(Exception e) {
+        log.warn("Banco indisponível request_id={} tipo={}", RequestIds.current(), e.getClass().getSimpleName());
+        return respond(ErrorCode.INTEGRATION_UNAVAILABLE, "Serviço temporariamente indisponível (banco de dados). "
+                + "Nada foi gravado; tente novamente em instantes.", List.of());
+    }
+
     @ExceptionHandler(Exception.class)
     ResponseEntity<ApiProblem> unexpected(Exception e) {
         // Só tipo e pilha: a mensagem original pode trazer valores da linha (CPF, conta) — OPS-03.

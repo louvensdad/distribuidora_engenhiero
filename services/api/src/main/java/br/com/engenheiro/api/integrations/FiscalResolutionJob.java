@@ -13,14 +13,20 @@ import org.springframework.stereotype.Component;
 public class FiscalResolutionJob {
     private static final Logger log = LoggerFactory.getLogger(FiscalResolutionJob.class);
     private final InvoiceService invoices;
+    private final br.com.engenheiro.api.shared.ops.JobLease lease;
 
-    public FiscalResolutionJob(InvoiceService invoices) {
+    public FiscalResolutionJob(InvoiceService invoices, br.com.engenheiro.api.shared.ops.JobLease lease) {
         this.invoices = invoices;
+        this.lease = lease;
     }
 
     @Scheduled(fixedDelayString = "${engenheiro.fiscal.resolve-interval:PT5M}",
             initialDelayString = "${engenheiro.fiscal.resolve-interval:PT5M}")
     public void run() {
+        // Várias instâncias: só uma consulta o provedor por intervalo (F16).
+        if (!lease.tryAcquire("fiscal-resolution", java.time.Duration.ofMinutes(4))) {
+            return;
+        }
         try {
             int n = invoices.resolvePending();
             if (n > 0) {

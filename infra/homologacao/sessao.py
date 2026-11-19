@@ -48,7 +48,7 @@ def call(op, url, data=None, headers=None):
         h["Content-Type"] = "application/x-www-form-urlencoded"
     req = urllib.request.Request(url, data=data, headers=h)
     try:
-        r = op.open(req, timeout=30)
+        r = op.open(req, timeout=60)
         return r.status, r.headers, r.read().decode()
     except urllib.error.HTTPError as e:
         return e.code, e.headers, e.read().decode(errors="replace")
