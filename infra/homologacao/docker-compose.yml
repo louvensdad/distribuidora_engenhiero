@@ -57,7 +57,14 @@ services:
       ENGENHEIRO_PROVISIONER_CLIENT_SECRET: ${ENGENHEIRO_PROVISIONER_CLIENT_SECRET:-}
       ENGENHEIRO_PROVISIONER_INTERNAL_URL: http://keycloak:8080/realms/engenheiro
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      # IA (ADR-032): provedor, chave e preços do modelo vêm do .env; orçamento padrão 0 = recusa sem chamar.
+      ENGENHEIRO_IA_PROVEDOR: ${ENGENHEIRO_IA_PROVEDOR:-anthropic}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
       ENGENHEIRO_IA_ORCAMENTO_USD: ${ENGENHEIRO_IA_ORCAMENTO_USD:-0}
+      ENGENHEIRO_IA_RESERVA_USD: ${ENGENHEIRO_IA_RESERVA_USD:-0.50}
+      ENGENHEIRO_IA_PRECO_ENTRADA: ${ENGENHEIRO_IA_PRECO_ENTRADA:-4.00}
+      ENGENHEIRO_IA_PRECO_SAIDA: ${ENGENHEIRO_IA_PRECO_SAIDA:-20.00}
+      ENGENHEIRO_IA_PRECO_CACHE: ${ENGENHEIRO_IA_PRECO_CACHE:-0.20}
       JAVA_TOOL_OPTIONS: >-
         -XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError -Duser.timezone=UTC -Dfile.encoding=UTF-8
         -Djavax.net.ssl.trustStore=/tls/truststore.p12 -Djavax.net.ssl.trustStoreType=PKCS12

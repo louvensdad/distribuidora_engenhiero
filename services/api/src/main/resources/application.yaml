@@ -60,6 +60,11 @@ engenheiro:
     esforco: ${ENGENHEIRO_IA_ESFORCO:medium}
     anthropic:
       api-key: ${ANTHROPIC_API_KEY:}
+    # ADR-032: DeepSeek (ENGENHEIRO_IA_PROVEDOR=deepseek). Preços abaixo devem acompanhar o modelo escolhido.
+    deepseek:
+      api-key: ${DEEPSEEK_API_KEY:}
+      modelo: ${ENGENHEIRO_IA_DEEPSEEK_MODELO:deepseek-flash}
+      base-url: ${ENGENHEIRO_IA_DEEPSEEK_URL:https://api.deepseek.com}
     orcamento-mensal-usd: ${ENGENHEIRO_IA_ORCAMENTO_USD:0}
     reserva-por-pergunta-usd: ${ENGENHEIRO_IA_RESERVA_USD:0.50}
     limite-diario-por-usuario: ${ENGENHEIRO_IA_LIMITE_DIARIO:30}
