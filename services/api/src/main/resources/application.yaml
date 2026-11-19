@@ -47,6 +47,8 @@ engenheiro:
   provisioner:
     client-id: ${ENGENHEIRO_PROVISIONER_CLIENT_ID:}
     client-secret: ${ENGENHEIRO_PROVISIONER_CLIENT_SECRET:}
+    # F17: em servidor, token e administração do IdP pela rede interna (a borda pública bloqueia /admin).
+    internal-url: ${ENGENHEIRO_PROVISIONER_INTERNAL_URL:}
   storage:
     # Sem valor = anexos NÃO CONFIGURADOS (503). Produção: armazenamento privado S3-compatível (F16).
     local-dir: ${ENGENHEIRO_STORAGE_DIR:}

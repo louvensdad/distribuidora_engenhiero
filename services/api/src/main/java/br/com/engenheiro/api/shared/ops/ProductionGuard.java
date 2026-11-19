@@ -61,6 +61,10 @@ public class ProductionGuard {
         if (blank(env.getProperty("engenheiro.storage.local-dir"))) {
             p.add("ENGENHEIRO_STORAGE_DIR ausente (documentos e anexos)");
         }
+        String internal = env.getProperty("engenheiro.provisioner.internal-url", "");
+        if (!blank(internal)) {
+            internalService(p, "ENGENHEIRO_PROVISIONER_INTERNAL_URL", internal);
+        }
         String pepper = env.getProperty("engenheiro.log.pepper", "");
         if (pepper.length() < 32) {
             p.add("ENGENHEIRO_LOG_PEPPER ausente ou curto (mínimo 32 caracteres) para pseudonimizar o ator nos logs");
@@ -81,6 +85,21 @@ public class ProductionGuard {
             }
             if (host.equals("localhost") || host.startsWith("127.") || host.equals("10.0.2.2")) {
                 p.add(name + " aponta para endereço local");
+            }
+        } catch (IllegalArgumentException e) {
+            p.add(name + " inválido");
+        }
+    }
+
+    /** Trajeto interno (API → IdP na rede privada): HTTPS, ou HTTP só para nome de serviço sem domínio (ex.: keycloak). */
+    private static void internalService(List<String> p, String name, String value) {
+        try {
+            URI u = URI.create(value.trim());
+            String host = u.getHost() == null ? "" : u.getHost().toLowerCase(Locale.ROOT);
+            if (host.isEmpty() || host.equals("localhost") || host.startsWith("127.") || host.equals("10.0.2.2")) {
+                p.add(name + " aponta para endereço local");
+            } else if (!"https".equalsIgnoreCase(u.getScheme()) && (!"http".equalsIgnoreCase(u.getScheme()) || host.contains("."))) {
+                p.add(name + " sem HTTPS fora da rede interna (HTTP só para nome de serviço, ex.: http://keycloak:8080)");
             }
         } catch (IllegalArgumentException e) {
             p.add(name + " inválido");

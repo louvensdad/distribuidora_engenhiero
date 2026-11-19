@@ -70,6 +70,21 @@ class ProductionHardeningTest {
     }
 
     @Test
+    void provisionamentoPelaRedeInternaSoComNomeDeServicoOuHttps() {
+        for (String ok : List.of("http://keycloak:8080/realms/engenheiro", "https://idp.interno.example/realms/engenheiro")) {
+            MockEnvironment e = prodOk();
+            e.setProperty("engenheiro.provisioner.internal-url", ok);
+            assertThat(ProductionGuard.problems(e)).as(ok).isEmpty();
+        }
+        for (String ruim : List.of("http://idp.example.com/realms/engenheiro", "http://localhost:8180/realms/engenheiro",
+                "http://127.0.0.1:8080/realms/engenheiro", "ftp://keycloak/realms/engenheiro")) {
+            MockEnvironment e = prodOk();
+            e.setProperty("engenheiro.provisioner.internal-url", ruim);
+            assertThat(ProductionGuard.problems(e)).as(ruim).singleElement().asString().startsWith("ENGENHEIRO_PROVISIONER_INTERNAL_URL");
+        }
+    }
+
+    @Test
     void seedFicticioSoExisteForaDasMigrationsDeProducao() throws Exception {
         try (var files = Files.list(Path.of("src/main/resources/db/migration"))) {
             for (Path f : files.toList()) {

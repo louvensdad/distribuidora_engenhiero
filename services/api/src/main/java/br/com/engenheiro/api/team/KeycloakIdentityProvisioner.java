@@ -27,6 +27,8 @@ public class KeycloakIdentityProvisioner implements IdentityProvisioner {
     private static final JsonMapper JSON = JsonMapper.builder().build();
     private static final String ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
     private final String issuer;
+    /** Base do realm usada para token e administração (padrão: o emissor público). */
+    private final String realmBase;
     private final String clientId;
     private final String clientSecret;
     private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
@@ -34,8 +36,12 @@ public class KeycloakIdentityProvisioner implements IdentityProvisioner {
 
     public KeycloakIdentityProvisioner(OidcProperties oidc,
                                        @Value("${engenheiro.provisioner.client-id:}") String clientId,
-                                       @Value("${engenheiro.provisioner.client-secret:}") String clientSecret) {
+                                       @Value("${engenheiro.provisioner.client-secret:}") String clientSecret,
+                                       @Value("${engenheiro.provisioner.internal-url:}") String internalUrl) {
         this.issuer = oidc.issuer();
+        // F17: a administração do IdP fica fora da borda pública; em servidor, a API fala com o realm pela rede interna
+        // (ex.: http://keycloak:8080/realms/engenheiro). Os tokens continuam emitidos com o emissor público.
+        this.realmBase = internalUrl == null || internalUrl.isBlank() ? oidc.issuer() : internalUrl.replaceAll("/+$", "");
         this.clientId = clientId;
         this.clientSecret = clientSecret;
     }
@@ -47,17 +53,17 @@ public class KeycloakIdentityProvisioner implements IdentityProvisioner {
 
     @Override
     public boolean configured() {
-        return !clientId.isBlank() && !clientSecret.isBlank() && issuer.contains("/realms/");
+        return !clientId.isBlank() && !clientSecret.isBlank() && realmBase.contains("/realms/");
     }
 
     private String adminBase() {
-        int i = issuer.indexOf("/realms/");
-        return issuer.substring(0, i) + "/admin" + issuer.substring(i);
+        int i = realmBase.indexOf("/realms/");
+        return realmBase.substring(0, i) + "/admin" + realmBase.substring(i);
     }
 
     private String token() {
         String form = "grant_type=client_credentials&client_id=" + enc(clientId) + "&client_secret=" + enc(clientSecret);
-        HttpResponse<String> r = send(HttpRequest.newBuilder(URI.create(issuer + "/protocol/openid-connect/token"))
+        HttpResponse<String> r = send(HttpRequest.newBuilder(URI.create(realmBase + "/protocol/openid-connect/token"))
                 .header("Content-Type", "application/x-www-form-urlencoded").POST(HttpRequest.BodyPublishers.ofString(form)));
         if (r.statusCode() != 200) {
             throw new Unavailable("token de serviço recusado (" + r.statusCode() + ")");
