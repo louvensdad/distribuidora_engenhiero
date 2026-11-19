@@ -1,0 +1,25 @@
+F17 — apps em celular Android, tablet Android e iOS (pedido do responsável, 19/11/2026)
+
+Tablet Android (AVD engenheiro_tablet36, Pixel Tablet 2560×1600, 320 dpi = 1280×800 dp deitado), APKs de release:
+- Antes (build 51): menu lateral ok, mas cartões e formulários esticados até a borda (telas-mobile/F17-tablet-antes-deitado.png).
+- Depois (build 54, commit fa837cd): conteúdo em largura de leitura de até 960 dp, centralizado, ao lado do menu
+  lateral (F17-tablet-deitado.png); "Novo pedido" centralizado (F17-tablet-novo-pedido.png); em pé (800 dp) barra de
+  baixo e largura toda (F17-tablet-em-pe.png). Login real da balconista; sessão mantida ao atualizar o app.
+- Achado de aparelho novo: o Chrome abre a configuração inicial antes do primeiro login; escolher "Usar sem conta"
+  (anotado no guia de primeiro acesso).
+Celular Android (AVD engenheiro_api36, 1080×2400): com o build 54 a tela continua igual (login real da balconista).
+Teste: packages/mobile-core/test/layout_tablet_test.dart (1280 dp → 960 centralizado; 800 e 412 dp → largura toda).
+Flutter: analyze sem problemas; mobile-core 55, mobile-api 6, owner 3, counter 6, delivery 6, accountant 3 testes.
+
+iOS (iPhone + iPad) — configurado, NÃO compilado (exige macOS + Xcode e conta Apple do titular, D07):
+- Corrigido: faltavam NSCameraUsageDescription/NSPhotoLibraryUsageDescription (o iOS fecha o app ao abrir a câmera);
+  os 4 apps usavam o ícone padrão do Flutter → ícone de cada app, opaco, 19 tamanhos (apps/ios-comum/gerar_icones_ios.py).
+- apps/ios-comum/verificar_ios.py (entra nos portões): identificador, retorno do login = client OIDC, nome, câmera/fotos,
+  criptografia declarada, sem exceção de HTTP, iPhone+iPad, iOS ≥ 15, ícones completos/opacos/distintos — PASS.
+- infra/operacao/construir_apps_ios.sh: build/assinatura/checksum no Mac (recusa rodar fora de macOS — verificado).
+
+APKs (homologação, build 54, commit fa837cd):
+b81dcaaac03b6560e5c58b0552a862cb36149c84649f50658a73ee5ac0029e3b  br.com.engenheiro.contabil-0.1.0+54-homologacao.apk
+f84256b34dbed053d94b4686fb216f2d02f25f9899020a8478f8653e670360fb  br.com.engenheiro.entregas-0.1.0+54-homologacao.apk
+8654cf18cbb61798c22e87fd8bb6e2fa0affc8d219167934c3341373f6ecab1c  br.com.engenheiro.gestao-0.1.0+54-homologacao.apk
+13854925e7d03e3f6cc3b8c785812a59944942765caef8e9a6019c7122fa3fcb  br.com.engenheiro.retirada-0.1.0+54-homologacao.apk

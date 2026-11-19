@@ -9,22 +9,17 @@ máquina de build); aqui ficam a identificação e os checksums.
 |---|---|---|---|
 | API (imagem) | `a79ef78fa59f` | `engenheiro-api:a79ef78fa59f` · imagem `sha256:678cbd90a953…` · jar `sha256:193475eb9bd1…` | No ar na homologação; manifesto `artefatos/a79ef78fa59f.json` |
 | Site (imagem) | `a79ef78fa59f` | `engenheiro-site:a79ef78fa59f` · imagem `sha256:7114bb3b1e1d…` | No ar na homologação |
-| 4 apps Android (homologação) | `dd2bec9fd5b8` | versão 0.1.0, build 51, assinados com a chave de **homologação** (cert. SHA-256 `52:AD:35:3A:…:6D:97`) | `artefatos/apps-homologacao-dd2bec9fd5b8/` (manifesto.json + SHA256SUMS) |
+| 4 apps Android (homologação) | `fa837cd3c31f` | versão 0.1.0, build 54 (celular e tablet), assinados com a chave de **homologação** (cert. SHA-256 `52:AD:35:3A:…:6D:97`) | `artefatos/apps-homologacao-fa837cd3c31f/` (manifesto.json + SHA256SUMS) |
 
 O código da API e do site não mudou entre `a79ef78` e `dd2bec9` (só documentação e roteiros). Pipeline completo
 (`infra/ci/verificar.sh`) PASS em `dd2bec9`: 18 portões, API com 199 testes e 0 falhas.
 
 ### Checksums dos APKs (SHA-256)
 
-```
-25a1004dac5786a816621461f95396a6063144a095cc6106a0236039a4466cc8  br.com.engenheiro.gestao-0.1.0+51-homologacao.apk
-06a7cbe34bc7736dd2e54da41618e65482f0e79d1239984b67eba1006b9980fd  br.com.engenheiro.retirada-0.1.0+51-homologacao.apk
-15e6ddc07ab95c0f76a3bbb6cf6d18412077d3e94ce782b24b43432a6f56313a  br.com.engenheiro.entregas-0.1.0+51-homologacao.apk
-8ee62f58971e6a8f6022f016b77dda4d077f2de3280f8e52724175611e44cf9c  br.com.engenheiro.contabil-0.1.0+51-homologacao.apk
-```
+Ver `docs/evidence/F17-tablet-celular-ios.txt` (build 54). O build 51 anterior: `F17-ensaio-piloto.txt`.
 
 Estes APKs são de **homologação** (CA de teste embutida). Produção exige novo build com a chave do titular e as URLs
-de produção (pendência A4); iOS não foi produzido.
+de produção (pendência A4). iOS: configurado e verificado (`apps/ios-comum/verificar_ios.py`), não compilado (sem Mac).
 
 ## O que o titular precisa ter em mãos (acesso)
 

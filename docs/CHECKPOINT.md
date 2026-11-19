@@ -27,6 +27,10 @@ Feito e provado (commits `ce76475`…`dd2bec9`):
   termo de aceite (minuta) e pendências em `docs/entrega/` e `docs/aceite/`.
 - **APKs finais na tela do aparelho:** login real de balconista (Retirada), motorista (Entregas) e contador (Contábil)
   com os APKs build 51; conta da balconista recusada no app Entregas com mensagem clara; sair encerra a sessão no IdP.
+- **Celular, tablet e iOS (pedido do responsável):** tablet deitado com largura de leitura (960 dp) ao lado do menu
+  lateral; celular inalterado; iOS com câmera/fotos declaradas (antes fecharia o app) e ícone próprio por app, verificado
+  no pipeline (`verificar_ios.py`); build iOS só com Mac (`construir_apps_ios.sh`). APKs build 54 (`fa837cd`).
+  `docs/evidence/F17-tablet-celular-ios.txt`.
 - Pipeline `verificar.sh` PASS em `dd2bec9` (18 portões, API 199/0); 4 APKs de homologação build 51 verificados;
   homologação no ar em `a79ef78` (mesmo código).
 

@@ -120,3 +120,7 @@ aprova nem paga.
 3. Pronto: o app volta sozinho. Na próxima vez, só usuário e senha.
 4. Na homologação (teste), o aparelho precisa ter o certificado de teste instalado — o técnico faz isso. Em produção,
    não.
+5. Celular ou tablet novo: na primeira vez o navegador (Chrome) pode abrir a própria configuração antes do login —
+   escolha **Usar sem conta** e toque de novo em **Entrar com segurança**.
+6. Tablet deitado: o menu fica na lateral; em pé, na parte de baixo. iPhone/iPad: mesmo app, quando publicado na
+   App Store pela conta do titular.

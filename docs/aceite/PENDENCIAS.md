@@ -13,7 +13,7 @@ quando chegar. Nada aqui aparece como concluído no termo de aceite.
 | A4 | Chave de assinatura Android do titular | Conta Google Play do titular (Play App Signing) e chave de envio | Release recusa build sem chave; script dos 4 apps com verificação e manifesto | D07 |
 | A5 | Envio de alertas | Comando que entrega a mensagem ao responsável (e-mail, WhatsApp ou telefone) em `ALERTA_COMANDO` | Vigia a cada 5 min e alerta de backup ensaiados (hoje só no journal) | — |
 | A6 | Contas reais das pessoas | Nome, função e usuário de cada funcionário; e-mail é opcional | O dono cadastra e dá acesso pelo próprio site (ensaiado em homologação) | D05/D06 |
-| A7 | iOS | Mac com Xcode + conta Apple do titular | Código compartilhado; nada iOS foi produzido nem é declarado entregue | D07 |
+| A7 | iOS (iPhone e iPad) | Mac com Xcode + conta Apple do titular | Projetos dos 4 apps configurados e verificados no pipeline (identificador, login, câmera/fotos, ícones, iPad); `construir_apps_ios.sh` pronto; nada compilado nem declarado entregue | D07 |
 
 ## B. Integrações (o sistema funciona sem elas, com estado NÃO CONFIGURADO)
 
