@@ -65,6 +65,11 @@
       <artifactId>poi-ooxml</artifactId>
       <version>5.5.1</version>
     </dependency>
+    <!-- F16: sessão do site no banco (várias instâncias da API sem afinidade; sobrevive a reinício/rollback). -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-session-jdbc</artifactId>
+    </dependency>
     <!-- F15: IA da gestão pelo SDK oficial da Anthropic (MIT, ADR-029). Só o servidor chama o provedor. -->
     <dependency>
       <groupId>com.anthropic</groupId>

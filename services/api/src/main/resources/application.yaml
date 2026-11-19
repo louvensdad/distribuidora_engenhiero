@@ -10,6 +10,12 @@ spring:
   threads:
     virtual:
       enabled: true
+  # F16: sessão do site no banco; tabelas criadas pelo Flyway (V15), nunca pelo Spring.
+  session:
+    timeout: 30m
+    jdbc:
+      initialize-schema: never
+      cleanup-cron: "0 * * * * *"
   servlet:
     multipart:
       max-file-size: 10MB
