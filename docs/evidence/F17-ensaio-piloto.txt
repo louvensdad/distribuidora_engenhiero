@@ -1,0 +1,98 @@
+F17 — ensaio do piloto na homologação (UAT-01/02/03): um dia de operação de ponta a ponta
+Data: 19/11/2026 17:01 America/Sao_Paulo · versão no ar a79ef78fa59f · roteiro infra/homologacao/ensaio_piloto.py
+Contas criadas pelo próprio sistema (provisionamento), dados fictícios; nenhuma senha, token ou TOTP impresso.
+Observação: a conciliação soma as execuções anteriores do ensaio no mesmo mês (cada uma fecha sozinha).
+
+Ensaio do piloto na homologação https://gestao.homolog.localtest.me:8443 — execução 1119170119
+1) Patrão cadastra a equipe e libera os acessos (site)
+  ✓ patrão entrou no site com senha + TOTP
+  ✓ patrão: capacidades e unidade lidas
+  ✓ criação de contas de funcionários configurada (estado: CONFIGURED)
+  ✓ funcionário Paula do Balcão (ensaio) cadastrado (HTTP 201)
+  ✓ acesso ao app dado a Paula do Balcão (ensaio): conta ensaio1119170119.balcao criada no IdP
+  ✓ mapa de acessos de Paula do Balcão (ensaio): 7 permissões além do modelo (HTTP 200)
+  ✓ funcionário João do Recebimento (ensaio) cadastrado (HTTP 201)
+  ✓ acesso ao app dado a João do Recebimento (ensaio): conta ensaio1119170119.recebimento criada no IdP
+  ✓ funcionário Marcos da Coordenação (ensaio) cadastrado (HTTP 201)
+  ✓ acesso ao app dado a Marcos da Coordenação (ensaio): conta ensaio1119170119.coordenador criada no IdP
+  ✓ mapa de acessos de Marcos da Coordenação (ensaio): 2 permissões além do modelo (HTTP 200)
+  ✓ funcionário Carlos Motorista (ensaio) cadastrado (HTTP 201)
+  ✓ acesso ao app dado a Carlos Motorista (ensaio): conta ensaio1119170119.motorista criada no IdP
+  ✓ mapa de acessos de Carlos Motorista (ensaio): 5 permissões além do modelo (HTTP 200)
+  ✓ funcionário Fernanda Contadora (ensaio) cadastrado (HTTP 201)
+  ✓ acesso ao app dado a Fernanda Contadora (ensaio): conta ensaio1119170119.contador criada no IdP
+2) Cada pessoa entra pelo próprio app (PKCE, troca da senha temporária)
+  ✓ engenheiro-retirada: página de login do IdP por HTTPS (HTTP 200)
+  ✓ engenheiro-retirada: código trocado por token com o verificador PKCE (HTTP 200)
+  ✓ Paula do Balcão (ensaio) trocou a senha temporária no primeiro acesso (engenheiro-retirada)
+  ✓ Paula do Balcão (ensaio) entra na API pelo app engenheiro-retirada
+  ✓ engenheiro-retirada: página de login do IdP por HTTPS (HTTP 200)
+  ✓ engenheiro-retirada: código trocado por token com o verificador PKCE (HTTP 200)
+  ✓ João do Recebimento (ensaio) trocou a senha temporária no primeiro acesso (engenheiro-retirada)
+  ✓ João do Recebimento (ensaio) entra na API pelo app engenheiro-retirada
+  ✓ engenheiro-entregas: página de login do IdP por HTTPS (HTTP 200)
+  ✓ engenheiro-entregas: código trocado por token com o verificador PKCE (HTTP 200)
+  ✓ Marcos da Coordenação (ensaio) trocou a senha temporária no primeiro acesso (engenheiro-entregas)
+  ✓ Marcos da Coordenação (ensaio) entra na API pelo app engenheiro-entregas
+  ✓ engenheiro-entregas: página de login do IdP por HTTPS (HTTP 200)
+  ✓ engenheiro-entregas: código trocado por token com o verificador PKCE (HTTP 200)
+  ✓ Carlos Motorista (ensaio) trocou a senha temporária no primeiro acesso (engenheiro-entregas)
+  ✓ Carlos Motorista (ensaio) entra na API pelo app engenheiro-entregas
+  ✓ engenheiro-contabil: página de login do IdP por HTTPS (HTTP 200)
+  ✓ engenheiro-contabil: código trocado por token com o verificador PKCE (HTTP 200)
+  ✓ Fernanda Contadora (ensaio) trocou a senha temporária no primeiro acesso (engenheiro-contabil)
+  ✓ Fernanda Contadora (ensaio) entra na API pelo app engenheiro-contabil
+  ✓ sem token: 401 (401)
+3) Operação do dia
+  ✓ patrão cadastra o produto
+  ✓ patrão define o preço R$ 20,00/dz (HTTP 200)
+  ✓ patrão cadastra o fornecedor
+  ✓ patrão cadastra o cliente
+  ✓ patrão cadastra a conta bancária
+  ✓ recebedor registra a chegada de 500 dz no app Retirada (HTTP 201)
+  ✓ recebedor não vê custo de compra
+  ✓ patrão confere o custo (R$ 7,50/dz) e confirma a entrada (HTTP 200)
+  ✓ balconista abre o caixa com troco de R$ 100,00 (HTTP 201)
+  ✓ balconista cria pedido de retirada de 100 dz (HTTP 201) — total 2000.00
+  ✓ balconista recebe R$ 2.050,00 em dinheiro (troco R$ 50,00) (HTTP 200)
+  ✓ balconista entrega a mercadoria (HTTP 200)
+  ✓ balconista fecha o caixa contando R$ 2.100,00 (troco 100 + venda 2.000; diferença 0.00) (HTTP 200)
+  ✓ balconista não abre o relatório da empresa (HTTP 403)
+  ✓ balconista não vê a entrada com custo (HTTP 403)
+  ✓ coordenador cadastra o veículo ENS2A25 (HTTP 201)
+  ✓ coordenador cria pedido de entrega de 50 dz (HTTP 201)
+  ✓ coordenador monta a viagem e atribui ao motorista (HTTP 200)
+  ✓ motorista sai para a entrega no app Entregas (HTTP 200)
+  ✓ motorista entrega e recebe R$ 1000.00 em dinheiro (HTTP 200)
+  ✓ motorista não vê pedido do balcão (HTTP 403)
+  ✓ motorista não abre o relatório (HTTP 403)
+  ✓ contador cria a guia DAS de R$ 850,00 no app Contábil (HTTP 201)
+  ✓ contador anexa o PDF da guia (HTTP 201)
+  ✓ contador envia a guia ao dono (HTTP 200)
+  ✓ contador não aprova a própria guia (HTTP 403)
+  ✓ contador não abre o resultado da empresa (HTTP 403)
+  ✓ a guia aparece na central de aprovações do patrão
+  ✓ patrão aprova a guia (HTTP 200)
+  ✓ contador vê APROVADA e ainda NÃO paga
+  ✓ patrão paga a guia pela conta bancária (HTTP 200)
+4) Central do patrão e conciliação do período
+  ✓ central (COUNTER) mostra 25 movimento(s) de Paula do Balcão (ensaio) pelo app engenheiro-retirada: access.denied, cash.close, cash.open, orders.create, orders.fulfill, payments.register
+  ✓ central (COUNTER) mostra 4 movimento(s) de João do Recebimento (ensaio) pelo app engenheiro-retirada: inventory.receipts.create
+  ✓ central (DELIVERY) mostra 20 movimento(s) de Marcos da Coordenação (ensaio) pelo app engenheiro-entregas: orders.create, trips.assign, trips.create, trips.order_assigned, vehicles.create
+  ✓ central (DELIVERY) mostra 28 movimento(s) de Carlos Motorista (ensaio) pelo app engenheiro-entregas: access.denied, cash.open, orders.fulfill, payments.register, trips.deliver, trips.depart
+  ✓ central (ACCOUNTING) mostra 18 movimento(s) de Fernanda Contadora (ensaio) pelo app engenheiro-contabil: access.denied, documents.attach, taxes.attach, taxes.create, taxes.submit
+  ✓ conciliação do mês aberta pelo patrão (HTTP 200)
+  ✓ [Vendas] Vendas líquidas: entregas e devoluções do período × relatório: 12000.00 × 12000.00 (OK)
+  ✓ [Vendas] CMV: custo das entregas do período × relatório: 4500.00 × 4500.00 (OK)
+  ✓ [Estoque] Quantidade entregue × saída de estoque por venda (unidade base): 600 × 600 (OK)
+  ✓ [Estoque] Custo das entregas × custo das saídas de estoque: 4500.00 × 4500.00 (OK)
+  ✓ [Estoque] Perdas e ajustes aprovados no estoque × perdas do relatório: 0.00 × 0.00 (OK)
+  ✓ [Caixa] Pagamentos em dinheiro confirmados (− estornos) × entradas nos caixas: 12000.00 × 12000.00 (OK)
+  ✓ [Caixa] Recebimentos confirmados de todos os meios (− estornos) × livro: 12000.00 × 12000.00 (OK)
+  ✓ [Caixa] Caixas fechados no período: esperado gravado × fundo + movimentos: 2100.00 × 2100.00 (OK)
+  ✓ [Estoque] Estoque físico atual × soma de todas as movimentações: 0 × 0 (OK)
+  ✓ [Estoque] Reservado atual × reservas ativas dos pedidos: 0 × 0 (OK)
+  ✓ [Vendas] Venda reconhecida em cada linha de pedido × suas entregas: 0.00 × 0.00 (OK)
+  ✓ [Livro] Lançamentos do período com documento de origem existente: 0 × 0 (OK)
+  relatório do mês: receita líquida 12000.00 · CMV 4500.00 · despesas 5550.00 · perdas 0.00 · resultado 1950.00 · 8 entregas
+RESULTADO: PASS

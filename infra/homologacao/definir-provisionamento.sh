@@ -23,6 +23,25 @@ $K add-roles -r engenheiro --uusername service-account-engenheiro-provisioner --
 $K update users/profile -r engenheiro -s "unmanagedAttributePolicy=ADMIN_EDIT" >/dev/null 2>&1 || true
 $K get "clients/$ID/client-secret" -r engenheiro --fields value --format csv --noquotes')
 [[ -n "$SECRET" ]] || { echo "segredo do provisionamento não obtido"; exit 1; }
+# E-mail opcional no perfil do realm: funcionário de balcão ou motorista pode não ter e-mail, e o IdP o prenderia na
+# tela "completar perfil" no primeiro acesso (achado no ensaio do piloto, F17).
+$DC exec -T -e ADM="$KC_ADMIN_PASSWORD" keycloak sh -c '
+set -e
+K=/opt/keycloak/bin/kcadm.sh
+$K config credentials --server http://localhost:8080 --realm master --user admin-homolog --password "$ADM" >/dev/null 2>&1
+$K get users/profile -r engenheiro > /tmp/perfil.json
+cat /tmp/perfil.json' > "$HOMOLOG_DIR/.perfil.json"
+python3 -I -c "
+import json,sys; p=sys.argv[1]; d=json.load(open(p))
+[a.pop('required',None) for a in d['attributes'] if a['name']=='email']
+json.dump(d,open(p,'w'))" "$HOMOLOG_DIR/.perfil.json"
+$DC exec -T keycloak sh -c 'cat > /tmp/perfil2.json' < "$HOMOLOG_DIR/.perfil.json"
+$DC exec -T -e ADM="$KC_ADMIN_PASSWORD" keycloak sh -c '
+K=/opt/keycloak/bin/kcadm.sh
+$K config credentials --server http://localhost:8080 --realm master --user admin-homolog --password "$ADM" >/dev/null 2>&1
+$K update users/profile -r engenheiro -f /tmp/perfil2.json && rm -f /tmp/perfil.json /tmp/perfil2.json'
+rm -f "$HOMOLOG_DIR/.perfil.json"
+echo "e-mail opcional no perfil do realm"
 sed -i '/^ENGENHEIRO_PROVISIONER_CLIENT_\(ID\|SECRET\)=/d' "$HOMOLOG_DIR/.env"
 printf 'ENGENHEIRO_PROVISIONER_CLIENT_ID=engenheiro-provisioner\nENGENHEIRO_PROVISIONER_CLIENT_SECRET=%s\n' "$SECRET" >> "$HOMOLOG_DIR/.env"
 chmod 600 "$HOMOLOG_DIR/.env"
