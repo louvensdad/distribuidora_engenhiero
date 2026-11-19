@@ -1,10 +1,38 @@
 # Checkpoint
 
-Data/hora e fuso: 19/11/2026 America/Sao_Paulo (F16 concluída)
+Data/hora e fuso: 19/11/2026 America/Sao_Paulo (F17 em andamento — parte independente concluída)
 Agente e repositório: Claude Code (Opus 5.5) — `/home/louvens/Ivan/distribuidora-engenheiro` (fechamento iniciado pelo Antigravity em `b4567a4`, completado e corrigido em seguida)
 Branch e commit atual: `main` — ver `git log -1`
-Fase: F16 concluída em homologação local (produção BLOQUEADA: D07 chave do titular, D09 infraestrutura/cofre/backup externo); todas as fases F00–F16 com gate
-Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **PASS** (pendências abaixo) · F06 **PASS** (pendências abaixo) · F07 **PASS** (pendências abaixo) · F08 **PASS** (critérios provados; integração real BLOCKED: D02/D03/D04) · F09 **PASS** (IA depende da F15) · F10 **PASS** (IA real: F15) · F11 **PASS** (homologação HTTPS provada na F16) · F12 **PASS** (Android; ponta a ponta real em Keycloak/API local, widget/API e APK aberto) · F13 **PASS** (Android; transmissão fiscal real BLOQUEADA: D02/D03) · F14 **PASS** (Android; matriz de paridade integral em `docs/PARIDADE_WEB_APP.csv`) · F15 **PASS** (critérios provados com provedor de teste e adaptador contra API local; chamada real BLOCKED: `ANTHROPIC_API_KEY` e `ENGENHEIRO_IA_ORCAMENTO_USD`) · F16 **PASS** (homologação local com a forma da produção; produção BLOCKED: D07/D09; iOS sem macOS)
+Fase: F17 (aceite, piloto e operação assistida) — tudo o que não depende do cliente está feito e provado; aguardando piloto real, treinamento e assinatura
+Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **PASS** (pendências abaixo) · F06 **PASS** (pendências abaixo) · F07 **PASS** (pendências abaixo) · F08 **PASS** (critérios provados; integração real BLOCKED: D02/D03/D04) · F09 **PASS** (IA depende da F15) · F10 **PASS** (IA real: F15) · F11 **PASS** (homologação HTTPS provada na F16) · F12 **PASS** (Android; ponta a ponta real em Keycloak/API local, widget/API e APK aberto) · F13 **PASS** (Android; transmissão fiscal real BLOQUEADA: D02/D03) · F14 **PASS** (Android; matriz de paridade integral em `docs/PARIDADE_WEB_APP.csv`) · F15 **PASS** (critérios provados com provedor de teste e adaptador contra API local; chamada real BLOCKED: `ANTHROPIC_API_KEY` e `ENGENHEIRO_IA_ORCAMENTO_USD`) · F16 **PASS** (homologação local com a forma da produção; produção BLOCKED: D07/D09; iOS sem macOS) · F17 **IN_PROGRESS** (ensaio PASS; piloto real, treinamento e termo: cliente)
+
+## F17 — Aceite, piloto e operação assistida (19/11/2026, ADR-031)
+
+Feito e provado (commits `ce76475`…`dd2bec9`):
+- **Conciliação do período (UAT-02):** `GET /api/v1/reports/reconciliation` confere o relatório do mês contra
+  entregas, estoque, caixas e livro (12 verificações, só leitura, 403 sem custo); no site (Resultado e fechamento) e no
+  app Patrão (Relatórios). Testes: `PilotReconciliationIntegrationTest` (3, inclusive adulteração detectada),
+  `Finance.test.tsx`, `conciliacao_test.dart`.
+- **Ensaio do piloto (UAT-01):** `infra/homologacao/ensaio_piloto.py` — o dono cadastra a equipe e dá acesso pelo
+  sistema; balconista, recebedor, coordenador, motorista e contador entram pelo client OIDC do próprio app (PKCE),
+  trocam a senha e operam um dia; negativas por função; central por setor; caixa fechado sem diferença; conciliação OK
+  (`docs/evidence/F17-ensaio-piloto.txt`).
+- **Achados do ensaio, corrigidos:** console/API de administração do IdP expostos pela borda (agora 404; provisionamento
+  pela rede interna); "dar acesso" falhava com parênteses no nome; e-mail obrigatório prendia o primeiro acesso; o
+  provisionamento não estava configurado na homologação.
+- **Cenários sem teste dedicado:** B01 (reservas 60+50 concorrentes, 5×) e S07 (exportação revogada); site em 390 e
+  1024 px (81/81). Matriz dos 46 cenários: `docs/aceite/MATRIZ_CENARIOS.md` (40 PASS, 5 PASS com provedor de teste,
+  1 PARCIAL — leitor de tela real).
+- **Entrega (UAT-03):** guias por perfil com os rótulos reais, suporte e operação assistida, inventário com checksums,
+  termo de aceite (minuta) e pendências em `docs/entrega/` e `docs/aceite/`.
+- Pipeline `verificar.sh` PASS em `dd2bec9` (18 portões, API 199/0); 4 APKs de homologação build 51 verificados;
+  homologação no ar em `a79ef78` (mesmo código).
+
+Falta (cliente/titular): roteiro nos aparelhos da loja com as pessoas reais, conciliação do período piloto real e
+contagem física, treinamento presencial, sessão com leitor de tela, assinatura do termo; e os insumos externos de
+`docs/aceite/PENDENCIAS.md` (D07, D09, D02/D03/D04, D13, comando de alerta, iOS).
+
+Próximo passo: agendar o piloto com o dono; durante ele, seguir `SUPORTE_E_OPERACAO_ASSISTIDA.md`.
 
 ## F16 — Endurecimento e implantação (19/11/2026, ADR-030)
 
