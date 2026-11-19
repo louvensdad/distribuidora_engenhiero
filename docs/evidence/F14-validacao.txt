@@ -1,0 +1,46 @@
+F14 — validação do App Patrão
+Data: 19/11/2026, America/Sao_Paulo
+Repositório: /home/louvens/Ivan/distribuidora-engenheiro (branch main)
+
+Análise, testes e build
+- `flutter analyze apps/mobile-owner packages/mobile-core packages/mobile-api`: No issues found.
+- `flutter test --no-pub` em `packages/mobile-core`: 45 testes passaram.
+- `flutter test --no-pub` em `apps/mobile-owner`: 3 testes passaram.
+- `./mvnw -Dtest=PatraoAppIntegrationTest test`: BUILD SUCCESS, 4 testes, 0 falhas/erros.
+- `./mvnw -q -DskipTests compile`: código de saída 0.
+- `/home/louvens/development/flutter/bin/flutter build apk --debug --no-pub`: APK gerado em
+  `apps/mobile-owner/build/app/outputs/flutter-apk/app-debug.apk`, instalado e aberto no AVD `engenheiro_api36`.
+- Testes móveis cobrem filtro de histórico por tipo de registro e busca geral por placa enviada ao servidor; também
+  verificam que a origem autorizada do movimento é exibida.
+
+Fluxo autenticado no AVD com Keycloak/API locais
+- A conta de homologação `patrao` autenticou no app independente. Início exibiu usuário da sessão, pendências,
+  resultado e meta retornados pelo servidor (`telas-mobile/F14-patrao-login.png`).
+- Central mostrou movimentos e atalhos dos setores de Retirada, Entregas e Contabilidade
+  (`telas-mobile/F14-patrao-central.png`, `F14-patrao-central-setores.png`,
+  `F14-patrao-central-contabilidade.png`). A fila de aprovações também abriu
+  (`telas-mobile/F14-patrao-aprovacoes.png`). O APK atualizado exibe os cinco destinos e os módulos em Mais
+  (`telas-mobile/F14-patrao-mais-check.png`, `F14-patrao-atualizado.png`). Os registros mostrados são dados fictícios
+  do ambiente local.
+
+Coberturas dos quatro testes Java: trilha pedido → baixa de estoque → viagem → pagamento → gasto, sem valores de custo;
+campo sensível mascarado segundo capacidade; mudança feita pelo token do site visível ao token do app e versão antiga
+recusada; evento não autorizado sem exposição a outro usuário. A UI usa a mesma conta do App Patrão; as ações
+permanecem atribuídas ao dono e ao `client_id` do app.
+
+Limite de escopo: a linha IA da matriz continua explicitamente em F15. F14 permanece IN_PROGRESS enquanto a matriz de
+paridade mantiver essa capacidade como pendência; não declarei a fase completa.
+
+Revisão e correções (19/11/2026, sessão seguinte)
+- `python3 -I docs/especificacao/ferramentas/validar_pacote.py`: antes FALHAVA (AssertionError: design/PARIDADE_WEB_APP.csv,
+  arquivo da especificação editado). Restaurados os dois arquivos da especificação; matriz preenchida em
+  `docs/PARIDADE_WEB_APP.csv`. Depois: "PASS: 99 requisitos; 18 fases; 58 telas; SVGs, links estruturados e checksums verificados."
+- `OrderService.history`: elos de gasto de veículo e recebível agora exigem a capacidade do próprio recurso (FUEL → fuel,
+  demais → expenses, recebível de cliente → payments). Teste negativo adicionado ao
+  `PatraoAppIntegrationTest.trilhaEncadeadaDoPedidoAteADespesaDaViagem` (só `expenses` → sem vehicle_expense nem receivable;
+  com `fuel` → abastecimento da viagem aparece).
+- `./mvnw -Dtest='PatraoAppIntegrationTest,Order*Test' test`: OrdersIntegrationTest 11, PatraoAppIntegrationTest 4, 0 falhas.
+- `./mvnw test` (suíte inteira): 167 testes, 0 falhas, 0 erros.
+- `apps/web-admin`: `npm run typecheck` código 0; `vitest run` 69/69 em 3 rodadas seguidas (EmployeesRegistry.test.tsx tinha
+  espera de 1 s instável sob carga; limite da busca subiu para 5 s).
+- Flutter: `flutter analyze` sem problemas; mobile-core 45, mobile-owner 3, mobile-api 6 testes passaram.

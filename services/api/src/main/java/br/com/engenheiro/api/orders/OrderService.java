@@ -722,20 +722,58 @@ public class OrderService {
     }
 
     public record HistoryItem(OffsetDateTime occurred_at, String action, String actor_name, String client_id,
-                              String entity_type) {
+                              String entity_type, String entity_id) {
     }
 
-    /** Etapas do pedido e dos pagamentos dele, com autor e app de origem; visível a quem vê o pedido. */
+    /**
+     * Trilha encadeada do pedido (F14): pedido e pagamentos; baixa/devolução de estoque; a viagem que o entregou;
+     * recebíveis (cartão/fiado) e os gastos dessa viagem. Cada elo só entra para quem pode ver aquele recurso — quem só
+     * vê o pedido continua vendo só o pedido e os pagamentos. Ações e autores, nunca valores.
+     */
     @Transactional(readOnly = true)
     public List<HistoryItem> history(Actor actor, UUID id) {
         get(actor, id); // autoriza pelo pedido
+        boolean trips = authz.decide(actor, "trips", "view").allowed();
+        boolean stock = authz.decide(actor, "inventory.stock", "view").allowed();
+        // Recebível de cliente (cartão/fiado) é recurso "payments"; gasto de veículo: FUEL é "fuel", os demais "expenses".
+        boolean recv = authz.decide(actor, "payments", "view").allowed();
+        boolean fuel = authz.decide(actor, "fuel", "view").allowed();
+        boolean expenses = authz.decide(actor, "expenses", "view").allowed();
         return jdbc.sql("""
-                        SELECT a.occurred_at, a.action, u.display_name AS actor_name, a.client_id, a.entity_type
-                          FROM audit_events a LEFT JOIN app_users u ON u.id = a.actor_user_id
-                         WHERE a.organization_id = :org AND a.result = 'SUCCESS'
-                           AND (a.entity_id = :oid OR a.entity_id IN (SELECT id::text FROM payments WHERE order_id = :o))
-                         ORDER BY a.occurred_at, a.id
+                        SELECT occurred_at, action, actor_name, client_id, entity_type, entity_id FROM (
+                          SELECT a.occurred_at, a.id::text AS k, a.action, u.display_name AS actor_name, a.client_id,
+                                 a.entity_type, a.entity_id
+                            FROM audit_events a LEFT JOIN app_users u ON u.id = a.actor_user_id
+                           WHERE a.organization_id = :org AND a.result = 'SUCCESS'
+                             AND (a.entity_id = :oid
+                                  OR a.entity_id IN (SELECT id::text FROM payments WHERE order_id = :o)
+                                  OR (:trips AND a.entity_type = 'trip'
+                                      AND a.entity_id IN (SELECT trip_id::text FROM trip_stops WHERE order_id = :o))
+                                  OR (:recv AND a.entity_type = 'receivable'
+                                      AND a.entity_id IN (SELECT id::text FROM receivables
+                                                           WHERE order_id = :o AND kind <> 'SUPPLIER_CREDIT'))
+                                  OR (a.entity_type = 'vehicle_expense'
+                                      AND a.entity_id IN (SELECT ve.id::text FROM vehicle_expenses ve
+                                                            JOIN trip_stops ts ON ts.trip_id = ve.trip_id
+                                                           WHERE ts.order_id = :o
+                                                             AND ((ve.kind = 'FUEL' AND :fuel)
+                                                                  OR (ve.kind <> 'FUEL' AND :expenses)))))
+                          UNION ALL
+                          SELECT m.occurred_at, m.id::text, 'inventory.' || lower(m.kind), u.display_name,
+                                 -- o movimento herda o app do comando que o gerou (retirada/entrega ou devolução)
+                                 (SELECT ae.client_id FROM audit_events ae
+                                   WHERE ae.organization_id = :org AND ae.entity_id = :oid
+                                     AND (ae.changes ->> 'fulfillment_id' = m.source_id::text
+                                          OR ae.changes ->> 'return_id' = m.source_id::text)
+                                   LIMIT 1),
+                                 'product', m.product_id::text
+                            FROM stock_movements m JOIN app_users u ON u.id = m.created_by
+                           WHERE :stock AND m.organization_id = :org
+                             AND m.source_type IN ('order_fulfillment', 'order_return')
+                             AND m.source_id IN (SELECT id FROM fulfillments WHERE order_id = :o)
+                        ) t ORDER BY occurred_at, k
                         """).param("org", actor.organizationId()).param("oid", id.toString()).param("o", id)
+                .param("trips", trips).param("stock", stock).param("recv", recv).param("fuel", fuel).param("expenses", expenses)
                 .query(HistoryItem.class).list();
     }
 

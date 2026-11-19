@@ -198,6 +198,8 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   "payroll.approve": "Aprovou folha",
   "payroll.return": "Devolveu folha",
   "payroll.cancel": "Cancelou folha",
+  "inventory.sale_issue": "Baixou estoque (venda)",
+  "inventory.sale_return": "Devolveu ao estoque (devolução)",
   "payroll.pay": "Pagou salários",
   "payroll.export": "Exportou folha",
   "documents.upload": "Enviou documento",

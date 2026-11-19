@@ -110,6 +110,8 @@ const auditActionLabels = {
   'taxes.cancel': 'Cancelou guia',
   'taxes.update': 'Ajustou guia',
   'payroll.cancel': 'Cancelou folha',
+  'inventory.sale_issue': 'Baixou estoque (venda)',
+  'inventory.sale_return': 'Devolveu ao estoque (devolução)',
   'team.absence.approve': 'Aprovou folga/férias',
   'team.absence.cancel': 'Cancelou folga/férias',
   'team.absence.create': 'Registrou folga/férias',

@@ -1079,6 +1079,22 @@ class _InvoiceCardState extends State<_InvoiceCard> {
   ApiException? _error;
   String _transmitKey = ApiClient.newIdempotencyKey();
 
+  Future<void> _reasoned(String title, Future<Object?> Function(ApiClient api, String why) fn, String ok) async {
+    final c = TextEditingController();
+    final why = await showDialog<String>(context: context, builder: (d) => AlertDialog(
+      title: Text(title),
+      content: TextField(controller: c, autofocus: true, decoration: const InputDecoration(labelText: 'Justificativa *')),
+      actions: [
+        TextButton(onPressed: () => Navigator.of(d).pop(), child: const Text('Voltar')),
+        FilledButton(onPressed: () => Navigator.of(d).pop(c.text.trim()), child: const Text('Confirmar')),
+      ],
+    ));
+    if (why == null || why.isEmpty || !mounted) return;
+    await _do((api) async {
+      await fn(api, why);
+    }, ok);
+  }
+
   /// C07 "Transmitir autorizado": só com invoices.confirm e provedor configurado. O resultado mostrado é o do servidor:
   /// rejeição aparece como rejeição; em curso/incerta não é emissão.
   Future<void> _transmit() async {
@@ -1147,6 +1163,25 @@ class _InvoiceCardState extends State<_InvoiceCard> {
           onPressed: () => _do((api) => api.reviewInvoice(id: n.id, version: n.version), 'Nota conferida.'),
           child: const Text('Conferir nota'),
         )),
+      if (n.cancelReason != null) Text('Cancelamento: ${n.cancelReason}', style: const TextStyle(color: EngColors.muted)),
+      if (n.state == 'AUTHORIZED' && n.xmlDocumentId != null && me.can('invoices.export'))
+        DocumentViewButton(doc: DocumentInfo(id: n.xmlDocumentId!, fileName: 'nfe-${n.accessKey ?? n.id}.xml', mime: 'application/xml',
+            sizeBytes: 0, state: 'AVAILABLE', createdByName: ''), label: 'Baixar XML'),
+      Wrap(spacing: 8, children: [
+        if ((n.state == 'UNCERTAIN' || n.state == 'TRANSMITTING' || n.state == 'CANCEL_PENDING') && me.can('invoices.confirm'))
+          OutlinedButton(
+            onPressed: () => _do((api) async => api.sendJson('POST', '/api/v1/invoices/${n.id}/resolution', null),
+                'Consulta feita: veja o resultado do provedor.'),
+            child: const Text('Consultar resultado'),
+          ),
+        if (n.state == 'AUTHORIZED' && me.can('invoices.cancel'))
+          OutlinedButton(onPressed: () => _reasoned('Cancelar nota', (api, why) => api.sendJson('POST', '/api/v1/invoices/${n.id}/cancellation',
+              {'reason': why}, ifMatch: n.version, idempotencyKey: ApiClient.newIdempotencyKey()), 'Cancelamento enviado.'),
+              child: const Text('Cancelar nota')),
+        if ((n.state == 'DRAFT' || n.state == 'READY' || n.state == 'REJECTED') && me.can('invoices.create'))
+          OutlinedButton(onPressed: () => _reasoned('Descartar rascunho', (api, why) => api.sendJson('POST', '/api/v1/invoices/${n.id}/discard',
+              {'reason': why}, ifMatch: n.version), 'Rascunho descartado.'), child: const Text('Descartar')),
+      ]),
       if (n.state == 'READY' && me.can('invoices.confirm'))
         Padding(padding: const EdgeInsets.only(top: 8), child: FilledButton(
           onPressed: widget.blocked ? null : _transmit,

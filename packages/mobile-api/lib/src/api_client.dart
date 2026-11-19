@@ -357,10 +357,30 @@ class ApiClient {
       InvoiceInfo.fromJson(await _post('/api/v1/invoices/$id/transmission', null, ifMatch: '"$version"', idempotencyKey: idempotencyKey));
 
   /// Bytes de um anexo privado pelo download autorizado e auditado do servidor.
-  Future<({Uint8List bytes, String mime})> downloadDocument(String id, {bool retried = false}) async {
+  Future<({Uint8List bytes, String mime})> downloadDocument(String id) async {
+    final f = await getBytes('/api/v1/documents/$id/download');
+    return (bytes: f.bytes, mime: f.mime);
+  }
+
+  // ---- F14: acesso genérico (app Patrão). O servidor continua autoridade: estes métodos só transportam. ----
+  Future<Map<String, dynamic>> getJson(String path, [Map<String, String?> query = const {}]) => _get(path, query);
+
+  /// POST/PUT com corpo JSON; `ifMatch` recebe a versão (número) e vira "\"n\""; `idempotencyKey` identifica a intenção.
+  Future<Map<String, dynamic>> sendJson(String method, String path, Object? body, {Object? ifMatch, String? idempotencyKey}) =>
+      _post(path, body, method: method, idempotencyKey: idempotencyKey,
+          ifMatch: ifMatch == null ? null : (ifMatch is String && ifMatch.startsWith('"') ? ifMatch : '"$ifMatch"'));
+
+  Future<Map<String, dynamic>> sendMultipart(String path, Map<String, String> fields, String fileName, List<int> bytes,
+          String contentType) =>
+      _multipart(path, fields, fileName, bytes, contentType);
+
+  /// Arquivo (CSV/PDF/XLSX/anexo) com nome sugerido pelo servidor (Content-Disposition), se houver.
+  Future<({Uint8List bytes, String mime, String? fileName})> getBytes(String path,
+      {Map<String, String?> query = const {}, bool retried = false}) async {
     final token = await tokenProvider(forceRefresh: retried);
     if (token == null) throw ApiException(status: 401, code: 'UNAUTHENTICATED', detail: 'Sessão encerrada. Entre novamente.');
-    final req = http.Request('GET', baseUrl.replace(path: '/api/v1/documents/$id/download'))
+    final q = {for (final e in query.entries) if (e.value != null && e.value!.isNotEmpty) e.key: e.value!};
+    final req = http.Request('GET', baseUrl.replace(path: path, queryParameters: q.isEmpty ? null : q))
       ..headers['Authorization'] = 'Bearer $token';
     http.Response res;
     try {
@@ -368,11 +388,14 @@ class ApiClient {
     } catch (_) {
       throw ApiException(status: 0, code: 'NETWORK_ERROR', detail: 'Sem conexão com o servidor.');
     }
-    if (res.statusCode == 401 && !retried) return downloadDocument(id, retried: true);
+    if (res.statusCode == 401 && !retried) return getBytes(path, query: query, retried: true);
     if (res.statusCode >= 400) {
       throw ApiException.fromProblem(res.statusCode, _decode(utf8.decode(res.bodyBytes, allowMalformed: true)));
     }
-    return (bytes: res.bodyBytes, mime: (res.headers['content-type'] ?? 'application/octet-stream').split(';').first.trim());
+    final cd = res.headers['content-disposition'];
+    final name = cd == null ? null : RegExp(r'filename="?([^";]+)"?').firstMatch(cd)?.group(1);
+    return (bytes: res.bodyBytes, mime: (res.headers['content-type'] ?? 'application/octet-stream').split(';').first.trim(),
+        fileName: name);
   }
 
   // ---- F08: notas fiscais ----

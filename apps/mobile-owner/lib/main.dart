@@ -2,95 +2,80 @@ import 'package:engenheiro_core/engenheiro_core.dart';
 import 'package:engenheiro_design/engenheiro_design.dart';
 import 'package:material_ui/material_ui.dart';
 
-/// Engenheiro Patrão (br.com.engenheiro.gestao): paridade com o site + Central dos outros três setores.
+/// Engenheiro Patrão (br.com.engenheiro.gestao): paridade com o site + Central dos outros três setores (F14).
+/// Tudo o que o dono faz aqui vai com a conta e o client dele (engenheiro-gestao); o servidor decide o que pode.
 final config = AppConfig(
   appName: 'Engenheiro Patrão',
   applicationId: 'br.com.engenheiro.gestao',
   clientId: 'engenheiro-gestao',
   audienceDescription: 'Gestão completa e central dos setores',
+  // design/01_DIRECAO_VISUAL: "Patrão: Início, Central, Relatórios, IA e Mais. Aprovações ficam visíveis na Central e no Início."
   destinations: [
-    Destination(id: 'inicio', label: 'Início', icon: 'home', builder: (_) => const HomeSummaryScreen()),
-    Destination(id: 'central', label: 'Central', icon: 'dashboard', anyOf: const ['audit.view'], builder: (_) => const CentralScreen()),
+    Destination(id: 'inicio', label: 'Início', icon: 'home', builder: (c) => OwnerHomeScreen(
+        openApprovals: () => pushScreen(c, 'Aprovações', const ApprovalsScreen()))),
+    Destination(id: 'central', label: 'Central', icon: 'dashboard', builder: (_) => const OwnerCentralScreen(enter: sectorShortcuts)),
     Destination(id: 'relatorios', label: 'Relatórios', icon: 'report', anyOf: const ['reports.view'],
-        builder: (_) => const ReportsScreen()),
+        builder: (_) => const OwnerReportsHub()),
     Destination(id: 'ia', label: 'IA', icon: 'ai', anyOf: const ['ai.view'], pendingPhase: 'F15',
         builder: (_) => const PendingModuleView(title: 'IA da gestão', phase: 'F15')),
-    Destination(id: 'mais', label: 'Mais', icon: 'settings',
-        anyOf: const ['users.view', 'customers.view', 'audit.view', 'inventory.stock.view', 'inventory.receipts.view',
-          'orders.pickup.view', 'reports.view'],
-        builder: (_) => const MoreScreen()),
+    Destination(id: 'mais', label: 'Mais', icon: 'settings', builder: (_) => const ModulesScreen()),
   ],
 );
 
+/// "Entrar no setor" a partir da central (P03), com as mesmas telas do resto do app.
+const sectorShortcuts = <String, List<(String, Widget)>>{
+  'COUNTER': [('Pedidos', OwnerOrdersScreen()), ('Estoque', OwnerStockScreen()), ('Recebimentos', ReceiptsScreen())],
+  'DELIVERY': [('Viagens', OwnerTripsScreen()), ('Frota', FleetScreen())],
+  'ACCOUNTING': [('Guias', OwnerTaxesScreen()), ('Folha', OwnerPayrollScreen()), ('Notas', InvoicesScreen()),
+    ('Documentos', AccountingDocumentsScreen())],
+};
+
 void main() => runApp(EngenheiroApp(config: config));
 
-/// Central: Retirada, Entregas e Contabilidade com cada movimento e o ator real (filtro por app de origem).
-class CentralScreen extends StatelessWidget {
-  const CentralScreen({super.key});
-  @override
-  Widget build(BuildContext context) => DefaultTabController(
-        length: 3,
-        child: Column(children: [
-          const TabBar(tabs: [Tab(text: 'Retirada'), Tab(text: 'Entregas'), Tab(text: 'Contabilidade')]),
-          Expanded(
-            child: TabBarView(children: [
-              ActivityScreen(clientId: 'engenheiro-retirada', emptyMessage: 'Nenhuma atividade registrada pelo app de Retirada.'),
-              ActivityScreen(clientId: 'engenheiro-entregas', emptyMessage: 'Nenhuma atividade registrada pelo app de Entregas.'),
-              ActivityScreen(clientId: 'engenheiro-contabil', emptyMessage: 'Nenhuma atividade registrada pelo app Contábil.'),
-            ]),
-          ),
-        ]),
-      );
-}
-
-class MoreScreen extends StatelessWidget {
-  const MoreScreen({super.key});
+/// P12 — todos os módulos do site no celular. Cada item aparece só com a permissão correspondente.
+class ModulesScreen extends StatelessWidget {
+  const ModulesScreen({super.key});
   @override
   Widget build(BuildContext context) {
-    final s = EngScope.of(context);
-    void open(String title, Widget child) => Navigator.of(context).push(MaterialPageRoute<void>(
-        builder: (_) => EngScope(config: s.config, session: s.session, child: Scaffold(appBar: AppBar(title: Text(title)), body: child))));
+    final me = EngScope.of(context).me;
+    Widget item(String icon, String title, String sub, Widget screen) => Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Card(child: ListTile(
+            minVerticalPadding: 14,
+            leading: EngIcon(icon, color: EngColors.cyan),
+            title: Text(title),
+            subtitle: Text(sub),
+            trailing: const EngIcon('arrow', size: 18, color: EngColors.muted),
+            onTap: () => pushScreen(context, title, screen),
+          )),
+        );
     return ListView(padding: const EdgeInsets.all(16), children: [
-      if (s.me.can('reports.view'))
-        _Item('wallet', 'Financeiro', 'Resultado do mês, caixa disponível e conciliação', () => open('Financeiro', const FinanceSummaryScreen())),
-      if (s.me.can('customers.view'))
-        _Item('users', 'Clientes', 'Cadastro e busca', () => open('Clientes', const CustomersScreen())),
-      if (s.me.can('orders.pickup.view') || s.me.can('orders.delivery.view'))
-        _Item('order', 'Pedidos', 'Reserva, pagamento e retirada com autor', () => open('Pedidos', const OrdersScreen())),
-      if (s.me.can('own_cash.view'))
-        _Item('cash', 'Meu caixa', 'Fundo, recebimentos em dinheiro e fechamento', () => open('Meu caixa', const CashScreen())),
-      if (s.me.can('inventory.stock.view'))
-        _Item('inventory', 'Estoque', 'Físico, reservado, disponível e perdas', () => open('Estoque', const StockScreen())),
-      if (s.me.can('inventory.receipts.view'))
-        _Item('supplier', 'Recebimentos de fornecedor', 'Conferência, custo e entrada no estoque', () => open('Recebimentos', const ReceiptsScreen())),
-      if (s.me.can('users.view')) _Item('shield', 'Pessoas', 'Equipe e situação das contas', () => open('Pessoas', const PeopleScreen())),
-      if (s.me.can('audit.view'))
-        _Item('history', 'Histórico completo', 'Todos os movimentos com ator real', () => open('Histórico', const ActivityScreen())),
-      if (s.me.can('permissions.view'))
-        _Item('lock', 'Mapa de acessos', 'Edição no app chega na F14 (paridade). Hoje: pelo site.',
-            () => open('Mapa de acessos', const PendingModuleView(title: 'Mapa de acessos no app', phase: 'F14'))),
+      item('search', 'Buscar registro', 'Pedido, viagem, placa, cliente, fornecedor ou produto', const OwnerSearchScreen()),
+      item('order', 'Vendas e operação', 'Pedidos, clientes, fornecedores, produtos, estoque, frota e viagens', const OperationHubScreen()),
+      item('wallet', 'Financeiro', 'Contas, despesas, pagar e receber, fechamento, Open Finance', const FinanceHubScreen()),
+      if (me.can('taxes.view') || me.can('payroll.view') || me.can('invoices.view') || me.can('documents.view'))
+        item('tax', 'Contabilidade e documentos', 'Guias, folha, notas fiscais e documentos privados', const AccountingHubScreen()),
+      item('users', 'Equipe e acessos', 'Pessoas, permissões, funcionários, cargos, folgas e unidades', const TeamHubScreen()),
+      if (me.can('audit.view'))
+        item('history', 'Histórico completo', 'Cada movimento com autor, app e o que mudou', const HistoryScreen()),
+      if (me.can('own_cash.view')) item('cash', 'Meu caixa', 'Fundo, recebimentos em dinheiro e fechamento', const CashScreen()),
+      item('shield', 'Aprovações', 'Tudo que espera a sua decisão', const ApprovalsScreen()),
     ]);
   }
 }
 
-class _Item extends StatelessWidget {
-  const _Item(this.icon, this.title, this.subtitle, this.onTap);
-  final String icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
+class AccountingHubScreen extends StatelessWidget {
+  const AccountingHubScreen({super.key});
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Card(
-          child: ListTile(
-            minVerticalPadding: 14,
-            leading: EngIcon(icon, color: EngColors.cyan),
-            title: Text(title),
-            subtitle: Text(subtitle),
-            trailing: const EngIcon('arrow', size: 18, color: EngColors.muted),
-            onTap: onTap,
-          ),
-        ),
-      );
+  Widget build(BuildContext context) {
+    final me = EngScope.of(context).me;
+    Widget item(String title, String sub, Widget screen) =>
+        Card(child: ListTile(title: Text(title), subtitle: Text(sub), onTap: () => pushScreen(context, title, screen)));
+    return ListView(padding: const EdgeInsets.all(16), children: [
+      if (me.can('taxes.view')) item('Guias e impostos', 'Aprovar, devolver e pagar', const OwnerTaxesScreen()),
+      if (me.can('payroll.view')) item('Folha de pagamento', 'Aprovar, devolver, pagar e exportar', const OwnerPayrollScreen()),
+      if (me.can('invoices.view')) item('Notas fiscais', 'Conferir, transmitir, consultar, cancelar', const InvoicesScreen()),
+      if (me.can('documents.view')) item('Documentos', 'Arquivos privados e solicitações', const AccountingDocumentsScreen()),
+    ]);
+  }
 }

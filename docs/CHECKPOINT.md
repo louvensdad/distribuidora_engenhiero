@@ -1,10 +1,43 @@
 # Checkpoint
 
-Data/hora e fuso: 17/11/2026 15:50 America/Sao_Paulo
+Data/hora e fuso: 19/11/2026 12:51 America/Sao_Paulo
 Agente e repositório: Claude Code (Opus 5.5) — `/home/louvens/Ivan/distribuidora-engenheiro`
 Branch e commit atual: `main` — ver `git log -1`
-Fase: F13 concluída; próxima F14
+Fase: F14 — IN_PROGRESS; módulos validados, paridade de IA explicitamente destinada à F15
 Gate: F00 **PASS** · F01 **PASS** (com limites) · F02 **PASS** (Android; iOS sem macOS) · F03 **PASS** · F04 **PASS** (pendências abaixo) · F05 **PASS** (pendências abaixo) · F06 **PASS** (pendências abaixo) · F07 **PASS** (pendências abaixo) · F08 **PASS** (critérios provados; integração real BLOCKED: D02/D03/D04) · F09 **PASS** (IA depende da F15) · F10 **PASS** (IA real: F15) · F11 **PASS** (homologação HTTPS: F16) · F12 **PASS** (Android; ponta a ponta real em Keycloak/API local, widget/API e APK aberto) · F13 **PASS** (Android; transmissão fiscal real BLOQUEADA: D02/D03)
+
+## F14 — App Patrão e central (19/11/2026)
+
+Hubs e telas para central dos três setores, histórico com filtros/detalhe, aprovações, operações, financeiro,
+relatórios/metas, equipe/permissões e busca. Métodos autenticados para JSON, multipart e downloads no cliente móvel;
+detalhes de auditoria mascaram campos sensíveis; trilha do pedido agrega estoque, viagem, recebíveis e gastos somente
+quando o ator tem a capacidade correspondente.
+Matriz web/app preenchida em `docs/PARIDADE_WEB_APP.csv` (o modelo em `docs/especificacao/design/` permanece intacto);
+APP-P-01..04 associados em `docs/MAPA_REQUISITOS.md`.
+
+Revisão de 19/11/2026 (mesma data, sessão seguinte), divergências corrigidas:
+- A sessão anterior editou `especificacao/design/PARIDADE_WEB_APP.csv` e `especificacao/plano/cobertura-requisitos.csv`,
+  o que quebrava `validar_pacote.py` (checksum) e a regra de não editar a especificação. Os dois arquivos foram
+  restaurados; a matriz preenchida foi para `docs/PARIDADE_WEB_APP.csv` e a cobertura para `docs/MAPA_REQUISITOS.md`
+  (que ainda não tinha as linhas APP-P, embora o checkpoint dissesse que tinha).
+- Trilha do pedido (`OrderService.history`): `expenses.view` abria recebíveis de cliente (recurso `payments`), e `fuel`
+  ou `expenses` abriam os dois tipos de gasto de veículo. Agora cada elo exige a própria capacidade (FUEL → `fuel`,
+  demais → `expenses`; recebível de cliente → `payments`). Removido o ramo `receivable_settlement`, que nunca casava
+  (a baixa é auditada como `receivable`). Teste negativo novo em `trilhaEncadeadaDoPedidoAteADespesaDaViagem`.
+
+Validação: `flutter analyze` sem problemas; `mobile-core` 45 testes e `mobile-owner` 3; `PatraoAppIntegrationTest` 4;
+APK debug atualizado gerado, instalado e aberto no AVD; login real com `patrao`; Início, Central (Retirada, Entregas e
+Contabilidade) e fila de aprovações carregaram dados do servidor. Os filtros por tipo de registro e a busca por placa
+foram exercitados por testes. O teste de integração comprovou trilha, mascaramento, atualização site→app, versão velha
+recusada e evento não autorizado sem vazamento. Evidências em `docs/evidence/F14-validacao.txt` e
+`docs/evidence/telas-mobile/F14-patrao-*.png`.
+
+O App Patrão permanece em desenvolvimento para paridade integral: o único módulo explicitamente futuro na matriz é IA,
+cuja implementação pertence à F15 (dependência declarada pelo plano). Não marquei F14 como fase completa enquanto a
+matriz ainda o lista. Transmissão fiscal real continua bloqueada até existir provedor (D02/D03).
+
+Próximo passo: avançar para F15 após a decisão/provedor de IA; preservar o estado F14 validado e a exceção explícita da
+IA até a matriz integral ser fechada.
 
 ## F13 — app Contábil (17/11/2026, ADR-028)
 
@@ -413,5 +446,5 @@ ENGENHEIRO_SENHA_LOCAL=... python3 -I ../../infra/local/e2e_login_web.py
 
 ## Próxima ação
 
-1. **F14**: aplicativo do patrão com paridade integral (central dos três setores, aprovações e notas pelo celular).
+1. Avançar para F15, conforme decisão/provedor de IA; manter explícita a pendência na matriz até implementação.
 2. Validar com o dono/contador os cargos e campos de RH (ADR-027).

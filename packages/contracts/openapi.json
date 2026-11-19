@@ -3194,6 +3194,12 @@
                     "string",
                     "null"
                   ]
+                },
+                "entity_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 }
               },
               "required": [
@@ -3202,7 +3208,8 @@
               ]
             }
           }
-        }
+        },
+        "description": "Trilha encadeada: pedido, pagamentos, estoque, viagem, recebíveis e gastos (cada elo só com a permissão do recurso)."
       },
       "DeliveryInput": {
         "type": "object",
@@ -10071,6 +10078,27 @@
         "required": [
           "items"
         ]
+      },
+      "AuditDetail": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "F14: evento com o que mudou; campo sensível sem permissão sai '•••' (nome em masked_fields).",
+        "properties": {
+          "event": {
+            "$ref": "#/components/schemas/AuditEvent"
+          },
+          "changes": {},
+          "masked_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "event",
+          "masked_fields"
+        ]
       }
     }
   },
@@ -10442,6 +10470,44 @@
             }
           }
         ]
+      }
+    },
+    "/api/v1/audit-events/{id}": {
+      "get": {
+        "summary": "Detalhe do movimento com antes/depois autorizados",
+        "x-capability": "audit.view",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
       }
     },
     "/api/v1/customers": {

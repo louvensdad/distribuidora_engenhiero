@@ -2,6 +2,7 @@ package br.com.engenheiro.api.audit;
 
 import br.com.engenheiro.api.identityaccess.application.AuthorizationService;
 import br.com.engenheiro.api.identityaccess.domain.Actor;
+import br.com.engenheiro.api.identityaccess.domain.FieldClass;
 import br.com.engenheiro.api.shared.web.ApiException;
 import br.com.engenheiro.api.shared.web.ErrorCode;
 import java.nio.charset.StandardCharsets;
@@ -9,14 +10,21 @@ import br.com.engenheiro.api.identityaccess.domain.AppClients;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeSet;
 import java.util.UUID;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 /** Histórico com ator real. Paginação por cursor (padrão 25, máximo 100), sempre filtrado pela organização. */
 @RestController
@@ -24,10 +32,79 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuditController {
     private final JdbcClient jdbc;
     private final AuthorizationService authz;
+    private final JsonMapper json;
 
-    public AuditController(JdbcClient jdbc, AuthorizationService authz) {
+    public AuditController(JdbcClient jdbc, AuthorizationService authz, JsonMapper json) {
         this.jdbc = jdbc;
         this.authz = authz;
+        this.json = json;
+    }
+
+    /** Chave de `changes` → classe de campo sensível. Qualquer profundidade (antes/depois, linhas). */
+    static final Map<String, FieldClass> SENSITIVE_KEYS = Map.ofEntries(
+            Map.entry("unit_cost", FieldClass.PURCHASE_COST), Map.entry("total_cost", FieldClass.PURCHASE_COST),
+            Map.entry("cost", FieldClass.PURCHASE_COST), Map.entry("freight", FieldClass.PURCHASE_COST),
+            Map.entry("freight_cost", FieldClass.PURCHASE_COST), Map.entry("purchase_cost", FieldClass.PURCHASE_COST),
+            Map.entry("cmv", FieldClass.PURCHASE_COST),
+            Map.entry("margin", FieldClass.MARGIN),
+            Map.entry("personal_document", FieldClass.PERSONAL_DOCUMENT), Map.entry("cpf", FieldClass.PERSONAL_DOCUMENT),
+            Map.entry("rg", FieldClass.PERSONAL_DOCUMENT), Map.entry("company_document", FieldClass.PERSONAL_DOCUMENT),
+            Map.entry("salary", FieldClass.EMPLOYEE_SALARY), Map.entry("base_salary", FieldClass.EMPLOYEE_SALARY),
+            Map.entry("contact", FieldClass.OPERATIONAL_CONTACT), Map.entry("phone", FieldClass.OPERATIONAL_CONTACT),
+            Map.entry("address", FieldClass.DELIVERY_ADDRESS),
+            Map.entry("bank_account", FieldClass.BANK_DATA), Map.entry("pix_key", FieldClass.BANK_DATA),
+            Map.entry("agency", FieldClass.BANK_DATA));
+
+    public record AuditDetail(AuditView event, JsonNode changes, List<String> masked_fields) {
+    }
+
+    /**
+     * P10 "antes/depois dos campos autorizados": o evento com o que mudou. Campo sensível que quem consulta não pode
+     * ver sai como "•••" (e o nome vai em masked_fields), em qualquer profundidade. Mesma permissão da lista.
+     */
+    @GetMapping("/{id}")
+    public AuditDetail detail(Actor actor, @PathVariable UUID id) {
+        authz.require(actor, "audit", "view");
+        record Row(UUID id, OffsetDateTime occurred_at, UUID actor_user_id, String actor_name, String actor_kind,
+                   String client_id, String action, String entity_type, String entity_id, String result, String reason,
+                   String request_id, String changes) {
+        }
+        Row r = jdbc.sql("""
+                        SELECT a.id, a.occurred_at, a.actor_user_id, u.display_name AS actor_name, a.actor_kind, a.client_id,
+                               a.action, a.entity_type, a.entity_id, a.result, a.reason, a.request_id, a.changes::text AS changes
+                          FROM audit_events a LEFT JOIN app_users u ON u.id = a.actor_user_id
+                         WHERE a.id = :id AND a.organization_id = :org
+                        """).param("id", id).param("org", actor.organizationId()).query(Row.class).optional()
+                .orElseThrow(ApiException::notFound);
+        TreeSet<String> masked = new TreeSet<>();
+        JsonNode changes = r.changes() == null ? null : mask(actor, json.readTree(r.changes()), masked);
+        return new AuditDetail(new AuditView(r.id(), r.occurred_at(), r.actor_user_id(), r.actor_name(), r.actor_kind(),
+                r.client_id(), r.action(), r.entity_type(), r.entity_id(), r.result(), r.reason(), r.request_id()),
+                changes, new ArrayList<>(masked));
+    }
+
+    private JsonNode mask(Actor actor, JsonNode node, TreeSet<String> masked) {
+        if (node.isObject()) {
+            Map<String, Object> out = new LinkedHashMap<>();
+            for (var e : node.properties()) {
+                FieldClass fc = SENSITIVE_KEYS.get(e.getKey());
+                if (fc != null && !authz.canSeeField(actor, fc)) {
+                    out.put(e.getKey(), "•••");
+                    masked.add(e.getKey());
+                } else {
+                    out.put(e.getKey(), mask(actor, e.getValue(), masked));
+                }
+            }
+            return json.valueToTree(out);
+        }
+        if (node.isArray()) {
+            List<Object> out = new ArrayList<>();
+            for (JsonNode n : node) {
+                out.add(mask(actor, n, masked));
+            }
+            return json.valueToTree(out);
+        }
+        return node;
     }
 
     public record AuditView(UUID id, OffsetDateTime occurred_at, UUID actor_user_id, String actor_name,

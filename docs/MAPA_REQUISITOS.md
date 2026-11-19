@@ -1,13 +1,14 @@
 # Mapa requisito → módulo → teste
 
 Estado: NOT_STARTED / IN_PROGRESS / PARTIAL / PASS / BLOCKED. Só PASS com evidência em `docs/evidence/`.
-Requisitos de F02 em diante seguem NOT_STARTED (lista completa em `docs/especificacao/plano/requisitos.json`).
+Estados dos requisitos de F02 em diante são registrados individualmente na tabela (lista completa em
+`docs/especificacao/plano/requisitos.json`).
 
 | Req | Módulo / superfície | Teste / evidência | Estado |
 |---|---|---|---|
 | PROD-01 | Todas; `application.yaml` `engenheiro.empresa.nome`, realm, seeds | `AuthenticationIntegrationTest.tokenValidoComVinculoAtivoAutentica` | PASS (backend); revalidar em web/apps |
 | PROD-02 | `apps/web-admin` + 4 `apps/mobile-*`, um `services/api` | `docs/F00_INVENTARIO.md` §3; 5 clients no realm | PASS (mapa); builds em F02/F11–F14 |
-| PROD-03 | `apps/mobile-owner` + central | F14 | NOT_STARTED |
+| PROD-03 | `apps/mobile-owner` + central | `packages/mobile-core/lib/src/screens/owner/*`, `apps/mobile-owner/lib/main.dart`; análise, 45 testes `mobile-core`, 3 `mobile-owner`, 4 integrações Java e fluxo no AVD — `docs/evidence/F14-validacao.txt` | IN_PROGRESS — IA está explicitamente planejada para F15 |
 | PROD-04 | Recebimento interno no app Retirada (`RECEBIMENTO`) | `RoleTemplate.RECEBIMENTO` | PASS (mapa) |
 | PROD-05 | `memberships` sem teto | `AuthorizationIntegrationTest.suportaMaisDeOitoFuncionarios` | PASS |
 | PROD-06 | Inventário | `docs/F00_INVENTARIO.md`, `F00-validar_pacote.txt` | PASS |
@@ -50,6 +51,10 @@ Requisitos de F02 em diante seguem NOT_STARTED (lista completa em `docs/especifi
 | APP-E-02 | Motorista restrito às viagens atribuídas e aos dados mínimos | `EntregasAppIntegrationTest.motoristaNaoAbreViagemAlheiaPorIdNemPelosRecursosDela`; login `motorista.b`; capturas F12 | PASS |
 | APP-C-01 | App Contábil separado com agenda, guias, folha, notas e documentos | `apps/mobile-accountant`; `accounting_screens.dart`; `contabil_test.dart`; `ContabilAppIntegrationTest`; fluxo no AVD; `F13-validacao.txt` | PASS (Android; transmissão fiscal real BLOQUEADA: D02/D03) |
 | APP-C-02 | Contador acompanha aprovação e rejeição sem saldo/dashboard geral | `ContabilAppIntegrationTest.guiaEnviada…`, `.contadorNaoRecebeValorGlobal`; `IntegrationsIntegrationTest` (nota rejeitada vista pelo contador); capturas F13 | PASS |
+| APP-P-01 | App Patrão contém todas as funções do site | `apps/mobile-owner/lib/main.dart`; `packages/mobile-core/lib/src/screens/owner/*`; matriz preenchida em `docs/PARIDADE_WEB_APP.csv`; `patrao_test.dart`; `owner_test.dart`; capturas F14 | IN_PROGRESS — só a IA falta (F15) |
+| APP-P-02 | Central reúne Retirada, Entregas e Contabilidade com cada movimento | `central.dart`; `PatraoAppIntegrationTest.trilhaEncadeadaDoPedidoAteADespesaDaViagem` (cada elo exige a capacidade do próprio recurso); central no AVD; `F14-validacao.txt` | PASS (Android) |
+| APP-P-03 | Filtros por pessoa, cliente, pedido, fornecedor, placa e período | `AuditController.list` (ator, app, setor, tipo, registro, período); `/api/v1/search`; `patrao_test.dart` (tipo de registro, placa) | PASS |
+| APP-P-04 | Atualizações compartilhadas entre dispositivos com identidade real do ator | `PatraoAppIntegrationTest.mudancaNoSiteChegaAoAppEVersaoVelhaERecusada`, `.quemAlterouCadaCampoComCampoSensivelMascarado`, `.eventoNaoAutorizadoNaoChegaAOutroUsuario` | PASS |
 | APP-E-03 | Entrega, combustível e ocorrência compartilhados com a central do patrão | `EntregasAppIntegrationTest`; trilha de auditoria com client/ator real; fluxos F05; `F12-validacao.txt` | PASS (serviço/auditoria compartilhados; evidência em F05/F12) |
 | FIN-01 | Despesas por categoria/subcategoria com competência, vencimento, situação e comprovante (`ExpenseService`, Financeiro › Despesas) | `pagamentoDeObrigacao...`, `Finance.test.tsx`, `finance.spec.ts` | PASS |
 | FIN-02 | Contas a pagar/receber e saldo/extrato por conta (`PayableService`, `ReceivableService`, `FinAccountService`) | `caixaDisponivelSeparadoDoResultado` (CAIXA-01), `devolucaoAoFornecedor...`, `finance.spec.ts` | PASS |

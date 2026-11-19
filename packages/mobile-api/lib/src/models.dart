@@ -864,7 +864,7 @@ class InvoiceLineInfo {
 class InvoiceInfo {
   const InvoiceInfo({required this.id, required this.orderNumber, required this.customerName, required this.documentType,
       required this.state, required this.total, this.accessKey, this.protocol, this.rejectionReason, required this.lines,
-      required this.issues, required this.version});
+      required this.issues, required this.version, this.xmlDocumentId, this.cancelReason});
   final String id;
   final int orderNumber;
   final String customerName;
@@ -877,6 +877,8 @@ class InvoiceInfo {
   final List<InvoiceLineInfo> lines;
   final List<String> issues;
   final int version;
+  final String? xmlDocumentId;
+  final String? cancelReason;
   factory InvoiceInfo.fromJson(Map<String, dynamic> j) => InvoiceInfo(
         id: j['id'] as String,
         orderNumber: j['order_number'] as int,
@@ -890,5 +892,7 @@ class InvoiceInfo {
         lines: [for (final l in (j['lines'] as List?) ?? const []) InvoiceLineInfo.fromJson(l as Map<String, dynamic>)],
         issues: [for (final m in (j['issues'] as List?) ?? const []) m as String],
         version: j['version'] as int,
+        xmlDocumentId: j['xml_document_id'] as String?,
+        cancelReason: j['cancel_reason'] as String?,
       );
 }

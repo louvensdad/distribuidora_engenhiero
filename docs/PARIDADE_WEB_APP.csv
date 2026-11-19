@@ -1,0 +1,21 @@
+﻿capacidade;web_obrigatoria;app_patrao_obrigatoria;web_estado;app_estado;evidencia
+Dashboard e totais;SIM;SIM;IMPLEMENTED_F09_F10;VALIDADO_F14;apps/mobile-owner/lib/main.dart, packages/mobile-core/lib/src/screens/owner/reports.dart
+Pedidos de retirada;SIM;SIM;IMPLEMENTED_F04_F10;VALIDADO_F14;packages/mobile-core/lib/src/screens/owner/operation.dart
+Pedidos de entrega;SIM;SIM;IMPLEMENTED_F05_F10_F12;VALIDADO_F14;packages/mobile-core/lib/src/screens/owner/operation.dart
+Clientes e fornecedores;SIM;SIM;IMPLEMENTED_F03_F10;VALIDADO_F14;packages/mobile-core/lib/src/screens/owner/operation.dart
+Estoque e perdas;SIM;SIM;IMPLEMENTED_F03_F10;VALIDADO_F14;packages/mobile-core/lib/src/screens/owner/operation.dart
+Veículos e viagens;SIM;SIM;IMPLEMENTED_F05_F10_F12;VALIDADO_F14;packages/mobile-core/lib/src/screens/owner/operation.dart
+Combustível e manutenção;SIM;SIM;IMPLEMENTED_F05_F10_F12;VALIDADO_F14;packages/mobile-core/lib/src/screens/owner/operation.dart
+Caixa e recebíveis;SIM;SIM;IMPLEMENTED_F04_F06_F10;VALIDADO_F14;packages/mobile-core/lib/src/screens/owner/finance.dart
+Despesas por categoria;SIM;SIM;IMPLEMENTED_F06_F10;VALIDADO_F14;packages/mobile-core/lib/src/screens/owner/finance.dart
+Impostos e guias;SIM;SIM;IMPLEMENTED_F07_F10_F13;VALIDADO_F14;packages/mobile-core/lib/src/screens/owner/finance.dart
+Folha de pagamento;SIM;SIM;IMPLEMENTED_F07_F10_F13;VALIDADO_F14;packages/mobile-core/lib/src/screens/owner/finance.dart
+Notas fiscais;SIM;SIM;IMPLEMENTED_F08_F10_F13;VALIDADO_F14;packages/mobile-core/lib/src/screens/accounting_screens.dart
+Documentos privados;SIM;SIM;IMPLEMENTED_F07_F10_F13;VALIDADO_F14;packages/mobile-core/lib/src/screens/accounting_screens.dart
+Aprovações;SIM;SIM;IMPLEMENTED_F10;VALIDADO_F14;packages/mobile-core/lib/src/screens/owner/approvals.dart
+Metas;SIM;SIM;IMPLEMENTED_F09_F10;VALIDADO_F14;packages/mobile-core/lib/src/screens/owner/reports.dart
+Relatórios3D e exportação;SIM;SIM;IMPLEMENTED_F09_F10;VALIDADO_F14;packages/mobile-core/lib/src/screens/owner/reports.dart
+IA com fontes;SIM;SIM;IMPLEMENTED_F09_F10;F15_NAO_IMPLEMENTADO;apps/mobile-owner/lib/main.dart (destino marcado F15)
+Equipe e permissões;SIM;SIM;IMPLEMENTED_ADR027_F10;VALIDADO_F14;packages/mobile-core/lib/src/screens/owner/team.dart
+Histórico completo;SIM;SIM;IMPLEMENTED_F10;VALIDADO_F14;packages/mobile-core/lib/src/screens/owner/central.dart
+Central dos três setores;SIM;SIM;IMPLEMENTED_F10;VALIDADO_F14;packages/mobile-core/lib/src/screens/owner/central.dart

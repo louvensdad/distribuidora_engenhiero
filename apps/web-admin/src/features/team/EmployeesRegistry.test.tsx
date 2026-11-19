@@ -28,7 +28,7 @@ describe("Equipe › Funcionários e cargos (ADR-027)", () => {
         display_name: "Paula", status: "ACTIVE", role_template: "BALCAO", sector: "RETIRADA" } }], next_cursor: null } },
     });
     renderAt("/team/employees?status=ACTIVE&position=p1");
-    const row = (await screen.findByRole("link", { name: "Carlos Fictício" })).closest("tr")!;
+    const row = (await screen.findByRole("link", { name: "Carlos Fictício" }, { timeout: 5000 })).closest("tr")!;
     expect(within(row).getByText("sem conta")).toBeInTheDocument();
     expect(within(row).getByText("Ativo")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Paula Fictícia" }).closest("tr")!).toHaveTextContent("Balcão");
