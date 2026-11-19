@@ -76,7 +76,7 @@ public class KeycloakIdentityProvisioner implements IdentityProvisioner {
     public Provisioned createUser(String username, String displayName, String employeeRef) {
         String tok = token();
         String password = temporaryPassword();
-        String[] parts = displayName.strip().split("\\s+", 2);
+        String[] parts = idpName(displayName, username).split(" ", 2);
         Map<String, Object> body = Map.of("username", username, "firstName", parts[0],
                 "lastName", parts.length > 1 ? parts[1] : parts[0], "enabled", true,
                 "requiredActions", List.of("UPDATE_PASSWORD"),
@@ -110,7 +110,28 @@ public class KeycloakIdentityProvisioner implements IdentityProvisioner {
             }
             throw new UsernameTaken();
         }
-        throw new Unavailable("provedor respondeu " + r.statusCode());
+        throw new Unavailable("provedor respondeu " + r.statusCode() + reason(r.body()));
+    }
+
+    /**
+     * Nome para o IdP (só exibição na tela de login): o Keycloak recusa em nome de pessoa caracteres como ( ) < > & " $ %
+     * ! # ? ; * ~ / \\ | ^ = [ ] { }. O nome completo do funcionário continua intacto no sistema.
+     */
+    static String idpName(String displayName, String username) {
+        String n = displayName == null ? "" : displayName.replaceAll("[^\\p{L}\\p{M}\\p{N}' .,-]", " ").replaceAll("\\s+", " ").strip();
+        return n.isEmpty() ? username : n;
+    }
+
+    /** Código de erro do provedor (ex.: error-person-name-invalid-character, campo) — nunca o valor enviado. */
+    private static String reason(String body) {
+        try {
+            JsonNode j = JSON.readTree(body);
+            String code = j.path("errorMessage").asString("");
+            String field = j.path("field").asString("");
+            return code.isEmpty() ? "" : " (" + code + (field.isEmpty() ? "" : ", campo " + field) + ")";
+        } catch (RuntimeException e) {
+            return "";
+        }
     }
 
     private HttpResponse<String> send(HttpRequest.Builder b) {
